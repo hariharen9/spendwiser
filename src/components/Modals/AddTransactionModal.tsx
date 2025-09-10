@@ -9,6 +9,8 @@ interface AddTransactionModalProps {
   onSave: (transaction: Omit<Transaction, 'id'>) => void;
   editingTransaction?: Transaction;
   accounts: Account[];
+  creditCards?: Account[];
+  defaultAccountId?: string | null;
 }
 
 const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
@@ -16,7 +18,9 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   onClose,
   onSave,
   editingTransaction,
-  accounts
+  accounts,
+  creditCards = [],
+  defaultAccountId
 }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -27,6 +31,8 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
     accountId: '',
     comments: ''
   });
+
+  const allAccounts = [...accounts, ...creditCards];
 
   useEffect(() => {
     if (editingTransaction) {
@@ -40,17 +46,25 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
         comments: editingTransaction.comments || ''
       });
     } else {
+      // Set default account based on the rules
+      let defaultAccount = '';
+      if (defaultAccountId && allAccounts.some(acc => acc.id === defaultAccountId)) {
+        defaultAccount = defaultAccountId;
+      } else if (allAccounts.length === 1) {
+        defaultAccount = allAccounts[0].id;
+      }
+      
       setFormData({
         name: '',
         amount: '',
         date: new Date().toISOString().split('T')[0],
         category: categories[0],
         type: 'expense',
-        accountId: '',
+        accountId: defaultAccount,
         comments: ''
       });
     }
-  }, [editingTransaction, isOpen]);
+  }, [editingTransaction, isOpen, accounts, creditCards, defaultAccountId]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,6 +87,9 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   };
 
   if (!isOpen) return null;
+
+  // Determine if account selection is required
+  const isAccountRequired = allAccounts.length > 0;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -194,18 +211,51 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
           {/* Account */}
           <div>
             <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
-              Account (Optional)
+              {isAccountRequired ? 'Account *' : 'Account (Optional)'}
             </label>
-            <select
-              value={formData.accountId}
-              onChange={(e) => setFormData({ ...formData, accountId: e.target.value })}
-              className="w-full px-3 py-2 bg-gray-50 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF] appearance-none"
-            >
-              <option value="">None</option>
-              {accounts.map(acc => (
-                <option key={acc.id} value={acc.id}>{acc.name}</option>
-              ))}
-            </select>
+            {allAccounts.length === 0 ? (
+              <p className="text-sm text-gray-500 dark:text-[#888888]">
+                No accounts available. Add an account in Settings.
+              </p>
+            ) : allAccounts.length === 1 ? (
+              <div className="px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5]">
+                {allAccounts[0].name} {allAccounts[0].type === 'Credit Card' ? '(Credit Card)' : '(Account)'} (Auto-selected)
+                <input type="hidden" name="accountId" value={allAccounts[0].id} />
+              </div>
+            ) : (
+              <select
+                value={formData.accountId}
+                onChange={(e) => setFormData({ ...formData, accountId: e.target.value })}
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF] appearance-none"
+                required={isAccountRequired}
+              >
+                <option value="">Select an account</option>
+                {accounts.length > 0 && (
+                  <optgroup label="Accounts">
+                    {accounts.map(acc => (
+                      <option 
+                        key={acc.id} 
+                        value={acc.id}
+                      >
+                        {acc.name} {acc.id === defaultAccountId ? '(Default)' : ''}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+                {creditCards.length > 0 && (
+                  <optgroup label="Credit Cards">
+                    {creditCards.map(card => (
+                      <option 
+                        key={card.id} 
+                        value={card.id}
+                      >
+                        {card.name} {card.id === defaultAccountId ? '(Default)' : ''}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+              </select>
+            )}
           </div>
 
           {/* Comments */}

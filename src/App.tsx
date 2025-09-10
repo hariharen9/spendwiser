@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Screen, Transaction, Account, Budget } from './types/types';
 import { User } from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
-import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc } from 'firebase/firestore';
 import { categories } from './data/mockData'; // Keep these for now
 
 // Components
@@ -33,6 +33,7 @@ function App() {
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState<any>();
   const [darkMode, setDarkMode] = useState(true);
+  const [defaultAccountId, setDefaultAccountId] = useState<string | null>(null);
   
   // Transaction filter states
   const [searchTerm, setSearchTerm] = useState('');
@@ -48,6 +49,16 @@ function App() {
         // Ensure a user document exists in the 'spenders' collection
         const userDocRef = doc(db, 'spenders', user.uid);
         await setDoc(userDocRef, { email: user.email, name: user.displayName }, { merge: true });
+        
+        // Fetch default account setting
+        try {
+          const userDocSnap = await getDoc(userDocRef);
+          if (userDocSnap.exists() && userDocSnap.data().defaultAccountId) {
+            setDefaultAccountId(userDocSnap.data().defaultAccountId);
+          }
+        } catch (error) {
+          console.error("Error fetching user settings: ", error);
+        }
       }
     });
     return () => unsubscribe();
@@ -94,6 +105,47 @@ function App() {
       document.documentElement.classList.remove('dark');
     }
   }, [darkMode]);
+
+  // Calculate account balances dynamically based on transactions
+  const accountsWithDynamicBalances = useMemo(() => {
+    return accounts.map(account => {
+      // For credit cards, we calculate spend based on transactions
+      if (account.type === 'Credit Card') {
+        const cardTransactions = transactions.filter(t => t.accountId === account.id);
+        const totalSpend = cardTransactions.reduce((sum, transaction) => {
+          return sum + Math.abs(transaction.amount);
+        }, 0);
+        return {
+          ...account,
+          balance: totalSpend // For credit cards, balance represents total spend
+        };
+      } 
+      // For other account types, calculate balance based on income/expense transactions
+      else {
+        const accountTransactions = transactions.filter(t => t.accountId === account.id);
+        const dynamicBalance = accountTransactions.reduce((balance, transaction) => {
+          // Since expenses are already negative and income positive from the transaction modal,
+          // we simply add them to the balance
+          return balance + transaction.amount;
+        }, account.balance); // Start with initial balance
+        return {
+          ...account,
+          balance: dynamicBalance
+        };
+      }
+    });
+  }, [accounts, transactions]);
+
+  // Separate credit cards from other accounts
+  const creditCards = useMemo(() => 
+    accountsWithDynamicBalances.filter(acc => acc.type === 'Credit Card'), 
+    [accountsWithDynamicBalances]
+  );
+
+  const regularAccounts = useMemo(() => 
+    accountsWithDynamicBalances.filter(acc => acc.type !== 'Credit Card'), 
+    [accountsWithDynamicBalances]
+  );
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter(transaction => {
@@ -254,6 +306,17 @@ function App() {
     a.click();
   };
 
+  const handleSetDefaultAccount = async (accountId: string) => {
+    if (!user) return;
+    try {
+      setDefaultAccountId(accountId);
+      const userDocRef = doc(db, 'spenders', user.uid);
+      await updateDoc(userDocRef, { defaultAccountId: accountId });
+    } catch (error) {
+      console.error("Error setting default account: ", error);
+    }
+  };
+
   const getPageTitle = () => {
     switch (currentScreen) {
       case 'dashboard': return 'Dashboard';
@@ -282,7 +345,7 @@ function App() {
         return (
           <DashboardPage
             transactions={transactions}
-            accounts={accounts}
+            accounts={regularAccounts}
             onViewAllTransactions={() => setCurrentScreen('transactions')}
           />
         );
@@ -308,9 +371,10 @@ function App() {
       case 'credit-cards':
         return (
           <CreditCardsPage
-            accounts={accounts}
+            accounts={creditCards}
             transactions={transactions}
             onAddAccount={handleAddAccount}
+            onEditAccount={handleEditAccount}
           />
         );
       case 'budgets':
@@ -329,15 +393,17 @@ function App() {
             user={user}
             darkMode={darkMode}
             onToggleDarkMode={() => setDarkMode(!darkMode)}
-            accounts={accounts}
+            accounts={regularAccounts}
             onAddAccount={handleAddAccount}
             onEditAccount={handleEditAccount}
             onDeleteAccount={handleDeleteAccount}
             onUpdateCurrency={handleUpdateCurrency}
+            defaultAccountId={defaultAccountId}
+            onSetDefaultAccount={handleSetDefaultAccount}
           />
         );
       default:
-        return <DashboardPage transactions={transactions} accounts={accounts} onViewAllTransactions={() => setCurrentScreen('transactions')} />;
+        return <DashboardPage transactions={transactions} accounts={regularAccounts} onViewAllTransactions={() => setCurrentScreen('transactions')} />;
     }
   };
 
@@ -380,7 +446,9 @@ function App() {
         }}
         onSave={handleAddTransaction}
         editingTransaction={editingTransaction}
-        accounts={accounts}
+        accounts={regularAccounts}
+        creditCards={creditCards}
+        defaultAccountId={defaultAccountId}
       />
 
       {/* Budget Modal */}

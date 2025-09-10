@@ -4,7 +4,7 @@ import { Account } from '../../types/types';
 import { currencies } from '../../data/mockData';
 
 interface SettingsPageProps {
-  user: any;
+  user: User | null;
   darkMode: boolean;
   onToggleDarkMode: () => void;
   accounts: Account[];
@@ -12,6 +12,8 @@ interface SettingsPageProps {
   onEditAccount: (account: Account) => void;
   onDeleteAccount: (id: string) => void;
   onUpdateCurrency: (currency: string) => void;
+  defaultAccountId?: string | null;
+  onSetDefaultAccount?: (accountId: string) => void;
 }
 
 const SettingsPage: React.FC<SettingsPageProps> = ({ 
@@ -21,8 +23,10 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   accounts, 
   onAddAccount, 
   onEditAccount, 
-  onDeleteAccount,
-  onUpdateCurrency
+  onDeleteAccount, 
+  onUpdateCurrency,
+  defaultAccountId,
+  onSetDefaultAccount
 }) => {
   const [showAddAccountModal, setShowAddAccountModal] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
@@ -130,7 +134,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
             Default Currency
           </label>
           <select
-            value={user.currency} // This might need to be managed in state
             onChange={(e) => onUpdateCurrency(e.target.value)}
             className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF] appearance-none"
           >
@@ -163,6 +166,32 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
         </div>
       </div>
 
+      {/* Default Account Settings */}
+      {accounts.length > 1 && (
+        <div className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-6">Default Account</h3>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
+              Select Default Account
+            </label>
+            <p className="text-sm text-gray-500 dark:text-[#888888] mb-4">
+              This account will be automatically selected when adding new transactions.
+            </p>
+            <select
+              value={defaultAccountId || ''}
+              onChange={(e) => onSetDefaultAccount && onSetDefaultAccount(e.target.value)}
+              className="w-full md:w-64 px-4 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF] appearance-none"
+            >
+              <option value="">No default account</option>
+              {accounts.map(account => (
+                <option key={account.id} value={account.id}>{account.name}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
+
       {/* Account Management */}
       <div className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between mb-6">
@@ -188,7 +217,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
               <div className="flex items-center space-x-4">
                 <div className="text-right">
                   <p className="font-semibold text-gray-900 dark:text-[#F5F5F5]">
-                    {user.currency}{account.balance.toLocaleString()}
+                    ₹{account.balance.toLocaleString()}
                   </p>
                   <p className="text-sm text-gray-500 dark:text-[#888888]">Current Balance</p>
                 </div>
@@ -254,6 +283,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                   <option value="Savings">Savings</option>
                   <option value="Business Checking">Business Checking</option>
                   <option value="Investment">Investment</option>
+                  <option value="Credit Card">Credit Card</option>
                 </select>
               </div>
               
@@ -270,6 +300,22 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                   placeholder="0.00"
                 />
               </div>
+
+              {accountForm.type === 'Credit Card' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
+                    Credit Limit *
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={accountForm.limit}
+                    onChange={(e) => setAccountForm({ ...accountForm, limit: e.target.value })}
+                    className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
+                    placeholder="5000.00"
+                  />
+                </div>
+              )}
 
               <div className="flex items-center justify-end space-x-4 pt-4">
                 <button
