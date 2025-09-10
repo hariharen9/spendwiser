@@ -27,6 +27,36 @@ const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onScreenChange, user, 
     { id: 'settings' as Screen, label: 'Settings', icon: Settings },
   ];
 
+  // Check if we're in mobile mode (user is null indicates mobile bottom nav)
+  const isMobile = !user;
+
+  if (isMobile) {
+    // Mobile bottom navigation with icons only
+    return (
+      <div className="flex justify-around w-full py-2">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = currentScreen === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => onScreenChange(item.id)}
+              className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all duration-200 ${
+                isActive
+                  ? 'text-[#007BFF]'
+                  : 'text-gray-500 dark:text-[#888888]'
+              }`}
+            >
+              <Icon className="h-6 w-6" />
+              <span className="text-xs mt-1">{item.label}</span>
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
+  // Desktop sidebar
   return (
     <div className="bg-gray-100 dark:bg-[#242424] h-screen w-64 flex flex-col border-r border-gray-200 dark:border-gray-700">
       {/* Logo */}

@@ -22,6 +22,9 @@ import SettingsPage from './components/Settings/SettingsPage';
 import AddTransactionModal from './components/Modals/AddTransactionModal';
 import BudgetModal from './components/Modals/BudgetModal';
 
+// Icons
+import { LogOut, DollarSign } from 'lucide-react';
+
 function App() {
   const [user, setUser] = useState<User | null>(null);
   const [currentScreen, setCurrentScreen] = useState<Screen>('dashboard');
@@ -412,30 +415,87 @@ function App() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-[#1A1A1A] overflow-hidden">
-      {/* Sidebar */}
-      <Sidebar
-        currentScreen={currentScreen}
-        onScreenChange={setCurrentScreen}
-        user={user}
-        onLogout={handleLogout}
-      />
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header
-          title={getPageTitle()}
-          actionButton={getActionButton()}
-          onAddTransaction={() => setIsAddTransactionModalOpen(true)}
-        />
-        
-        <main className="flex-1 overflow-y-auto p-8">
-          {renderCurrentPage()}
-        </main>
+    <div className="flex flex-col h-screen bg-gray-50 dark:bg-[#1A1A1A] overflow-hidden">
+      {/* Top Bar for Mobile */}
+      <div className="md:hidden bg-white dark:bg-[#242424] border-b border-gray-200 dark:border-gray-700 p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="bg-[#007BFF] p-2 rounded-lg">
+              <DollarSign className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-[#F5F5F5]">SpendWise</h1>
+            </div>
+          </div>
+          {user && (
+            <div className="flex items-center space-x-3">
+              <img
+                src={user.photoURL || undefined}
+                alt={user.displayName || 'User'}
+                className="h-8 w-8 rounded-full object-cover"
+              />
+              <button
+                onClick={handleLogout}
+                className="text-gray-500 dark:text-[#888888] hover:text-gray-900 dark:hover:text-[#F5F5F5]"
+              >
+                <LogOut className="h-5 w-5" />
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Floating Action Button */}
-      <FAB onClick={() => setIsAddTransactionModalOpen(true)} />
+      {/* Main Content */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar for Desktop */}
+        <div className="hidden md:block w-64">
+          <Sidebar
+            currentScreen={currentScreen}
+            onScreenChange={setCurrentScreen}
+            user={user}
+            onLogout={handleLogout}
+          />
+        </div>
+
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Header for Desktop */}
+          <div className="hidden md:block">
+            <Header
+              title={getPageTitle()}
+              actionButton={getActionButton()}
+              onAddTransaction={() => setIsAddTransactionModalOpen(true)}
+            />
+          </div>
+
+          {/* Page Content */}
+          <main className="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-8">
+            {renderCurrentPage()}
+          </main>
+        </div>
+      </div>
+
+      {/* Floating Action Button - Visible only on mobile and positioned above bottom nav */}
+      <div className="md:hidden fixed bottom-24 right-6 z-50">
+        <FAB onClick={() => setIsAddTransactionModalOpen(true)} />
+      </div>
+
+      {/* Bottom Navigation for Mobile */}
+      <div className="md:hidden bg-white dark:bg-[#242424] border-t border-gray-200 dark:border-gray-700 fixed bottom-0 w-full">
+        <div className="flex justify-around">
+          <Sidebar
+            currentScreen={currentScreen}
+            onScreenChange={setCurrentScreen}
+            user={null} // We don't need user info in mobile bottom nav
+            onLogout={handleLogout}
+          />
+        </div>
+      </div>
+
+      {/* Floating Action Button - Visible only on desktop */}
+      <div className="hidden md:block fixed bottom-6 right-6 z-50">
+        <FAB onClick={() => setIsAddTransactionModalOpen(true)} />
+      </div>
 
       {/* Add Transaction Modal */}
       <AddTransactionModal

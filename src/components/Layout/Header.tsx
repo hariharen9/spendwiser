@@ -28,7 +28,7 @@ const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <div className="bg-white dark:bg-[#1A1A1A] border-b border-gray-200 dark:border-gray-700 px-8 py-6">
+    <div className="bg-white dark:bg-[#1A1A1A] border-b border-gray-200 dark:border-gray-700 px-8 py-6 hidden md:block">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-[#F5F5F5]">{title}</h1>
         <div className="flex items-center space-x-4">
