@@ -1,15 +1,24 @@
 import React from 'react';
 import { Target, TrendingUp, Plus, Edit, Trash2 } from 'lucide-react';
-import { Budget } from '../../types/types';
+import { Budget, Transaction } from '../../types/types';
 
 interface BudgetsPageProps {
   budgets: Budget[];
+  transactions: Transaction[];
   onEditBudget: (budget: Budget) => void;
   onAddBudget: () => void;
   onDeleteBudget: (id: string) => void;
 }
 
-const BudgetsPage: React.FC<BudgetsPageProps> = ({ budgets, onEditBudget, onAddBudget, onDeleteBudget }) => {
+const BudgetsPage: React.FC<BudgetsPageProps> = ({ budgets, transactions, onEditBudget, onAddBudget, onDeleteBudget }) => {
+
+  const totalSpent = budgets.reduce((total, budget) => {
+    const categorySpent = transactions
+      .filter(t => t.type === 'expense' && t.category === budget.category)
+      .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+    return total + categorySpent;
+  }, 0);
+
   return (
     <div className="space-y-8">
       {/* Overview Cards */}
@@ -36,7 +45,7 @@ const BudgetsPage: React.FC<BudgetsPageProps> = ({ budgets, onEditBudget, onAddB
             <div>
               <h3 className="text-sm font-medium text-gray-500 dark:text-[#888888]">Total Spent</h3>
               <p className="text-2xl font-bold text-gray-900 dark:text-[#F5F5F5]">
-                ₹{budgets.reduce((sum, b) => sum + b.spent, 0).toLocaleString()}
+                ₹{totalSpent.toLocaleString()}
               </p>
             </div>
           </div>
@@ -57,7 +66,11 @@ const BudgetsPage: React.FC<BudgetsPageProps> = ({ budgets, onEditBudget, onAddB
         </div>
         <div className="space-y-6">
           {budgets.map((budget) => {
-            const percentage = (budget.spent / budget.limit) * 100;
+            const calculatedSpent = transactions
+              .filter(t => t.type === 'expense' && t.category === budget.category)
+              .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+
+            const percentage = (calculatedSpent / budget.limit) * 100;
             const isOverBudget = percentage > 100;
             const isNearLimit = percentage > 80;
 
@@ -67,7 +80,7 @@ const BudgetsPage: React.FC<BudgetsPageProps> = ({ budgets, onEditBudget, onAddB
                   <div>
                     <h4 className="font-medium text-gray-900 dark:text-[#F5F5F5]">{budget.category}</h4>
                     <p className="text-sm text-gray-500 dark:text-[#888888]">
-                      ₹{budget.spent} of ₹{budget.limit} spent
+                      ₹{calculatedSpent.toFixed(2)} of ₹{budget.limit} spent
                     </p>
                   </div>
                   <div className="flex items-center space-x-4">
@@ -82,7 +95,7 @@ const BudgetsPage: React.FC<BudgetsPageProps> = ({ budgets, onEditBudget, onAddB
                         {Math.round(percentage)}%
                       </span>
                       <p className="text-sm text-gray-500 dark:text-[#888888]">
-                        ₹{budget.limit - budget.spent} remaining
+                        ₹{(budget.limit - calculatedSpent).toFixed(2)} remaining
                       </p>
                     </div>
                     <div className="flex items-center space-x-1">
@@ -111,7 +124,7 @@ const BudgetsPage: React.FC<BudgetsPageProps> = ({ budgets, onEditBudget, onAddB
 
                 {isOverBudget && (
                   <p className="text-xs text-[#DC3545] font-medium">
-                    Over budget by ₹{budget.spent - budget.limit}
+                    Over budget by ₹{(calculatedSpent - budget.limit).toFixed(2)}
                   </p>
                 )}
               </div>

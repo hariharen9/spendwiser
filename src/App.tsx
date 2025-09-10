@@ -3,7 +3,7 @@ import { Screen, Transaction, Account, Budget } from './types/types';
 import { User } from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
 import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc } from 'firebase/firestore';
-import { mockCreditCards, categories } from './data/mockData'; // Keep these for now
+import { categories } from './data/mockData'; // Keep these for now
 
 // Components
 import LoginPage from './components/Login/LoginPage';
@@ -282,6 +282,7 @@ function App() {
         return (
           <DashboardPage
             transactions={transactions}
+            accounts={accounts}
             onViewAllTransactions={() => setCurrentScreen('transactions')}
           />
         );
@@ -307,7 +308,7 @@ function App() {
       case 'credit-cards':
         return (
           <CreditCardsPage
-            creditCards={mockCreditCards}
+            accounts={accounts}
             transactions={transactions}
           />
         );
@@ -315,6 +316,7 @@ function App() {
         return (
           <BudgetsPage 
             budgets={budgets} 
+            transactions={transactions}
             onEditBudget={handleEditBudget}
             onAddBudget={() => setIsBudgetModalOpen(true)}
             onDeleteBudget={handleDeleteBudget}
@@ -334,7 +336,7 @@ function App() {
           />
         );
       default:
-        return <DashboardPage transactions={transactions} onViewAllTransactions={() => setCurrentScreen('transactions')} />;
+        return <DashboardPage transactions={transactions} accounts={accounts} onViewAllTransactions={() => setCurrentScreen('transactions')} />;
     }
   };
 
@@ -377,6 +379,7 @@ function App() {
         }}
         onSave={handleAddTransaction}
         editingTransaction={editingTransaction}
+        accounts={accounts}
       />
 
       {/* Budget Modal */}

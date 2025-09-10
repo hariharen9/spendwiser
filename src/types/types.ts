@@ -5,15 +5,8 @@ export interface Transaction {
   date: string;
   category: string;
   type: 'income' | 'expense';
-  creditCard?: string;
+  accountId?: string;
   comments?: string;
-}
-
-export interface CreditCard {
-  id: string;
-  name: string;
-  totalSpend: number;
-  limit: number;
 }
 
 export interface Budget {
@@ -35,6 +28,7 @@ export interface Account {
   name: string;
   type: string;
   balance: number;
+  limit?: number;
 }
 
 export type Screen = 'login' | 'dashboard' | 'transactions' | 'credit-cards' | 'budgets' | 'settings';

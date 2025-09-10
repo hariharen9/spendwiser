@@ -1,18 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { CreditCard as CreditCardIcon, TrendingUp } from 'lucide-react';
-import { CreditCard, Transaction } from '../../types/types';
+import { Account, Transaction } from '../../types/types';
 import MetricCard from '../Dashboard/MetricCard';
 
 interface CreditCardsPageProps {
-  creditCards: CreditCard[];
+  accounts: Account[];
   transactions: Transaction[];
 }
 
-const CreditCardsPage: React.FC<CreditCardsPageProps> = ({ creditCards, transactions }) => {
-  const [selectedCard, setSelectedCard] = useState(creditCards[0]?.id || '');
+const CreditCardsPage: React.FC<CreditCardsPageProps> = ({ accounts, transactions }) => {
+  const creditCards = useMemo(() => 
+    accounts.filter(acc => acc.type === 'Credit Card'), 
+    [accounts]
+  );
 
-  const currentCard = creditCards.find(card => card.id === selectedCard);
-  const cardTransactions = transactions.filter(t => t.creditCard === currentCard?.name);
+  const [selectedCardId, setSelectedCardId] = useState(creditCards[0]?.id || '');
+
+  const selectedCard = creditCards.find(card => card.id === selectedCardId);
+
+  const totalSpend = selectedCard?.balance || 0;
+  const limit = selectedCard?.limit || 0;
+
+  const cardTransactions = useMemo(() => 
+    transactions.filter(t => t.accountId === selectedCardId), 
+    [transactions, selectedCardId]
+  );
 
   return (
     <div className="space-y-8">
@@ -22,8 +34,8 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({ creditCards, transact
           Select Credit Card
         </label>
         <select
-          value={selectedCard}
-          onChange={(e) => setSelectedCard(e.target.value)}
+          value={selectedCardId}
+          onChange={(e) => setSelectedCardId(e.target.value)}
           className="w-full md:w-64 px-4 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
         >
           {creditCards.map(card => (
@@ -32,22 +44,22 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({ creditCards, transact
         </select>
       </div>
 
-      {currentCard && (
+      {selectedCard && (
         <>
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <MetricCard
               title="Total Spend"
-              value={`₹${currentCard.totalSpend.toLocaleString()}`}
-              change={`${Math.round((currentCard.totalSpend / currentCard.limit) * 100)}% of limit`}
+              value={`₹${totalSpend.toLocaleString()}`}
+              change={limit > 0 ? `${Math.round((totalSpend / limit) * 100)}% of limit` : ''}
               changeType="neutral"
               icon={CreditCardIcon}
               color="bg-[#007BFF]"
             />
             <MetricCard
               title="Remaining Limit"
-              value={`₹${(currentCard.limit - currentCard.totalSpend).toLocaleString()}`}
-              change={`₹${currentCard.limit.toLocaleString()} total limit`}
+              value={`₹${(limit - totalSpend).toLocaleString()}`}
+              change={`₹${limit.toLocaleString()} total limit`}
               changeType="neutral"
               icon={TrendingUp}
               color="bg-[#00C9A7]"
@@ -61,24 +73,24 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({ creditCards, transact
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500 dark:text-[#888888]">Used</span>
                 <span className="text-gray-900 dark:text-[#F5F5F5]">
-                  ₹{currentCard.totalSpend.toLocaleString()} of ₹{currentCard.limit.toLocaleString()}
+                  ₹{totalSpend.toLocaleString()} of ₹{limit.toLocaleString()}
                 </span>
               </div>
               <div className="w-full bg-gray-200 dark:bg-[#1A1A1A] rounded-full h-3">
                 <div
                   className="bg-gradient-to-r from-[#007BFF] to-[#00C9A7] h-3 rounded-full transition-all duration-500"
-                  style={{ width: `${Math.min((currentCard.totalSpend / currentCard.limit) * 100, 100)}%` }}
+                  style={{ width: `${Math.min((totalSpend / limit) * 100, 100)}%` }}
                 ></div>
               </div>
               <div className="text-right">
                 <span className={`text-sm font-medium ${
-                  (currentCard.totalSpend / currentCard.limit) > 0.8 
+                  limit > 0 && (totalSpend / limit) > 0.8 
                     ? 'text-[#DC3545]' 
-                    : (currentCard.totalSpend / currentCard.limit) > 0.6
+                    : limit > 0 && (totalSpend / limit) > 0.6
                     ? 'text-[#FFC107]'
                     : 'text-[#28A745]'
                 }`}>
-                  {Math.round((currentCard.totalSpend / currentCard.limit) * 100)}% utilized
+                  {limit > 0 ? `${Math.round((totalSpend / limit) * 100)}% utilized` : 'N/A'}
                 </span>
               </div>
             </div>
@@ -87,7 +99,7 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({ creditCards, transact
           {/* Recent Transactions for Selected Card */}
           <div className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-6">
-              Recent {currentCard.name} Transactions
+              Recent {selectedCard.name} Transactions
             </h3>
             <div className="space-y-4">
               {cardTransactions.slice(0, 5).map((transaction) => (

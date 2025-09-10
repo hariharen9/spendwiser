@@ -3,21 +3,30 @@ import { DollarSign, TrendingUp, TrendingDown } from 'lucide-react';
 import MetricCard from './MetricCard';
 import SpendingChart from './SpendingChart';
 import RecentTransactions from './RecentTransactions';
-import { Transaction } from '../../types/types';
+import { Transaction, Account } from '../../types/types';
 
 interface DashboardPageProps {
   transactions: Transaction[];
+  accounts: Account[];
   onViewAllTransactions: () => void;
 }
 
-const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, onViewAllTransactions }) => {
+const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, onViewAllTransactions }) => {
   // Calculate metrics
-  const totalBalance = 12750.50;
-  const monthlyIncome = transactions
+  const totalBalance = accounts.reduce((sum, acc) => sum + acc.balance, 0);
+
+  const currentMonthTxs = transactions.filter(t => {
+    const txDate = new Date(t.date);
+    const today = new Date();
+    return txDate.getMonth() === today.getMonth() && txDate.getFullYear() === today.getFullYear();
+  });
+
+  const monthlyIncome = currentMonthTxs
     .filter(t => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0);
+
   const monthlyExpenses = Math.abs(
-    transactions
+    currentMonthTxs
       .filter(t => t.type === 'expense')
       .reduce((sum, t) => sum + t.amount, 0)
   );
@@ -29,24 +38,18 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, onViewAllTr
         <MetricCard
           title="Total Balance"
           value={`₹${totalBalance.toLocaleString()}`}
-          change="+2.5%"
-          changeType="positive"
           icon={DollarSign}
           color="bg-[#007BFF]"
         />
         <MetricCard
           title="This Month's Income"
           value={`₹${monthlyIncome.toLocaleString()}`}
-          change="+12.3%"
-          changeType="positive"
           icon={TrendingUp}
           color="bg-[#28A745]"
         />
         <MetricCard
           title="This Month's Expenses"
           value={`₹${monthlyExpenses.toLocaleString()}`}
-          change="-5.1%"
-          changeType="negative"
           icon={TrendingDown}
           color="bg-[#DC3545]"
         />
@@ -54,7 +57,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, onViewAllTr
 
       {/* Charts and Transactions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <SpendingChart />
+        <SpendingChart transactions={currentMonthTxs} />
         <RecentTransactions 
           transactions={transactions}
           onViewAll={onViewAllTransactions}

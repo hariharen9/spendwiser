@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { X, DollarSign } from 'lucide-react';
-import { Transaction } from '../../types/types';
-import { categories, mockCreditCards } from '../../data/mockData';
+import { Transaction, Account } from '../../types/types';
+import { categories } from '../../data/mockData';
 
 interface AddTransactionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (transaction: Omit<Transaction, 'id'>) => void;
   editingTransaction?: Transaction;
+  accounts: Account[];
 }
 
 const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   isOpen,
   onClose,
   onSave,
-  editingTransaction
+  editingTransaction,
+  accounts
 }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -22,7 +24,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
     date: new Date().toISOString().split('T')[0],
     category: categories[0],
     type: 'expense' as 'income' | 'expense',
-    creditCard: '',
+    accountId: '',
     comments: ''
   });
 
@@ -34,7 +36,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
         date: editingTransaction.date,
         category: editingTransaction.category,
         type: editingTransaction.type,
-        creditCard: editingTransaction.creditCard || '',
+        accountId: editingTransaction.accountId || '',
         comments: editingTransaction.comments || ''
       });
     } else {
@@ -44,7 +46,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
         date: new Date().toISOString().split('T')[0],
         category: categories[0],
         type: 'expense',
-        creditCard: '',
+        accountId: '',
         comments: ''
       });
     }
@@ -62,7 +64,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
       date: formData.date,
       category: formData.category,
       type: formData.type,
-      ...(formData.creditCard && { creditCard: formData.creditCard }),
+      ...(formData.accountId && { accountId: formData.accountId }),
       ...(formData.comments && { comments: formData.comments }),
     };
 
@@ -189,19 +191,19 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
             </div>
           </div>
 
-          {/* Credit Card */}
+          {/* Account */}
           <div>
             <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
-              Credit Card (Optional)
+              Account (Optional)
             </label>
             <select
-              value={formData.creditCard}
-              onChange={(e) => setFormData({ ...formData, creditCard: e.target.value })}
+              value={formData.accountId}
+              onChange={(e) => setFormData({ ...formData, accountId: e.target.value })}
               className="w-full px-3 py-2 bg-gray-50 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF] appearance-none"
             >
               <option value="">None</option>
-              {mockCreditCards.map(card => (
-                <option key={card.id} value={card.name}>{card.name}</option>
+              {accounts.map(acc => (
+                <option key={acc.id} value={acc.id}>{acc.name}</option>
               ))}
             </select>
           </div>

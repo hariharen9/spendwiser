@@ -29,7 +29,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   const [accountForm, setAccountForm] = useState({
     name: '',
     type: 'Checking',
-    balance: ''
+    balance: '',
+    limit: ''
   });
 
   const handleOpenModal = (account: Account | null) => {
@@ -38,10 +39,11 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
       setAccountForm({
         name: account.name,
         type: account.type,
-        balance: account.balance.toString()
+        balance: account.balance.toString(),
+        limit: account.limit?.toString() || ''
       });
     } else {
-      setAccountForm({ name: '', type: 'Checking', balance: '' });
+      setAccountForm({ name: '', type: 'Checking', balance: '', limit: '' });
     }
     setShowAddAccountModal(true);
   };
@@ -49,15 +51,16 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   const handleCloseModal = () => {
     setShowAddAccountModal(false);
     setEditingAccount(null);
-    setAccountForm({ name: '', type: 'Checking', balance: '' });
+    setAccountForm({ name: '', type: 'Checking', balance: '', limit: '' });
   };
 
   const handleSaveAccount = () => {
     if (accountForm.name && accountForm.balance) {
-      const accountData = {
+      const accountData: Omit<Account, 'id'> = {
         name: accountForm.name,
         type: accountForm.type,
-        balance: parseFloat(accountForm.balance)
+        balance: parseFloat(accountForm.balance),
+        ...(accountForm.type === 'Credit Card' && { limit: parseFloat(accountForm.limit) || 0 })
       };
       
       if (editingAccount) {
@@ -81,8 +84,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
         
         <div className="flex items-center space-x-6">
           <img
-            src={user.avatar}
-            alt={user.name}
+            src={user.photoURL} // Changed from avatar
+            alt={user.displayName} // Changed from name
             className="h-20 w-20 rounded-full object-cover"
           />
           <div className="flex-1">
@@ -93,7 +96,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                 </label>
                 <input
                   type="text"
-                  defaultValue={user.name}
+                  defaultValue={user.displayName} // Changed from name
                   className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
                 />
               </div>
@@ -127,7 +130,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
             Default Currency
           </label>
           <select
-            value={user.currency}
+            value={user.currency} // This might need to be managed in state
             onChange={(e) => onUpdateCurrency(e.target.value)}
             className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF] appearance-none"
           >
@@ -249,6 +252,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                 >
                   <option value="Checking">Checking</option>
                   <option value="Savings">Savings</option>
+                  <option value="Credit Card">Credit Card</option>
                   <option value="Business Checking">Business Checking</option>
                   <option value="Investment">Investment</option>
                 </select>
@@ -256,7 +260,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
               
               <div>
                 <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
-                  Current Balance *
+                  {accountForm.type === 'Credit Card' ? 'Current Due' : 'Current Balance'} *
                 </label>
                 <input
                   type="number"
@@ -267,6 +271,22 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                   placeholder="0.00"
                 />
               </div>
+
+              {accountForm.type === 'Credit Card' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
+                    Credit Limit *
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={accountForm.limit}
+                    onChange={(e) => setAccountForm({ ...accountForm, limit: e.target.value })}
+                    className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
+                    placeholder="5000.00"
+                  />
+                </div>
+              )}
               
               <div className="flex items-center justify-end space-x-4 pt-4">
                 <button
