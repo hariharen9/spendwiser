@@ -54,7 +54,7 @@ const SpendingChart: React.FC = () => {
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center">
-                <p className="text-2xl font-bold text-gray-900 dark:text-[#F5F5F5]">₹${total}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-[#F5F5F5]">₹{total}</p>
                 <p className="text-sm text-gray-500 dark:text-[#888888]">Total Spent</p>
               </div>
             </div>

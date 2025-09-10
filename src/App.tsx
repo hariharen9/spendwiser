@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Screen, Transaction, Account } from './types/types';
-import { mockUser, mockTransactions, mockCreditCards, mockBudgets, mockAccounts } from './data/mockData';
+import { mockUser, mockTransactions, mockCreditCards, mockBudgets, mockAccounts, categories } from './data/mockData';
 
 // Components
 import LoginPage from './components/Login/LoginPage';
@@ -31,6 +31,13 @@ function App() {
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState<any>();
   const [darkMode, setDarkMode] = useState(true);
+  
+  // Transaction filter states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [transactionType, setTransactionType] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   useEffect(() => {
     if (darkMode) {
@@ -39,6 +46,36 @@ function App() {
       document.documentElement.classList.remove('dark');
     }
   }, [darkMode]);
+
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter(transaction => {
+      const matchesSearch = transaction.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           transaction.category.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesType = transactionType === 'all' || transaction.type === transactionType;
+      
+      const matchesCategory = selectedCategory === '' || transaction.category === selectedCategory;
+      
+      // Date filtering
+      let matchesDate = true;
+      if (startDate && endDate) {
+        const transactionDate = new Date(transaction.date);
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        matchesDate = transactionDate >= start && transactionDate <= end;
+      } else if (startDate) {
+        const transactionDate = new Date(transaction.date);
+        const start = new Date(startDate);
+        matchesDate = transactionDate >= start;
+      } else if (endDate) {
+        const transactionDate = new Date(transaction.date);
+        const end = new Date(endDate);
+        matchesDate = transactionDate <= end;
+      }
+
+      return matchesSearch && matchesType && matchesCategory && matchesDate;
+    });
+  }, [transactions, searchTerm, transactionType, selectedCategory, startDate, endDate]);
 
   const handleLogin = () => {
     setIsLoggedIn(true);
@@ -119,6 +156,27 @@ function App() {
     setBudgets(prev => prev.filter(b => b.id !== id));
   };
 
+  const handleExportCSV = () => {
+    const csvContent = [
+      ['Date', 'Name', 'Category', 'Amount', 'Type', 'Credit Card'],
+      ...filteredTransactions.map(t => [
+        t.date,
+        t.name,
+        t.category,
+        t.amount,
+        t.type,
+        t.creditCard || ''
+      ])
+    ].map(row => row.join(',')).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'transactions.csv';
+    a.click();
+  };
+
   const getPageTitle = () => {
     switch (currentScreen) {
       case 'dashboard': return 'Dashboard';
@@ -134,7 +192,7 @@ function App() {
     if (currentScreen === 'transactions') {
       return {
         label: 'Export to CSV',
-        onClick: () => {},
+        onClick: handleExportCSV,
         variant: 'secondary' as const
       };
     }
@@ -156,6 +214,17 @@ function App() {
             transactions={transactions}
             onEditTransaction={handleEditTransaction}
             onDeleteTransaction={handleDeleteTransaction}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            transactionType={transactionType}
+            setTransactionType={setTransactionType}
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+            startDate={startDate}
+            setStartDate={setStartDate}
+            endDate={endDate}
+            setEndDate={setEndDate}
+            categories={categories}
           />
         );
       case 'credit-cards':
