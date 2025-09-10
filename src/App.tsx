@@ -310,6 +310,7 @@ function App() {
           <CreditCardsPage
             accounts={accounts}
             transactions={transactions}
+            onAddAccount={handleAddAccount}
           />
         );
       case 'budgets':

@@ -252,7 +252,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                 >
                   <option value="Checking">Checking</option>
                   <option value="Savings">Savings</option>
-                  <option value="Credit Card">Credit Card</option>
                   <option value="Business Checking">Business Checking</option>
                   <option value="Investment">Investment</option>
                 </select>
@@ -260,7 +259,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
               
               <div>
                 <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
-                  {accountForm.type === 'Credit Card' ? 'Current Due' : 'Current Balance'} *
+                  Current Balance *
                 </label>
                 <input
                   type="number"
@@ -272,22 +271,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                 />
               </div>
 
-              {accountForm.type === 'Credit Card' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
-                    Credit Limit *
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={accountForm.limit}
-                    onChange={(e) => setAccountForm({ ...accountForm, limit: e.target.value })}
-                    className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
-                    placeholder="5000.00"
-                  />
-                </div>
-              )}
-              
               <div className="flex items-center justify-end space-x-4 pt-4">
                 <button
                   onClick={handleCloseModal}
