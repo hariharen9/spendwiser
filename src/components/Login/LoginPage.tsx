@@ -1,11 +1,27 @@
 import React from 'react';
 import { DollarSign } from 'lucide-react';
+import { GoogleAuthProvider, signInWithPopup, User } from 'firebase/auth';
+import { auth } from '../../firebaseConfig';
 
 interface LoginPageProps {
-  onLogin: () => void;
+  onLogin: (user: User) => void;
 }
 
 const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
+  const handleGoogleSignIn = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      if (onLogin) {
+        onLogin(user);
+      }
+      console.log('User signed in: ', user);
+    } catch (error) {
+      console.error('Google Sign-In Error:', error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#1A1A1A] flex items-center justify-center px-4">
       <div className="max-w-md w-full">
@@ -19,7 +35,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
 
         <div className="bg-[#242424] rounded-lg p-8 border border-gray-700">
           <button
-            onClick={onLogin}
+            onClick={handleGoogleSignIn}
             className="w-full bg-white text-gray-900 py-4 px-6 rounded-lg font-semibold text-lg hover:bg-gray-100 transition-all duration-200 flex items-center justify-center space-x-3"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">

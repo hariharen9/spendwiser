@@ -62,8 +62,8 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
       date: formData.date,
       category: formData.category,
       type: formData.type,
-      creditCard: formData.creditCard || undefined,
-      comments: formData.comments || undefined
+      ...(formData.creditCard && { creditCard: formData.creditCard }),
+      ...(formData.comments && { comments: formData.comments }),
     };
 
     onSave(transaction);

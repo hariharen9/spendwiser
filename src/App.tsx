@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Screen, Transaction, Account } from './types/types';
-import { mockUser, mockTransactions, mockCreditCards, mockBudgets, mockAccounts, categories } from './data/mockData';
+import { Screen, Transaction, Account, Budget } from './types/types';
+import { User } from 'firebase/auth';
+import { auth, db } from './firebaseConfig';
+import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc } from 'firebase/firestore';
+import { mockCreditCards, categories } from './data/mockData'; // Keep these for now
 
 // Components
 import LoginPage from './components/Login/LoginPage';
@@ -20,12 +23,11 @@ import AddTransactionModal from './components/Modals/AddTransactionModal';
 import BudgetModal from './components/Modals/BudgetModal';
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
   const [currentScreen, setCurrentScreen] = useState<Screen>('dashboard');
-  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
-  const [accounts, setAccounts] = useState(mockAccounts);
-  const [budgets, setBudgets] = useState(mockBudgets);
-  const [user, setUser] = useState(mockUser);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [budgets, setBudgets] = useState<Budget[]>([]);
   const [isAddTransactionModalOpen, setIsAddTransactionModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | undefined>();
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
@@ -38,6 +40,52 @@ function App() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      setUser(user);
+      if (user) {
+        // Ensure a user document exists in the 'spenders' collection
+        const userDocRef = doc(db, 'spenders', user.uid);
+        await setDoc(userDocRef, { email: user.email, name: user.displayName }, { merge: true });
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      const transactionsRef = collection(db, 'spenders', user.uid, 'transactions');
+      const unsubscribe = onSnapshot(transactionsRef, snapshot => {
+        const transactionsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Transaction[];
+        setTransactions(transactionsData);
+      });
+      return () => unsubscribe();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      const accountsRef = collection(db, 'spenders', user.uid, 'accounts');
+      const unsubscribe = onSnapshot(accountsRef, snapshot => {
+        const accountsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Account[];
+        setAccounts(accountsData);
+      });
+      return () => unsubscribe();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      const budgetsRef = collection(db, 'spenders', user.uid, 'budgets');
+      const unsubscribe = onSnapshot(budgetsRef, snapshot => {
+        const budgetsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Budget[];
+        setBudgets(budgetsData);
+      });
+      return () => unsubscribe();
+    }
+  }, [user]);
+
 
   useEffect(() => {
     if (darkMode) {
@@ -77,28 +125,29 @@ function App() {
     });
   }, [transactions, searchTerm, transactionType, selectedCategory, startDate, endDate]);
 
-  const handleLogin = () => {
-    setIsLoggedIn(true);
+  const handleLogin = (loggedInUser: User) => {
+    setUser(loggedInUser);
   };
 
   const handleLogout = () => {
-    setIsLoggedIn(false);
+    auth.signOut();
+    setUser(null);
     setCurrentScreen('dashboard');
   };
 
-  const handleAddTransaction = (transactionData: Omit<Transaction, 'id'>) => {
-    const newTransaction: Transaction = {
-      ...transactionData,
-      id: Date.now().toString()
-    };
-
-    if (editingTransaction) {
-      setTransactions(prev => 
-        prev.map(t => t.id === editingTransaction.id ? { ...newTransaction, id: editingTransaction.id } : t)
-      );
-      setEditingTransaction(undefined);
-    } else {
-      setTransactions(prev => [newTransaction, ...prev]);
+  const handleAddTransaction = async (transactionData: Omit<Transaction, 'id'>) => {
+    if (!user) return;
+    try {
+      const transactionsRef = collection(db, 'spenders', user.uid, 'transactions');
+      if (editingTransaction) {
+        const transactionDoc = doc(db, 'spenders', user.uid, 'transactions', editingTransaction.id);
+        await updateDoc(transactionDoc, transactionData);
+        setEditingTransaction(undefined);
+      } else {
+        await addDoc(transactionsRef, transactionData);
+      }
+    } catch (error) {
+      console.error("Error adding/updating transaction: ", error);
     }
   };
 
@@ -107,43 +156,65 @@ function App() {
     setIsAddTransactionModalOpen(true);
   };
 
-  const handleDeleteTransaction = (id: string) => {
-    setTransactions(prev => prev.filter(t => t.id !== id));
+  const handleDeleteTransaction = async (id: string) => {
+    if (!user) return;
+    try {
+      const transactionDoc = doc(db, 'spenders', user.uid, 'transactions', id);
+      await deleteDoc(transactionDoc);
+    } catch (error) {
+      console.error("Error deleting transaction: ", error);
+    }
   };
 
-  const handleAddAccount = (accountData: any) => {
-    const newAccount = {
-      ...accountData,
-      id: Date.now().toString()
-    };
-    setAccounts(prev => [...prev, newAccount]);
+  const handleAddAccount = async (accountData: Omit<Account, 'id'>) => {
+    if (!user) return;
+    try {
+      const accountsRef = collection(db, 'spenders', user.uid, 'accounts');
+      await addDoc(accountsRef, accountData);
+    } catch (error) {
+      console.error("Error adding account: ", error);
+    }
   };
 
-  const handleEditAccount = (account: any) => {
-    setAccounts(prev => prev.map(a => a.id === account.id ? account : a));
+  const handleEditAccount = async (account: Account) => {
+    if (!user) return;
+    try {
+      const accountDoc = doc(db, 'spenders', user.uid, 'accounts', account.id);
+      await updateDoc(accountDoc, account);
+    } catch (error) {
+      console.error("Error updating account: ", error);
+    }
   };
 
-  const handleDeleteAccount = (id: string) => {
-    setAccounts(prev => prev.filter(a => a.id !== id));
+  const handleDeleteAccount = async (id: string) => {
+    if (!user) return;
+    try {
+      const accountDoc = doc(db, 'spenders', user.uid, 'accounts', id);
+      await deleteDoc(accountDoc);
+    } catch (error) {
+      console.error("Error deleting account: ", error);
+    }
   };
 
   const handleUpdateCurrency = (currency: string) => {
-    setUser(prev => ({ ...prev, currency }));
+    // This will need to be updated to work with the new user object
+    // For now, it will throw an error
+    // setUser(prev => ({ ...prev, currency }));
   };
 
-  const handleAddBudget = (budgetData: any) => {
-    const newBudget = {
-      ...budgetData,
-      id: Date.now().toString()
-    };
-
-    if (editingBudget) {
-      setBudgets(prev => 
-        prev.map(b => b.id === editingBudget.id ? { ...newBudget, id: editingBudget.id } : b)
-      );
-      setEditingBudget(undefined);
-    } else {
-      setBudgets(prev => [...prev, newBudget]);
+  const handleAddBudget = async (budgetData: Omit<Budget, 'id'>) => {
+    if (!user) return;
+    try {
+      const budgetsRef = collection(db, 'spenders', user.uid, 'budgets');
+      if (editingBudget) {
+        const budgetDoc = doc(db, 'spenders', user.uid, 'budgets', editingBudget.id);
+        await updateDoc(budgetDoc, budgetData);
+        setEditingBudget(undefined);
+      } else {
+        await addDoc(budgetsRef, budgetData);
+      }
+    } catch (error) {
+      console.error("Error adding/updating budget: ", error);
     }
   };
 
@@ -152,8 +223,14 @@ function App() {
     setIsBudgetModalOpen(true);
   };
 
-  const handleDeleteBudget = (id: string) => {
-    setBudgets(prev => prev.filter(b => b.id !== id));
+  const handleDeleteBudget = async (id: string) => {
+    if (!user) return;
+    try {
+      const budgetDoc = doc(db, 'spenders', user.uid, 'budgets', id);
+      await deleteDoc(budgetDoc);
+    } catch (error) {
+      console.error("Error deleting budget: ", error);
+    }
   };
 
   const handleExportCSV = () => {
@@ -261,7 +338,7 @@ function App() {
     }
   };
 
-  if (!isLoggedIn) {
+  if (!user) {
     return <LoginPage onLogin={handleLogin} />;
   }
 
@@ -271,7 +348,7 @@ function App() {
       <Sidebar
         currentScreen={currentScreen}
         onScreenChange={setCurrentScreen}
-        user={mockUser}
+        user={user}
         onLogout={handleLogout}
       />
 

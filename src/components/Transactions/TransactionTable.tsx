@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowUpDown, MoreVertical, Edit, Trash2 } from 'lucide-react';
+import { ArrowUpDown, Edit, Trash2 } from 'lucide-react';
 import { Transaction } from '../../types/types';
 
 interface TransactionTableProps {
@@ -15,7 +15,7 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
 }) => {
   const [sortBy, setSortBy] = useState<keyof Transaction>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-  const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const handleSort = (field: keyof Transaction) => {
     if (sortBy === field) {
@@ -37,8 +37,8 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
   });
 
   return (
-    <div className="bg-white dark:bg-[#242424] rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-      <div className="overflow-x-auto">
+    <div className="bg-white dark:bg-[#242424] rounded-lg border border-gray-200 dark:border-gray-700">
+      <div>
         <table className="w-full">
           <thead className="bg-gray-50 dark:bg-[#1A1A1A]">
             <tr>
@@ -93,35 +93,40 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
                   </span>
                 </td>
                 <td className="px-6 py-4 text-sm relative">
-                  <button
-                    onClick={() => setActiveMenu(activeMenu === transaction.id ? null : transaction.id)}
-                    className="text-gray-400 dark:text-[#888888] hover:text-gray-900 dark:hover:text-[#F5F5F5] p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-all duration-200"
-                  >
-                    <MoreVertical className="h-4 w-4" />
-                  </button>
-                  
-                  {activeMenu === transaction.id && (
-                    <div className="absolute right-0 top-full mt-1 w-32 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-10">
-                      <button
-                        onClick={() => {
-                          onEditTransaction(transaction);
-                          setActiveMenu(null);
-                        }}
-                        className="w-full px-3 py-2 text-left text-sm text-gray-900 dark:text-[#F5F5F5] hover:bg-gray-50 dark:hover:bg-[#242424] flex items-center space-x-2 rounded-t-lg"
-                      >
-                        <Edit className="h-4 w-4" />
-                        <span>Edit</span>
-                      </button>
-                      <button
-                        onClick={() => {
-                          onDeleteTransaction(transaction.id);
-                          setActiveMenu(null);
-                        }}
-                        className="w-full px-3 py-2 text-left text-sm text-[#DC3545] hover:bg-gray-50 dark:hover:bg-[#242424] flex items-center space-x-2 rounded-b-lg"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        <span>Delete</span>
-                      </button>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => onEditTransaction(transaction)}
+                      className="p-2 text-gray-500 dark:text-[#888888] hover:text-blue-500 dark:hover:text-blue-400 rounded-lg hover:bg-gray-100 dark:hover:bg-[#2A2A2A] transition-all duration-200"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => setDeleteConfirmId(transaction.id)}
+                      className="p-2 text-gray-500 dark:text-[#888888] hover:text-red-500 dark:hover:text-red-400 rounded-lg hover:bg-gray-100 dark:hover:bg-[#2A2A2A] transition-all duration-200"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                  {deleteConfirmId === transaction.id && (
+                    <div className="absolute right-0 top-full mt-2 w-auto bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg p-3 z-20">
+                      <p className="text-sm text-gray-800 dark:text-gray-200 mb-3 text-center">Are you sure?</p>
+                      <div className="flex justify-center space-x-3">
+                        <button
+                          onClick={() => setDeleteConfirmId(null)}
+                          className="px-4 py-1 text-xs font-semibold rounded-md text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 transition-all duration-200"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={() => {
+                            onDeleteTransaction(transaction.id);
+                            setDeleteConfirmId(null);
+                          }}
+                          className="px-4 py-1 text-xs font-semibold rounded-md text-white bg-red-500 hover:bg-red-600 transition-all duration-200"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   )}
                 </td>

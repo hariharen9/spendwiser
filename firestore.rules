@@ -1,0 +1,17 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Remove the general rule that allows access to all documents
+    // and only allow access to the spenders collection
+    
+    match /spenders/{userId}/{document=**} {
+        allow read, write: if request.auth.uid == userId;
+    }
+    
+    // Deny access to any other collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

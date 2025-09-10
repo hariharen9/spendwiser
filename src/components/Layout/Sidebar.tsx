@@ -8,12 +8,13 @@ import {
   LogOut,
   DollarSign
 } from 'lucide-react';
-import { Screen, User } from '../../types/types';
+import { Screen } from '../../types/types';
+import { User } from 'firebase/auth';
 
 interface SidebarProps {
   currentScreen: Screen;
   onScreenChange: (screen: Screen) => void;
-  user: User;
+  user: User | null; // Allow user to be null
   onLogout: () => void;
 }
 
@@ -67,26 +68,28 @@ const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onScreenChange, user, 
       </nav>
 
       {/* User Profile */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-        <div className="flex items-center space-x-3 mb-3">
-          <img
-            src={user.avatar}
-            alt={user.name}
-            className="h-10 w-10 rounded-full object-cover"
-          />
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 dark:text-[#F5F5F5] truncate">{user.name}</p>
-            <p className="text-xs text-gray-500 dark:text-[#888888] truncate">{user.email}</p>
+      {user && (
+        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-center space-x-3 mb-3">
+            <img
+              src={user.photoURL || undefined} // Use photoURL
+              alt={user.displayName || 'User'} // Use displayName
+              className="h-10 w-10 rounded-full object-cover"
+            />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 dark:text-[#F5F5F5] truncate">{user.displayName}</p>
+              <p className="text-xs text-gray-500 dark:text-[#888888] truncate">{user.email}</p>
+            </div>
           </div>
+          <button
+            onClick={onLogout}
+            className="w-full flex items-center space-x-2 px-3 py-2 text-gray-500 dark:text-[#888888] hover:text-gray-900 dark:hover:text-[#F5F5F5] hover:bg-gray-200 dark:hover:bg-[#1A1A1A] rounded-lg transition-all duration-200"
+          >
+            <LogOut className="h-4 w-4" />
+            <span className="text-sm">Logout</span>
+          </button>
         </div>
-        <button
-          onClick={onLogout}
-          className="w-full flex items-center space-x-2 px-3 py-2 text-gray-500 dark:text-[#888888] hover:text-gray-900 dark:hover:text-[#F5F5F5] hover:bg-gray-200 dark:hover:bg-[#1A1A1A] rounded-lg transition-all duration-200"
-        >
-          <LogOut className="h-4 w-4" />
-          <span className="text-sm">Logout</span>
-        </button>
-      </div>
+      )}
     </div>
   );
 };
