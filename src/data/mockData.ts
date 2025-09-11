@@ -67,7 +67,7 @@ export const mockTransactions: Transaction[] = [
     date: dateString1,
     category: 'Groceries',
     type: 'expense',
-    creditCard: 'Chase Sapphire',
+    accountId: '1',
     isMock: true
   },
   {
@@ -77,7 +77,7 @@ export const mockTransactions: Transaction[] = [
     date: dateString1,
     category: 'Entertainment',
     type: 'expense',
-    creditCard: 'Chase Sapphire',
+    accountId: '1',
     isMock: true
   },
   {
@@ -87,7 +87,7 @@ export const mockTransactions: Transaction[] = [
     date: dateString1,
     category: 'Transportation',
     type: 'expense',
-    creditCard: 'Amex Gold',
+    accountId: '2',
     isMock: true
   },
   {
@@ -97,7 +97,7 @@ export const mockTransactions: Transaction[] = [
     date: dateString1,
     category: 'Food & Dining',
     type: 'expense',
-    creditCard: 'Chase Sapphire',
+    accountId: '1',
     isMock: true
   },
   {
@@ -107,7 +107,7 @@ export const mockTransactions: Transaction[] = [
     date: dateString1,
     category: 'Transportation',
     type: 'expense',
-    creditCard: 'Amex Gold',
+    accountId: '2',
     isMock: true
   },
   {
@@ -117,7 +117,7 @@ export const mockTransactions: Transaction[] = [
     date: dateString2,
     category: 'Shopping',
     type: 'expense',
-    creditCard: 'Chase Sapphire',
+    accountId: '1',
     isMock: true
   },
   {
@@ -136,7 +136,7 @@ export const mockTransactions: Transaction[] = [
     date: dateString2,
     category: 'Food & Dining',
     type: 'expense',
-    creditCard: 'Amex Gold',
+    accountId: '2',
     isMock: true
   },
   {
@@ -146,7 +146,7 @@ export const mockTransactions: Transaction[] = [
     date: dateString2,
     category: 'Healthcare',
     type: 'expense',
-    creditCard: 'Chase Sapphire',
+    accountId: '1',
     isMock: true
   },
   {
@@ -165,7 +165,7 @@ export const mockTransactions: Transaction[] = [
     date: dateString3,
     category: 'Entertainment',
     type: 'expense',
-    creditCard: 'Amex Gold',
+    accountId: '2',
     isMock: true
   },
   {
@@ -175,7 +175,7 @@ export const mockTransactions: Transaction[] = [
     date: dateString3,
     category: 'Groceries',
     type: 'expense',
-    creditCard: 'Chase Sapphire',
+    accountId: '1',
     isMock: true
   }
 ];

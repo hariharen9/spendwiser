@@ -3,7 +3,7 @@ import { Screen, Transaction, Account, Budget } from './types/types';
 import { User, deleteUser, GoogleAuthProvider, reauthenticateWithPopup } from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
 import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, writeBatch, getDocs } from 'firebase/firestore';
-import { categories, getDefaultCategories, mockTransactions, mockAccounts, mockBudgets } from './data/mockData'; // Updated import
+import { categories, getDefaultCategories, mockTransactions, mockAccounts, mockBudgets, mockCreditCards } from './data/mockData'; // Updated import
 
 // Components
 import LoginPage from './components/Login/LoginPage';
@@ -487,6 +487,15 @@ function App() {
       });
       await budgetBatch.commit();
       
+      // Add mock credit cards
+      const creditCardsRef = collection(db, 'spenders', user.uid, 'accounts'); // Credit cards are stored in accounts collection
+      const creditCardBatch = writeBatch(db);
+      mockCreditCards.forEach(card => {
+        const newCreditCardRef = doc(creditCardsRef);
+        creditCardBatch.set(newCreditCardRef, { ...card, type: 'Credit Card' }); // Ensure type is set
+      });
+      await creditCardBatch.commit();
+      
       showToast('Mock data loaded successfully!', 'success');
     } catch (error) {
       console.error("Error loading mock data: ", error);
@@ -534,6 +543,16 @@ function App() {
         }
       });
       await budgetBatch.commit();
+      
+      // Delete only mock credit cards
+      const creditCardsSnapshot = await getDocs(accountsRef); // Credit cards are part of accounts
+      const creditCardBatch = writeBatch(db);
+      creditCardsSnapshot.docs.forEach(doc => {
+        if (doc.data().isMock === true && doc.data().type === 'Credit Card') {
+          creditCardBatch.delete(doc.ref);
+        }
+      });
+      await creditCardBatch.commit();
       
       showToast('Mock data cleared successfully!', 'success');
     } catch (error) {
