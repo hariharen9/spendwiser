@@ -2,6 +2,8 @@ import React, { useMemo } from 'react';
 import FilterBar from './FilterBar';
 import TransactionTable from './TransactionTable';
 import { Transaction } from '../../types/types';
+import { motion } from 'framer-motion';
+import { fadeInVariants, staggerContainer } from '../../components/Common/AnimationVariants';
 
 interface TransactionsPageProps {
   transactions: Transaction[];
@@ -69,34 +71,63 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
   }, [transactions, searchTerm, transactionType, selectedCategory, startDate, endDate]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-[#F5F5F5]">
+    <motion.div 
+      className="space-y-6"
+      initial="initial"
+      animate="animate"
+      variants={staggerContainer}
+    >
+      <motion.div 
+        className="flex items-center justify-between"
+        variants={fadeInVariants}
+        initial="initial"
+        animate="animate"
+      >
+        <motion.h2 
+          className="text-xl font-semibold text-gray-900 dark:text-[#F5F5F5]"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.1 }}
+        >
           {filteredTransactions.length} Transaction{filteredTransactions.length !== 1 ? 's' : ''}
-        </h2>
-      </div>
+        </motion.h2>
+      </motion.div>
 
-      <FilterBar
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        transactionType={transactionType}
-        onTransactionTypeChange={setTransactionType}
-        selectedCategory={selectedCategory}
-        onCategoryChange={setSelectedCategory}
-        categories={categories}
-        startDate={startDate}
-        endDate={endDate}
-        onStartDateChange={setStartDate}
-        onEndDateChange={setEndDate}
-      />
+      <motion.div
+        variants={fadeInVariants}
+        initial="initial"
+        animate="animate"
+        transition={{ delay: 0.2 }}
+      >
+        <FilterBar
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          transactionType={transactionType}
+          onTransactionTypeChange={setTransactionType}
+          selectedCategory={selectedCategory}
+          onCategoryChange={setSelectedCategory}
+          categories={categories}
+          startDate={startDate}
+          endDate={endDate}
+          onStartDateChange={setStartDate}
+          onEndDateChange={setEndDate}
+        />
+      </motion.div>
 
-      <TransactionTable
-        transactions={filteredTransactions}
-        onEditTransaction={onEditTransaction}
-        onDeleteTransaction={onDeleteTransaction}
-        currency={currency}
-      />
-    </div>
+      <motion.div
+        variants={fadeInVariants}
+        initial="initial"
+        animate="animate"
+        transition={{ delay: 0.3 }}
+      >
+        <TransactionTable
+          transactions={filteredTransactions}
+          onEditTransaction={onEditTransaction}
+          onDeleteTransaction={onDeleteTransaction}
+          currency={currency}
+        />
+      </motion.div>
+    </motion.div>
   );
 };
 

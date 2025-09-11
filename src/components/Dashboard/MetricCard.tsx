@@ -1,5 +1,7 @@
 import React from 'react';
 import { DivideIcon as LucideIcon } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { cardHoverVariants, bounceVariants } from '../../components/Common/AnimationVariants';
 
 interface MetricCardProps {
   title: string;
@@ -25,22 +27,52 @@ const MetricCard: React.FC<MetricCardProps> = ({
   };
 
   return (
-    <div className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-200">
+    <motion.div 
+      className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700"
+      variants={cardHoverVariants}
+      initial="initial"
+      whileHover="hover"
+      whileFocus="hover"
+      layout
+    >
       <div className="flex items-center justify-between mb-4">
-        <div className={`p-3 rounded-lg ${color}`}>
+        <motion.div 
+          className={`p-3 rounded-lg ${color}`}
+          variants={bounceVariants}
+          whileHover="bounce"
+        >
           <Icon className="h-6 w-6 text-white" />
-        </div>
+        </motion.div>
         {change && (
-          <span className={`text-sm font-medium ${changeColor[changeType]}`}>
+          <motion.span 
+            className={`text-sm font-medium ${changeColor[changeType]}`}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2 }}
+          >
             {change}
-          </span>
+          </motion.span>
         )}
       </div>
       <div>
-        <h3 className="text-sm font-medium text-gray-500 dark:text-[#888888] mb-1">{title}</h3>
-        <p className="text-2xl font-bold text-gray-900 dark:text-[#F5F5F5]">{value}</p>
+        <motion.h3 
+          className="text-sm font-medium text-gray-500 dark:text-[#888888] mb-1"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.1 }}
+        >
+          {title}
+        </motion.h3>
+        <motion.p 
+          className="text-2xl font-bold text-gray-900 dark:text-[#F5F5F5]"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          {value}
+        </motion.p>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

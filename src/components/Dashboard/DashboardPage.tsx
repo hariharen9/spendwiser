@@ -17,6 +17,8 @@ import LifestyleCreepIndicator from './LifestyleCreepIndicator';
 import InsightsEngine from './InsightsEngine';
 import Achievements from './Achievements';
 import './Dashboard.css';
+import { motion } from 'framer-motion';
+import { fadeInVariants, staggerContainer, buttonHoverVariants } from '../../components/Common/AnimationVariants';
 
 interface DashboardPageProps {
   transactions: Transaction[];
@@ -186,68 +188,129 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, b
   };
 
   return (
-    <div>
-      <div className="flex justify-end mb-6 gap-2">
+    <motion.div
+      initial="initial"
+      animate="animate"
+      variants={staggerContainer}
+    >
+      <motion.div 
+        className="flex justify-end mb-6 gap-2"
+        variants={fadeInVariants}
+        initial="initial"
+        animate="animate"
+      >
         {isEditMode ? (
           <>
-            <button
+            <motion.button
               onClick={cancelEdit}
               className="flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              variants={buttonHoverVariants}
+              whileHover="hover"
+              whileTap="tap"
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
             >
               <X size={14} />
               Cancel
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               onClick={saveLayout}
               className="flex items-center gap-2 px-3 py-1.5 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              variants={buttonHoverVariants}
+              whileHover="hover"
+              whileTap="tap"
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
             >
               <Save size={14} />
               Save
-            </button>
+            </motion.button>
           </>
         ) : (
-          <button
+          <motion.button
             onClick={toggleEditMode}
             className="flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            variants={buttonHoverVariants}
+            whileHover="hover"
+            whileTap="tap"
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
           >
             <Edit3 size={14} />
             Edit
-          </button>
+          </motion.button>
         )}
-      </div>
+      </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <MetricCard
-          title="Total Balance"
-          value={`${currency}${totalBalance.toLocaleString()}`}
-          icon={DollarSign}
-          color="bg-[#007BFF]"
-        />
-        <MetricCard
-          title="This Month's Income"
-          value={`${currency}${monthlyIncome.toLocaleString()}`}
-          icon={TrendingUp}
-          color="bg-[#28A745]"
-        />
-        <MetricCard
-          title="This Month's Expenses"
-          value={`${currency}${monthlyExpenses.toLocaleString()}`}
-          icon={TrendingDown}
-          color="bg-[#DC3545]"
-        />
-      </div>
-
-      <Masonry
-        breakpointCols={breakpointColumnsObj}
-        className="my-masonry-grid"
-        columnClassName="my-masonry-grid_column"
+      <motion.div 
+        className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
+        variants={staggerContainer}
+        initial="initial"
+        animate="animate"
       >
-        {isEditMode 
-          ? tempComponentOrder.map(componentName => renderComponent(componentName))
-          : componentOrder.map(componentName => renderComponent(componentName))
-        }
-      </Masonry>
-    </div>
+        <motion.div variants={fadeInVariants} initial="initial" animate="animate" transition={{ delay: 0.1 }}>
+          <MetricCard
+            title="Total Balance"
+            value={`${currency}${totalBalance.toLocaleString()}`}
+            icon={DollarSign}
+            color="bg-[#007BFF]"
+          />
+        </motion.div>
+        <motion.div variants={fadeInVariants} initial="initial" animate="animate" transition={{ delay: 0.2 }}>
+          <MetricCard
+            title="This Month's Income"
+            value={`${currency}${monthlyIncome.toLocaleString()}`}
+            icon={TrendingUp}
+            color="bg-[#28A745]"
+          />
+        </motion.div>
+        <motion.div variants={fadeInVariants} initial="initial" animate="animate" transition={{ delay: 0.3 }}>
+          <MetricCard
+            title="This Month's Expenses"
+            value={`${currency}${monthlyExpenses.toLocaleString()}`}
+            icon={TrendingDown}
+            color="bg-[#DC3545]"
+          />
+        </motion.div>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+      >
+        <Masonry
+          breakpointCols={breakpointColumnsObj}
+          className="my-masonry-grid"
+          columnClassName="my-masonry-grid_column"
+        >
+          {isEditMode 
+            ? tempComponentOrder.map((componentName, index) => (
+                <motion.div
+                  key={componentName}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 * index }}
+                >
+                  {renderComponent(componentName)}
+                </motion.div>
+              ))
+            : componentOrder.map((componentName, index) => (
+                <motion.div
+                  key={componentName}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 * index }}
+                >
+                  {renderComponent(componentName)}
+                </motion.div>
+              ))
+          }
+        </Masonry>
+      </motion.div>
+    </motion.div>
   );
 };
 

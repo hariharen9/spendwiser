@@ -10,6 +10,7 @@ import LoginPage from './components/Login/LoginPage';
 import Sidebar from './components/Layout/Sidebar';
 import Header from './components/Layout/Header';
 import FAB from './components/Common/FAB';
+import AnimatedToast from './components/Common/AnimatedToast';
 
 // Pages
 import DashboardPage from './components/Dashboard/DashboardPage';
@@ -25,6 +26,13 @@ import BudgetModal from './components/Modals/BudgetModal';
 // Icons
 import { LogOut, DollarSign } from 'lucide-react';
 
+// Framer Motion
+import { AnimatePresence, motion } from 'framer-motion';
+import { pageVariants } from './components/Common/AnimationVariants';
+
+// Hooks
+import { useToast } from './hooks/useToast';
+
 function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true); // Add loading state here
@@ -39,6 +47,9 @@ function App() {
   const [darkMode, setDarkMode] = useState(true); // Default to dark mode
   const [defaultAccountId, setDefaultAccountId] = useState<string | null>(null);
   const [currency, setCurrency] = useState<string>('₹'); // Default currency
+  
+  // Toast system
+  const { toasts, showToast, removeToast } = useToast();
   
   // Transaction filter states
   const [searchTerm, setSearchTerm] = useState('');
@@ -216,11 +227,14 @@ function App() {
         const transactionDoc = doc(db, 'spenders', user.uid, 'transactions', editingTransaction.id);
         await updateDoc(transactionDoc, transactionData);
         setEditingTransaction(undefined);
+        showToast('Transaction updated successfully!', 'success');
       } else {
         await addDoc(transactionsRef, transactionData);
+        showToast('Transaction added successfully!', 'success');
       }
     } catch (error) {
       console.error("Error adding/updating transaction: ", error);
+      showToast('Error adding/updating transaction', 'error');
     }
   };
 
@@ -234,8 +248,10 @@ function App() {
     try {
       const transactionDoc = doc(db, 'spenders', user.uid, 'transactions', id);
       await deleteDoc(transactionDoc);
+      showToast('Transaction deleted successfully!', 'success');
     } catch (error) {
       console.error("Error deleting transaction: ", error);
+      showToast('Error deleting transaction', 'error');
     }
   };
 
@@ -244,8 +260,10 @@ function App() {
     try {
       const accountsRef = collection(db, 'spenders', user.uid, 'accounts');
       await addDoc(accountsRef, accountData);
+      showToast('Account added successfully!', 'success');
     } catch (error) {
       console.error("Error adding account: ", error);
+      showToast('Error adding account', 'error');
     }
   };
 
@@ -254,8 +272,10 @@ function App() {
     try {
       const accountDoc = doc(db, 'spenders', user.uid, 'accounts', account.id);
       await updateDoc(accountDoc, account);
+      showToast('Account updated successfully!', 'success');
     } catch (error) {
       console.error("Error updating account: ", error);
+      showToast('Error updating account', 'error');
     }
   };
 
@@ -264,8 +284,10 @@ function App() {
     try {
       const accountDoc = doc(db, 'spenders', user.uid, 'accounts', id);
       await deleteDoc(accountDoc);
+      showToast('Account deleted successfully!', 'success');
     } catch (error) {
       console.error("Error deleting account: ", error);
+      showToast('Error deleting account', 'error');
     }
   };
 
@@ -288,11 +310,14 @@ function App() {
         const budgetDoc = doc(db, 'spenders', user.uid, 'budgets', editingBudget.id);
         await updateDoc(budgetDoc, budgetData);
         setEditingBudget(undefined);
+        showToast('Budget updated successfully!', 'success');
       } else {
         await addDoc(budgetsRef, budgetData);
+        showToast('Budget added successfully!', 'success');
       }
     } catch (error) {
       console.error("Error adding/updating budget: ", error);
+      showToast('Error adding/updating budget', 'error');
     }
   };
 
@@ -306,8 +331,10 @@ function App() {
     try {
       const budgetDoc = doc(db, 'spenders', user.uid, 'budgets', id);
       await deleteDoc(budgetDoc);
+      showToast('Budget deleted successfully!', 'success');
     } catch (error) {
       console.error("Error deleting budget: ", error);
+      showToast('Error deleting budget', 'error');
     }
   };
 
@@ -369,98 +396,199 @@ function App() {
     switch (currentScreen) {
       case 'dashboard':
         return (
-          <DashboardPage
-            transactions={transactions}
-            accounts={regularAccounts}
-            budgets={budgets}
-            onViewAllTransactions={() => setCurrentScreen('transactions')}
-            currency={currency}
-          />
+          <motion.div
+            key="dashboard"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+          >
+            <DashboardPage
+              transactions={transactions}
+              accounts={regularAccounts}
+              budgets={budgets}
+              onViewAllTransactions={() => setCurrentScreen('transactions')}
+              currency={currency}
+            />
+          </motion.div>
         );
       case 'transactions':
         return (
-          <TransactionsPage
-            transactions={transactions}
-            onEditTransaction={handleEditTransaction}
-            onDeleteTransaction={handleDeleteTransaction}
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            transactionType={transactionType}
-            setTransactionType={setTransactionType}
-            selectedCategory={selectedCategory}
-            setSelectedCategory={setSelectedCategory}
-            startDate={startDate}
-            setStartDate={setStartDate}
-            endDate={endDate}
-            setEndDate={setEndDate}
-            categories={categories}
-            currency={currency}
-          />
+          <motion.div
+            key="transactions"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+          >
+            <TransactionsPage
+              transactions={transactions}
+              onEditTransaction={handleEditTransaction}
+              onDeleteTransaction={handleDeleteTransaction}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              transactionType={transactionType}
+              setTransactionType={setTransactionType}
+              selectedCategory={selectedCategory}
+              setSelectedCategory={setSelectedCategory}
+              startDate={startDate}
+              setStartDate={setStartDate}
+              endDate={endDate}
+              setEndDate={setEndDate}
+              categories={categories}
+              currency={currency}
+            />
+          </motion.div>
         );
       case 'credit-cards':
         return (
-          <CreditCardsPage
-            accounts={creditCards}
-            transactions={transactions}
-            onAddAccount={handleAddAccount}
-            onEditAccount={handleEditAccount}
-            currency={currency}
-          />
+          <motion.div
+            key="credit-cards"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+          >
+            <CreditCardsPage
+              accounts={creditCards}
+              transactions={transactions}
+              onAddAccount={handleAddAccount}
+              onEditAccount={handleEditAccount}
+              currency={currency}
+            />
+          </motion.div>
         );
       case 'budgets':
         return (
-          <BudgetsPage 
-            budgets={budgets} 
-            transactions={transactions}
-            onEditBudget={handleEditBudget}
-            onAddBudget={() => setIsBudgetModalOpen(true)}
-            onDeleteBudget={handleDeleteBudget}
-            currency={currency}
-          />
+          <motion.div
+            key="budgets"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+          >
+            <BudgetsPage 
+              budgets={budgets} 
+              transactions={transactions}
+              onEditBudget={handleEditBudget}
+              onAddBudget={() => setIsBudgetModalOpen(true)}
+              onDeleteBudget={handleDeleteBudget}
+              currency={currency}
+            />
+          </motion.div>
         );
       case 'settings':
         return (
-          <SettingsPage
-            user={user}
-            darkMode={darkMode}
-            onToggleDarkMode={() => setDarkMode(!darkMode)}
-            accounts={regularAccounts}
-            onAddAccount={handleAddAccount}
-            onEditAccount={handleEditAccount}
-            onDeleteAccount={handleDeleteAccount}
-            onUpdateCurrency={handleUpdateCurrency}
-            defaultAccountId={defaultAccountId}
-            onSetDefaultAccount={handleSetDefaultAccount}
-            currency={currency}
-          />
+          <motion.div
+            key="settings"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+          >
+            <SettingsPage
+              user={user}
+              darkMode={darkMode}
+              onToggleDarkMode={() => setDarkMode(!darkMode)}
+              accounts={regularAccounts}
+              onAddAccount={handleAddAccount}
+              onEditAccount={handleEditAccount}
+              onDeleteAccount={handleDeleteAccount}
+              onUpdateCurrency={handleUpdateCurrency}
+              defaultAccountId={defaultAccountId}
+              onSetDefaultAccount={handleSetDefaultAccount}
+              currency={currency}
+            />
+          </motion.div>
         );
       default:
-        return <DashboardPage transactions={transactions} accounts={regularAccounts} budgets={budgets} onViewAllTransactions={() => setCurrentScreen('transactions')} currency={currency} />;
+        return (
+          <motion.div
+            key="default"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+          >
+            <DashboardPage transactions={transactions} accounts={regularAccounts} budgets={budgets} onViewAllTransactions={() => setCurrentScreen('transactions')} currency={currency} />
+          </motion.div>
+        );
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#1A1A1A] flex flex-col items-center justify-center">
-        <div className="text-[#F5F5F5]">
-          <div className="flex items-center justify-center space-x-2">
-            <div className="bg-[#007BFF] p-2 rounded-lg">
+      <motion.div 
+        className="min-h-screen bg-[#1A1A1A] flex flex-col items-center justify-center"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
+        <motion.div 
+          className="text-[#F5F5F5]"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <motion.div 
+            className="flex items-center justify-center space-x-2"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.3 }}
+          >
+            <motion.div 
+              className="bg-[#007BFF] p-2 rounded-lg"
+              animate={{ 
+                scale: [1, 1.1, 1],
+                rotate: [0, 5, -5, 0]
+              }}
+              transition={{ 
+                duration: 2,
+                repeat: Infinity,
+                repeatType: "reverse"
+              }}
+            >
               <DollarSign className="h-6 w-6 text-white" />
-            </div>
-            <span className="text-xl font-semibold">Loading SpendWise...</span>
-          </div>
-          <div className="mt-4 flex justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#007BFF]"></div>
-          </div>
-        </div>
+            </motion.div>
+            <motion.span 
+              className="text-xl font-semibold"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              Loading SpendWise...
+            </motion.span>
+          </motion.div>
+          <motion.div 
+            className="mt-4 flex justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
+            <motion.div 
+              className="rounded-full h-8 w-8 border-b-2 border-[#007BFF]"
+              animate={{ rotate: 360 }}
+              transition={{
+                duration: 1,
+                repeat: Infinity,
+                ease: "linear"
+              }}
+            />
+          </motion.div>
+        </motion.div>
         
         {/* Footer with attribution */}
-        <div className="absolute bottom-4 text-center">
+        <motion.div 
+          className="absolute bottom-4 text-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+        >
           <p className="text-sm text-[#888888]">
             Built with <span className="text-red-500">❤️</span> by <a href="https://hariharen9.site" target="_blank" rel="noopener noreferrer" className="text-[#007BFF] hover:underline">Hariharen</a>
           </p>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     );
   }
 
@@ -470,6 +598,18 @@ function App() {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50 dark:bg-[#1A1A1A] overflow-hidden">
+      {/* Toast notifications */}
+      <AnimatePresence>
+        {toasts.map((toast) => (
+          <AnimatedToast
+            key={toast.id}
+            message={toast.message}
+            type={toast.type}
+            onClose={() => removeToast(toast.id)}
+          />
+        ))}
+      </AnimatePresence>
+
       {/* Top Bar for Mobile */}
       <div className="md:hidden bg-white dark:bg-[#242424] border-b border-gray-200 dark:border-gray-700 p-4">
         <div className="flex items-center justify-between">
@@ -524,7 +664,9 @@ function App() {
 
           {/* Page Content */}
           <main className="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-8">
-            {renderCurrentPage()}
+            <AnimatePresence mode="wait">
+              {renderCurrentPage()}
+            </AnimatePresence>
           </main>
           
           {/* Footer with attribution */}
