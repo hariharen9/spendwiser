@@ -9,6 +9,13 @@ import IncomeVsExpenseChart from './IncomeVsExpenseChart';
 import BudgetSummary from './BudgetSummary';
 import AccountBalances from './AccountBalances';
 import TopSpendingCategories from './TopSpendingCategories';
+import DaysOfBuffer from './DaysOfBuffer';
+import FutureBalanceProjection from './FutureBalanceProjection';
+import CashFlowForecast from './CashFlowForecast';
+import SubscriptionTracker from './SubscriptionTracker';
+import LifestyleCreepIndicator from './LifestyleCreepIndicator';
+import InsightsEngine from './InsightsEngine';
+import Achievements from './Achievements';
 import './Dashboard.css';
 
 interface DashboardPageProps {
@@ -80,6 +87,13 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, b
         <TopSpendingCategories transactions={transactions} />
         <BudgetSummary budgets={budgets} transactions={transactions} />
         <AccountBalances accounts={accounts} />
+        <DaysOfBuffer transactions={transactions} accounts={accounts} />
+        <FutureBalanceProjection transactions={transactions} accounts={accounts} />
+        <CashFlowForecast transactions={transactions} />
+        <LifestyleCreepIndicator transactions={transactions} />
+        <InsightsEngine transactions={transactions} budgets={budgets} />
+        <SubscriptionTracker transactions={transactions} />
+        <Achievements transactions={transactions} budgets={budgets} accounts={accounts} />
       </Masonry>
     </div>
   );
