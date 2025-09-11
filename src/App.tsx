@@ -3,7 +3,7 @@ import { Screen, Transaction, Account, Budget } from './types/types';
 import { User } from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
 import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, writeBatch } from 'firebase/firestore';
-import { categories, getDefaultCategories } from './data/mockData'; // Updated import
+import { categories, getDefaultCategories, mockTransactions, mockAccounts, mockBudgets } from './data/mockData'; // Updated import
 
 // Components
 import LoginPage from './components/Login/LoginPage';
@@ -452,6 +452,46 @@ function App() {
     }
   };
 
+  const handleLoadMockData = async () => {
+    if (!user) return;
+    
+    try {
+      // Clear existing data
+      const transactionsRef = collection(db, 'spenders', user.uid, 'transactions');
+      const accountsRef = collection(db, 'spenders', user.uid, 'accounts');
+      const budgetsRef = collection(db, 'spenders', user.uid, 'budgets');
+      
+      // Add mock transactions
+      const transactionBatch = writeBatch(db);
+      mockTransactions.forEach(transaction => {
+        const newTransactionRef = doc(transactionsRef);
+        transactionBatch.set(newTransactionRef, transaction);
+      });
+      await transactionBatch.commit();
+      
+      // Add mock accounts
+      const accountBatch = writeBatch(db);
+      mockAccounts.forEach(account => {
+        const newAccountRef = doc(accountsRef);
+        accountBatch.set(newAccountRef, account);
+      });
+      await accountBatch.commit();
+      
+      // Add mock budgets
+      const budgetBatch = writeBatch(db);
+      mockBudgets.forEach(budget => {
+        const newBudgetRef = doc(budgetsRef);
+        budgetBatch.set(newBudgetRef, budget);
+      });
+      await budgetBatch.commit();
+      
+      showToast('Mock data loaded successfully!', 'success');
+    } catch (error) {
+      console.error("Error loading mock data: ", error);
+      showToast('Error loading mock data', 'error');
+    }
+  };
+
   const getPageTitle = () => {
     switch (currentScreen) {
       case 'dashboard': return 'Dashboard';
@@ -597,7 +637,8 @@ function App() {
               onEditCategory={handleEditCategory}
               onDeleteCategory={handleDeleteCategory}
               onResetCategories={handleResetCategories}
-              onUpdateCategories={handleUpdateCategories} // Add this new prop
+              onUpdateCategories={handleUpdateCategories}
+              onLoadMockData={handleLoadMockData}
             />
           </motion.div>
         );

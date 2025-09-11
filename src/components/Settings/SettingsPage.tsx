@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { fadeInVariants, staggerContainer, buttonHoverVariants, modalVariants } from '../../components/Common/AnimationVariants';
 
 interface SettingsPageProps {
-  user: User | null;
+  user: any;
   darkMode: boolean;
   onToggleDarkMode: () => void;
   accounts: Account[];
@@ -22,7 +22,8 @@ interface SettingsPageProps {
   onEditCategory: (oldCategory: string, newCategory: string) => void;
   onDeleteCategory: (category: string) => void;
   onResetCategories: () => void;
-  onUpdateCategories: (categories: string[]) => void; // Add this new prop
+  onUpdateCategories: (categories: string[]) => void;
+  onLoadMockData?: () => void; // Add this new prop
 }
 
 const SettingsPage: React.FC<SettingsPageProps> = ({ 
@@ -42,7 +43,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   onEditCategory,
   onDeleteCategory,
   onResetCategories,
-  onUpdateCategories // Add this new prop
+  onUpdateCategories,
+  onLoadMockData // Add this new prop
 }) => {
   const [showAddAccountModal, setShowAddAccountModal] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
@@ -417,9 +419,13 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
             <Tag className="h-5 w-5 text-gray-900 dark:text-[#F5F5F5]" />
             <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5]">Categories</h3>
           </div>
+        </motion.div>
+        
+        {/* Two-column layout for category editor and load mock data button */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <motion.button 
             onClick={handleOpenCategoryEditor}
-            className="flex items-center space-x-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-3 py-2 rounded-lg font-medium text-sm"
+            className="flex items-center justify-center space-x-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-3 py-2 rounded-lg font-medium text-sm w-full"
             variants={buttonHoverVariants}
             whileHover="hover"
             whileTap="tap"
@@ -427,7 +433,18 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
             <Settings className="h-4 w-4" />
             <span>Edit Categories</span>
           </motion.button>
-        </motion.div>
+          
+          <motion.button 
+            onClick={onLoadMockData}
+            className="flex items-center justify-center space-x-1 bg-[#007BFF] text-white px-3 py-2 rounded-lg font-medium text-sm w-full"
+            variants={buttonHoverVariants}
+            whileHover="hover"
+            whileTap="tap"
+          >
+            <span>Load MockData</span>
+          </motion.button>
+        </div>
+        
         <motion.p 
           className="text-sm text-gray-500 dark:text-[#888888]"
           initial={{ opacity: 0, y: 10 }}
@@ -516,7 +533,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
             </motion.div>
           ))}
         </motion.div>
-      </motion.div>
       </motion.div>
 
       {/* Category Editor Modal */}
@@ -1130,6 +1146,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
+    </motion.div>
     </>
   );
 };
