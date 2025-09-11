@@ -3,15 +3,20 @@ import { DollarSign, TrendingUp, TrendingDown } from 'lucide-react';
 import MetricCard from './MetricCard';
 import SpendingChart from './SpendingChart';
 import RecentTransactions from './RecentTransactions';
-import { Transaction, Account } from '../../types/types';
+import { Transaction, Account, Budget } from '../../types/types';
+import IncomeVsExpenseChart from './IncomeVsExpenseChart';
+import BudgetSummary from './BudgetSummary';
+import AccountBalances from './AccountBalances';
+import TopSpendingCategories from './TopSpendingCategories';
 
 interface DashboardPageProps {
   transactions: Transaction[];
   accounts: Account[];
+  budgets: Budget[];
   onViewAllTransactions: () => void;
 }
 
-const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, onViewAllTransactions }) => {
+const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, budgets, onViewAllTransactions }) => {
   // Calculate metrics
   const totalBalance = accounts.reduce((sum, acc) => sum + acc.balance, 0);
 
@@ -33,6 +38,15 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, o
 
   return (
     <div className="space-y-8">
+      {/* Existing Charts and Transactions */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <SpendingChart transactions={currentMonthTxs} />
+        <RecentTransactions 
+          transactions={transactions}
+          onViewAll={onViewAllTransactions}
+        />
+      </div>
+
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <MetricCard
@@ -55,13 +69,12 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, o
         />
       </div>
 
-      {/* Charts and Transactions */}
+      {/* New Analytics Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <SpendingChart transactions={currentMonthTxs} />
-        <RecentTransactions 
-          transactions={transactions}
-          onViewAll={onViewAllTransactions}
-        />
+        <IncomeVsExpenseChart transactions={transactions} />
+        <TopSpendingCategories transactions={transactions} />
+        <BudgetSummary budgets={budgets} transactions={transactions} />
+        <AccountBalances accounts={accounts} />
       </div>
     </div>
   );

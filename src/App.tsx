@@ -349,6 +349,7 @@ function App() {
           <DashboardPage
             transactions={transactions}
             accounts={regularAccounts}
+            budgets={budgets}
             onViewAllTransactions={() => setCurrentScreen('transactions')}
           />
         );
@@ -406,7 +407,7 @@ function App() {
           />
         );
       default:
-        return <DashboardPage transactions={transactions} accounts={regularAccounts} onViewAllTransactions={() => setCurrentScreen('transactions')} />;
+        return <DashboardPage transactions={transactions} accounts={regularAccounts} budgets={budgets} onViewAllTransactions={() => setCurrentScreen('transactions')} />;
     }
   };
 
