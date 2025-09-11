@@ -1,13 +1,13 @@
-# SpendWise - Personal Finance Tracker
+# SpendWiser - Personal Finance Tracker
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/hariharen9/spendwise/blob/main/LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18-blue)](https://reactjs.org/)
 [![Firebase](https://img.shields.io/badge/Firebase-Backend-orange)](https://firebase.google.com/)
 
-A modern, responsive personal finance tracker built with React, TypeScript, and Firebase. SpendWise helps you take control of your finances with beautiful visualizations, insightful analytics, and intuitive transaction management.
+A modern, responsive personal finance tracker built with React, TypeScript, and Firebase. SpendWiser helps you take control of your finances with beautiful visualizations, insightful analytics, and intuitive transaction management.
 
-![SpendWise Dashboard](./docs/dashboard.png)
+![SpendWiser Dashboard](./docs/dashboard.png)
 
 ## 🌟 Features
 
@@ -191,7 +191,7 @@ src/
 
 ## 🔐 Authentication
 
-SpendWise uses Firebase Authentication for secure user login:
+SpendWiser uses Firebase Authentication for secure user login:
 - Google Sign-In integration
 - Secure session management
 - Protected routes and data access

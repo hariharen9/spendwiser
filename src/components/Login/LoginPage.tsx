@@ -51,7 +51,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
           >
-            SpendWise
+            SpendWiser
           </motion.h1>
           <motion.p 
             className="text-lg text-[#888888]"

@@ -591,7 +591,7 @@ function App() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.4 }}
             >
-              Loading SpendWise...
+              Loading SpendWiser...
             </motion.span>
           </motion.div>
           <motion.div 
@@ -653,7 +653,7 @@ function App() {
               <DollarSign className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-[#F5F5F5]">SpendWise</h1>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-[#F5F5F5]">SpendWiser</h1>
             </div>
           </div>
           {user && (

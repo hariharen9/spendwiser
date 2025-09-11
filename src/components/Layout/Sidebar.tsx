@@ -102,7 +102,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onScreenChange, user, 
             <DollarSign className="h-6 w-6 text-white" />
           </motion.div>
           <div>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-[#F5F5F5]">SpendWise</h1>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-[#F5F5F5]">SpendWiser</h1>
             <p className="text-sm text-gray-500 dark:text-[#888888]">Financial Command Center</p>
           </div>
         </div>

@@ -11,8 +11,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
-        name: 'SpendWise by Hari',
-        short_name: 'SpendWise',
+        name: 'SpendWiser by Hari',
+        short_name: 'SpendWiser',
         description: 'Track and manage your expenses efficiently',
         theme_color: '#4361ee',
         background_color: '#f8f9fa',
