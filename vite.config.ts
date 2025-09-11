@@ -20,13 +20,13 @@ export default defineConfig({
         orientation: 'portrait',
         icons: [
           {
-            src: '/Assets/icon-money.svg',
+            src: '/public/icon-money.svg',
             sizes: '192x192',
             type: 'image/svg+xml',
             purpose: 'any maskable',
           },
           {
-            src: '/Assets/icon-money.svg',
+            src: '/public/icon-money.svg',
             sizes: '512x512',
             type: 'image/svg+xml',
             purpose: 'any maskable',
