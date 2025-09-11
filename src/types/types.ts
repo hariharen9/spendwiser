@@ -7,6 +7,7 @@ export interface Transaction {
   type: 'income' | 'expense';
   accountId?: string;
   comments?: string;
+  isMock?: boolean;
 }
 
 export interface Budget {
@@ -14,6 +15,7 @@ export interface Budget {
   category: string;
   spent: number;
   limit: number;
+  isMock?: boolean;
 }
 
 export interface User {
@@ -29,6 +31,13 @@ export interface Account {
   type: string;
   balance: number;
   limit?: number;
+  isMock?: boolean;
 }
 
-export type Screen = 'login' | 'dashboard' | 'transactions' | 'credit-cards' | 'budgets' | 'settings';
+export interface CreditCard {
+  id: string;
+  name: string;
+  totalSpend: number;
+  limit: number;
+  isMock?: boolean;
+}

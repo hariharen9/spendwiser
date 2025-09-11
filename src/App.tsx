@@ -456,12 +456,11 @@ function App() {
     if (!user) return;
     
     try {
-      // Clear existing data
-      const transactionsRef = collection(db, 'spenders', user.uid, 'transactions');
-      const accountsRef = collection(db, 'spenders', user.uid, 'accounts');
-      const budgetsRef = collection(db, 'spenders', user.uid, 'budgets');
+      // Clear existing mock data first
+      await handleClearMockData();
       
       // Add mock transactions
+      const transactionsRef = collection(db, 'spenders', user.uid, 'transactions');
       const transactionBatch = writeBatch(db);
       mockTransactions.forEach(transaction => {
         const newTransactionRef = doc(transactionsRef);
@@ -470,6 +469,7 @@ function App() {
       await transactionBatch.commit();
       
       // Add mock accounts
+      const accountsRef = collection(db, 'spenders', user.uid, 'accounts');
       const accountBatch = writeBatch(db);
       mockAccounts.forEach(account => {
         const newAccountRef = doc(accountsRef);
@@ -478,6 +478,7 @@ function App() {
       await accountBatch.commit();
       
       // Add mock budgets
+      const budgetsRef = collection(db, 'spenders', user.uid, 'budgets');
       const budgetBatch = writeBatch(db);
       mockBudgets.forEach(budget => {
         const newBudgetRef = doc(budgetsRef);
@@ -506,24 +507,30 @@ function App() {
       const accountsSnapshot = await getDocs(accountsRef);
       const budgetsSnapshot = await getDocs(budgetsRef);
       
-      // Delete all transactions
+      // Delete only mock transactions
       const transactionBatch = writeBatch(db);
       transactionsSnapshot.docs.forEach(doc => {
-        transactionBatch.delete(doc.ref);
+        if (doc.data().isMock === true) {
+          transactionBatch.delete(doc.ref);
+        }
       });
       await transactionBatch.commit();
       
-      // Delete all accounts
+      // Delete only mock accounts
       const accountBatch = writeBatch(db);
       accountsSnapshot.docs.forEach(doc => {
-        accountBatch.delete(doc.ref);
+        if (doc.data().isMock === true) {
+          accountBatch.delete(doc.ref);
+        }
       });
       await accountBatch.commit();
       
-      // Delete all budgets
+      // Delete only mock budgets
       const budgetBatch = writeBatch(db);
       budgetsSnapshot.docs.forEach(doc => {
-        budgetBatch.delete(doc.ref);
+        if (doc.data().isMock === true) {
+          budgetBatch.delete(doc.ref);
+        }
       });
       await budgetBatch.commit();
       

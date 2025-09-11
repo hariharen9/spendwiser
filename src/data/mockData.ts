@@ -1,4 +1,4 @@
-import { Transaction, CreditCard, Budget, User, Account } from '../types/types';
+import { Transaction, Budget, User, Account } from '../types/types';
 
 export const mockUser: User = {
   name: 'Sarah Johnson',
@@ -39,7 +39,8 @@ export const mockTransactions: Transaction[] = [
     amount: 5200,
     date: dateString1,
     category: 'Salary',
-    type: 'income'
+    type: 'income',
+    isMock: true
   },
   {
     id: '2',
@@ -47,7 +48,8 @@ export const mockTransactions: Transaction[] = [
     amount: 850,
     date: dateString2,
     category: 'Freelance',
-    type: 'income'
+    type: 'income',
+    isMock: true
   },
   {
     id: '3',
@@ -55,7 +57,8 @@ export const mockTransactions: Transaction[] = [
     amount: 120,
     date: dateString3,
     category: 'Investment',
-    type: 'income'
+    type: 'income',
+    isMock: true
   },
   {
     id: '4',
@@ -64,7 +67,8 @@ export const mockTransactions: Transaction[] = [
     date: dateString1,
     category: 'Groceries',
     type: 'expense',
-    creditCard: 'Chase Sapphire'
+    creditCard: 'Chase Sapphire',
+    isMock: true
   },
   {
     id: '5',
@@ -73,7 +77,8 @@ export const mockTransactions: Transaction[] = [
     date: dateString1,
     category: 'Entertainment',
     type: 'expense',
-    creditCard: 'Chase Sapphire'
+    creditCard: 'Chase Sapphire',
+    isMock: true
   },
   {
     id: '6',
@@ -82,7 +87,8 @@ export const mockTransactions: Transaction[] = [
     date: dateString1,
     category: 'Transportation',
     type: 'expense',
-    creditCard: 'Amex Gold'
+    creditCard: 'Amex Gold',
+    isMock: true
   },
   {
     id: '7',
@@ -91,7 +97,8 @@ export const mockTransactions: Transaction[] = [
     date: dateString1,
     category: 'Food & Dining',
     type: 'expense',
-    creditCard: 'Chase Sapphire'
+    creditCard: 'Chase Sapphire',
+    isMock: true
   },
   {
     id: '8',
@@ -100,7 +107,8 @@ export const mockTransactions: Transaction[] = [
     date: dateString1,
     category: 'Transportation',
     type: 'expense',
-    creditCard: 'Amex Gold'
+    creditCard: 'Amex Gold',
+    isMock: true
   },
   {
     id: '9',
@@ -109,7 +117,8 @@ export const mockTransactions: Transaction[] = [
     date: dateString2,
     category: 'Shopping',
     type: 'expense',
-    creditCard: 'Chase Sapphire'
+    creditCard: 'Chase Sapphire',
+    isMock: true
   },
   {
     id: '10',
@@ -117,7 +126,8 @@ export const mockTransactions: Transaction[] = [
     amount: -120.30,
     date: dateString2,
     category: 'Utilities',
-    type: 'expense'
+    type: 'expense',
+    isMock: true
   },
   {
     id: '11',
@@ -126,7 +136,8 @@ export const mockTransactions: Transaction[] = [
     date: dateString2,
     category: 'Food & Dining',
     type: 'expense',
-    creditCard: 'Amex Gold'
+    creditCard: 'Amex Gold',
+    isMock: true
   },
   {
     id: '12',
@@ -135,7 +146,8 @@ export const mockTransactions: Transaction[] = [
     date: dateString2,
     category: 'Healthcare',
     type: 'expense',
-    creditCard: 'Chase Sapphire'
+    creditCard: 'Chase Sapphire',
+    isMock: true
   },
   {
     id: '13',
@@ -143,7 +155,8 @@ export const mockTransactions: Transaction[] = [
     amount: -49.99,
     date: dateString3,
     category: 'Education',
-    type: 'expense'
+    type: 'expense',
+    isMock: true
   },
   {
     id: '14',
@@ -152,7 +165,8 @@ export const mockTransactions: Transaction[] = [
     date: dateString3,
     category: 'Entertainment',
     type: 'expense',
-    creditCard: 'Amex Gold'
+    creditCard: 'Amex Gold',
+    isMock: true
   },
   {
     id: '15',
@@ -161,7 +175,8 @@ export const mockTransactions: Transaction[] = [
     date: dateString3,
     category: 'Groceries',
     type: 'expense',
-    creditCard: 'Chase Sapphire'
+    creditCard: 'Chase Sapphire',
+    isMock: true
   }
 ];
 
@@ -170,25 +185,29 @@ export const mockCreditCards: CreditCard[] = [
     id: '1',
     name: 'Chase Sapphire Reserve',
     totalSpend: 1250.50,
-    limit: 5000
+    limit: 5000,
+    isMock: true
   },
   {
     id: '2',
     name: 'American Express Gold',
     totalSpend: 890.25,
-    limit: 3000
+    limit: 3000,
+    isMock: true
   },
   {
     id: '3',
     name: 'Capital One Venture',
     totalSpend: 450.75,
-    limit: 2500
+    limit: 2500,
+    isMock: true
   },
   {
     id: '4',
     name: 'Citi Double Cash',
     totalSpend: 320.40,
-    limit: 2000
+    limit: 2000,
+    isMock: true
   }
 ];
 
@@ -197,58 +216,66 @@ export const mockBudgets: Budget[] = [
     id: '1',
     category: 'Groceries',
     spent: 255.53,
-    limit: 400
+    limit: 400,
+    isMock: true
   },
   {
     id: '2',
     category: 'Entertainment',
     spent: 44.49,
-    limit: 200
+    limit: 200,
+    isMock: true
   },
   {
     id: '3',
     category: 'Transportation',
     spent: 72.00,
-    limit: 300
+    limit: 300,
+    isMock: true
   },
   {
     id: '4',
     category: 'Food & Dining',
     spent: 77.85,
-    limit: 350
+    limit: 350,
+    isMock: true
   },
   {
     id: '5',
     category: 'Shopping',
     spent: 89.99,
-    limit: 250
+    limit: 250,
+    isMock: true
   },
   {
     id: '6',
     category: 'Utilities',
     spent: 120.30,
-    limit: 150
+    limit: 150,
+    isMock: true
   },
   {
     id: '7',
     category: 'Healthcare',
     spent: 32.15,
-    limit: 100
+    limit: 100,
+    isMock: true
   },
   {
     id: '8',
     category: 'Education',
     spent: 49.99,
-    limit: 100
+    limit: 100,
+    isMock: true
   }
 ];
 
 export const mockAccounts: Account[] = [
-    { id: 'acc1', name: 'Personal Checking', type: 'Checking', balance: 12750.50 },
-    { id: 'acc2', name: 'Business Account', type: 'Business Checking', balance: 45800.00 },
-    { id: 'acc3', name: 'Savings', type: 'Savings', balance: 8900.00 },
-    { id: 'acc4', name: 'Emergency Fund', type: 'Savings', balance: 15000.00 },
-    { id: 'acc5', name: 'Investment Account', type: 'Investment', balance: 32500.00 },
+    { id: 'acc1', name: 'Personal Checking', type: 'Checking', balance: 12750.50, isMock: true },
+    { id: 'acc2', name: 'Business Account', type: 'Business Checking', balance: 45800.00, isMock: true },
+    { id: 'acc3', name: 'Savings', type: 'Savings', balance: 8900.00, isMock: true },
+    { id: 'acc4', name: 'Emergency Fund', type: 'Savings', balance: 15000.00, isMock: true },
+    { id: 'acc5', name: 'Investment Account', type: 'Investment', balance: 32500.00, isMock: true },
 ];
 
 export const categories = [
