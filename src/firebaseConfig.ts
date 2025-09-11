@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getFirestore, enablePersistence } from "firebase/firestore";
+import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
 // TODO: Add SDKs for Firebase products that you want to use
@@ -23,17 +23,25 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-enablePersistence(db)
-    .catch((err) => {
-        if (err.code == 'failed-precondition') {
-            // Multiple tabs open, persistence can only be enabled
-            // in one tab at a time.
-            console.log('Firestore persistence can only be enabled in one tab at a time.');
-        } else if (err.code == 'unimplemented') {
-            // The current browser does not support all of the
-            // features required to enable persistence
-            console.log('The current browser does not support all of the features required to enable persistence.');
-        }
-    });
+// Enable offline persistence for Firestore
+// Note: This needs to be imported separately in newer Firebase versions
+import("firebase/firestore").then((firestoreModule) => {
+    if (firestoreModule.enablePersistence) {
+        firestoreModule.enablePersistence(db)
+            .catch((err) => {
+                if (err.code == 'failed-precondition') {
+                    // Multiple tabs open, persistence can only be enabled
+                    // in one tab at a time.
+                    console.log('Firestore persistence can only be enabled in one tab at a time.');
+                } else if (err.code == 'unimplemented') {
+                    // The current browser does not support all of the
+                    // features required to enable persistence
+                    console.log('The current browser does not support all of the features required to enable persistence.');
+                }
+            });
+    }
+}).catch((error) => {
+    console.log('Failed to enable Firestore persistence:', error);
+});
 
 export { db, auth };

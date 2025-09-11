@@ -3,7 +3,7 @@ import { Screen, Transaction, Account, Budget } from './types/types';
 import { User } from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
 import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, writeBatch } from 'firebase/firestore';
-import { categories } from './data/mockData'; // Keep these for now
+import { categories, getDefaultCategories } from './data/mockData'; // Updated import
 
 // Components
 import LoginPage from './components/Login/LoginPage';
@@ -49,6 +49,7 @@ function App() {
   const [defaultAccountId, setDefaultAccountId] = useState<string | null>(null);
   const [currency, setCurrency] = useState<string>('₹'); // Default currency
   const [isImportCSVModalOpen, setIsImportCSVModalOpen] = useState(false);
+  const [userCategories, setUserCategories] = useState<string[]>(categories); // Add user categories state
   
   // Toast system
   const { toasts, showToast, removeToast } = useToast();
@@ -81,6 +82,10 @@ function App() {
             }
             if (userData.themePreference) {
               setDarkMode(userData.themePreference === 'dark');
+            }
+            // Load user categories if they exist
+            if (userData.categories) {
+              setUserCategories(userData.categories);
             }
           }
         } catch (error) {
@@ -139,6 +144,14 @@ function App() {
       setDoc(userDocRef, { themePreference: darkMode ? 'dark' : 'light' }, { merge: true });
     }
   }, [darkMode, user]);
+
+  // Save categories to Firebase when they change
+  useEffect(() => {
+    if (user) {
+      const userDocRef = doc(db, 'spenders', user.uid);
+      setDoc(userDocRef, { categories: userCategories }, { merge: true });
+    }
+  }, [userCategories, user]);
 
   // Calculate account balances dynamically based on transactions
   const accountsWithDynamicBalances = useMemo(() => {
@@ -305,6 +318,52 @@ function App() {
     }
   };
 
+  // Add category management functions
+  const handleAddCategory = (category: string) => {
+    if (category && !userCategories.includes(category)) {
+      setUserCategories([...userCategories, category]);
+    }
+  };
+
+  const handleEditCategory = (oldCategory: string, newCategory: string) => {
+    if (newCategory && newCategory !== oldCategory) {
+      // Update the category in the user's list
+      const updatedCategories = userCategories.map(cat => cat === oldCategory ? newCategory : cat);
+      setUserCategories(updatedCategories);
+      
+      // Update all transactions with this category
+      setTransactions(prevTransactions => 
+        prevTransactions.map(tx => 
+          tx.category === oldCategory ? { ...tx, category: newCategory } : tx
+        )
+      );
+    }
+  };
+
+  const handleDeleteCategory = (category: string) => {
+    if (userCategories.includes(category)) {
+      // Remove the category from the user's list
+      const updatedCategories = userCategories.filter(cat => cat !== category);
+      setUserCategories(updatedCategories);
+      
+      // Update all transactions with this category to "Other"
+      setTransactions(prevTransactions => 
+        prevTransactions.map(tx => 
+          tx.category === category ? { ...tx, category: 'Other' } : tx
+        )
+      );
+    }
+  };
+
+  const handleResetCategories = () => {
+    setUserCategories(getDefaultCategories());
+  };
+
+  // Add function to update category order
+  const handleUpdateCategories = (categories: string[]) => {
+    setUserCategories(categories);
+  };
+
   const handleAddBudget = async (budgetData: Omit<Budget, 'id'>) => {
     if (!user) return;
     try {
@@ -469,7 +528,7 @@ function App() {
               setStartDate={setStartDate}
               endDate={endDate}
               setEndDate={setEndDate}
-              categories={categories}
+              categories={userCategories} // Use user categories
               currency={currency}
             />
           </motion.div>
@@ -533,6 +592,12 @@ function App() {
               defaultAccountId={defaultAccountId}
               onSetDefaultAccount={handleSetDefaultAccount}
               currency={currency}
+              categories={userCategories}
+              onAddCategory={handleAddCategory}
+              onEditCategory={handleEditCategory}
+              onDeleteCategory={handleDeleteCategory}
+              onResetCategories={handleResetCategories}
+              onUpdateCategories={handleUpdateCategories} // Add this new prop
             />
           </motion.div>
         );
@@ -741,6 +806,7 @@ function App() {
         accounts={regularAccounts}
         creditCards={creditCards}
         defaultAccountId={defaultAccountId}
+        categories={userCategories} // Pass user categories to the modal
       />
 
       {/* Import CSV Modal */}

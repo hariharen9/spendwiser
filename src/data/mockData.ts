@@ -155,3 +155,19 @@ export const categories = [
   'Education',
   'Other'
 ];
+
+// Add a function to get the default categories
+export const getDefaultCategories = () => [
+  'Salary',
+  'Freelance',
+  'Investment',
+  'Groceries',
+  'Food & Dining',
+  'Transportation',
+  'Entertainment',
+  'Shopping',
+  'Utilities',
+  'Healthcare',
+  'Education',
+  'Other'
+];

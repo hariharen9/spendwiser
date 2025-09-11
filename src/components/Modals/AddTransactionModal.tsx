@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, DollarSign } from 'lucide-react';
 import { Transaction, Account } from '../../types/types';
-import { categories } from '../../data/mockData';
 import { motion, AnimatePresence } from 'framer-motion';
 import { modalVariants } from '../Common/AnimationVariants';
 
@@ -13,6 +12,7 @@ interface AddTransactionModalProps {
   accounts: Account[];
   creditCards?: Account[];
   defaultAccountId?: string | null;
+  categories?: string[]; // Add categories prop
 }
 
 const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
@@ -22,7 +22,8 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   editingTransaction,
   accounts,
   creditCards = [],
-  defaultAccountId
+  defaultAccountId,
+  categories = ['Salary', 'Freelance', 'Investment', 'Groceries', 'Food & Dining', 'Transportation', 'Entertainment', 'Shopping', 'Utilities', 'Healthcare', 'Education', 'Other'] // Default categories
 }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -66,7 +67,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
         comments: ''
       });
     }
-  }, [editingTransaction, isOpen, accounts, creditCards, defaultAccountId]);
+  }, [editingTransaction, isOpen, accounts, creditCards, defaultAccountId, categories]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
