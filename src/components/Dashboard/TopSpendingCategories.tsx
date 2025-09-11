@@ -1,5 +1,6 @@
 import React from 'react';
 import { Transaction } from '../../types/types';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface TopSpendingCategoriesProps {
   transactions: Transaction[];
@@ -24,7 +25,8 @@ const TopSpendingCategories: React.FC<TopSpendingCategoriesProps> = ({ transacti
     });
 
     return Object.entries(categorySpending)
-      .sort(([, a], [, b]) => b - a)
+      .map(([name, amount]) => ({ name, amount }))
+      .sort((a, b) => b.amount - a.amount)
       .slice(0, 5);
   };
 
@@ -39,26 +41,26 @@ const TopSpendingCategories: React.FC<TopSpendingCategoriesProps> = ({ transacti
     );
   }
 
-  const maxAmount = Math.max(...topCategories.map(([, amount]) => amount));
-
   return (
     <div className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-4">Top Spending Categories (This Month)</h3>
-      <div className="space-y-4">
-        {topCategories.map(([category, amount]) => {
-          const percentage = maxAmount > 0 ? (amount / maxAmount) * 100 : 0;
-          return (
-            <div key={category} className="w-full">
-              <div className="flex justify-between mb-1">
-                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{category}</span>
-                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">₹{amount.toLocaleString()}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-                <div className="bg-blue-500 h-2.5 rounded-full" style={{ width: `${percentage}%` }}></div>
-              </div>
-            </div>
-          );
-        })}
+      <div style={{ width: '100%', height: 300 }}>
+        <ResponsiveContainer>
+          <BarChart
+            layout="vertical"
+            data={topCategories}
+            margin={{
+              top: 20, right: 30, left: 20, bottom: 5,
+            }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis type="number" tickFormatter={(value) => `₹${value / 1000}k`} />
+            <YAxis dataKey="name" type="category" />
+            <Tooltip formatter={(value: number) => `₹${value.toLocaleString()}`} />
+            <Legend />
+            <Bar dataKey="amount" fill="#8884d8" name="Spent" />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import React from 'react';
+import Masonry from 'react-masonry-css';
 import { DollarSign, TrendingUp, TrendingDown } from 'lucide-react';
 import MetricCard from './MetricCard';
 import SpendingChart from './SpendingChart';
@@ -8,6 +9,7 @@ import IncomeVsExpenseChart from './IncomeVsExpenseChart';
 import BudgetSummary from './BudgetSummary';
 import AccountBalances from './AccountBalances';
 import TopSpendingCategories from './TopSpendingCategories';
+import './Dashboard.css';
 
 interface DashboardPageProps {
   transactions: Transaction[];
@@ -17,7 +19,6 @@ interface DashboardPageProps {
 }
 
 const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, budgets, onViewAllTransactions }) => {
-  // Calculate metrics
   const totalBalance = accounts.reduce((sum, acc) => sum + acc.balance, 0);
 
   const currentMonthTxs = transactions.filter(t => {
@@ -36,19 +37,15 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, b
       .reduce((sum, t) => sum + t.amount, 0)
   );
 
-  return (
-    <div className="space-y-8">
-      {/* Existing Charts and Transactions */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <SpendingChart transactions={currentMonthTxs} />
-        <RecentTransactions 
-          transactions={transactions}
-          onViewAll={onViewAllTransactions}
-        />
-      </div>
+  const breakpointColumnsObj = {
+    default: 3,
+    1100: 2,
+    700: 1
+  };
 
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+  return (
+    <div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <MetricCard
           title="Total Balance"
           value={`₹${totalBalance.toLocaleString()}`}
@@ -69,13 +66,21 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, b
         />
       </div>
 
-      {/* New Analytics Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <Masonry
+        breakpointCols={breakpointColumnsObj}
+        className="my-masonry-grid"
+        columnClassName="my-masonry-grid_column"
+      >
+        <SpendingChart transactions={currentMonthTxs} />
+        <RecentTransactions 
+          transactions={transactions}
+          onViewAll={onViewAllTransactions}
+        />
         <IncomeVsExpenseChart transactions={transactions} />
         <TopSpendingCategories transactions={transactions} />
         <BudgetSummary budgets={budgets} transactions={transactions} />
         <AccountBalances accounts={accounts} />
-      </div>
+      </Masonry>
     </div>
   );
 };
