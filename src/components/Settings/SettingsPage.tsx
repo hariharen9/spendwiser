@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { User, Moon, Plus, Edit, Trash2, X, DollarSign } from 'lucide-react';
 import { Account } from '../../types/types';
 import { currencies } from '../../data/mockData';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { fadeInVariants, staggerContainer, buttonHoverVariants, modalVariants } from '../../components/Common/AnimationVariants';
 
 interface SettingsPageProps {
@@ -26,7 +26,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   accounts, 
   onAddAccount, 
   onEditAccount, 
-  onDeleteAccount, 
+  onDeleteAccount,
   onUpdateCurrency,
   defaultAccountId,
   onSetDefaultAccount,
@@ -40,6 +40,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
     balance: '',
     limit: ''
   });
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
 
   const handleOpenModal = (account: Account | null) => {
     setEditingAccount(account);
@@ -78,6 +79,11 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
       }
       handleCloseModal();
     }
+  };
+
+  const handleConfirmDeleteAccount = (id: string) => {
+    onDeleteAccount(id);
+    setShowDeleteConfirm(null);
   };
 
   return (
@@ -348,7 +354,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                     <Edit className="h-4 w-4" />
                   </motion.button>
                   <motion.button 
-                    onClick={() => onDeleteAccount(account.id)}
+                    onClick={() => setShowDeleteConfirm(account.id)}
                     className="p-2 text-gray-500 dark:text-[#888888] hover:text-red-500 dark:hover:text-[#DC3545] hover:bg-gray-100 dark:hover:bg-[#242424] rounded-lg transition-all duration-200"
                     variants={buttonHoverVariants}
                     whileHover="hover"
@@ -365,150 +371,230 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
       </motion.div>
 
       {/* Add/Edit Account Modal */}
-      {showAddAccountModal && (
-        <motion.div 
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        >
+      <AnimatePresence>
+        {showAddAccountModal && (
           <motion.div 
-            className="bg-white dark:bg-[#242424] rounded-lg border border-gray-200 dark:border-gray-700 w-full max-w-md"
-            variants={modalVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={handleCloseModal}
           >
             <motion.div 
-              className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
+              className="bg-white dark:bg-[#242424] rounded-lg border border-gray-200 dark:border-gray-700 w-full max-w-md"
+              variants={modalVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              onClick={(e) => e.stopPropagation()}
             >
-              <h2 className="text-xl font-bold text-gray-900 dark:text-[#F5F5F5]">
-                {editingAccount ? 'Edit Account' : 'Add New Account'}
-              </h2>
-              <motion.button
-                onClick={handleCloseModal}
-                className="text-gray-500 dark:text-[#888888] hover:text-gray-800 dark:hover:text-[#F5F5F5] transition-colors"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <X className="h-6 w-6" />
-              </motion.button>
-            </motion.div>
-            
-            <motion.div 
-              className="p-6 space-y-4"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
+              <motion.div 
+                className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700"
+                initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
+                transition={{ delay: 0.1 }}
               >
-                <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
-                  Account Name *
-                </label>
-                <input
-                  type="text"
-                  value={accountForm.name}
-                  onChange={(e) => setAccountForm({ ...accountForm, name: e.target.value })}
-                  className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
-                  placeholder="e.g., Personal, Business"
-                />
-              </motion.div>
-              
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-              >
-                <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
-                  Account Type *
-                </label>
-                <motion.select
-                  value={accountForm.type}
-                  onChange={(e) => setAccountForm({ ...accountForm, type: e.target.value })}
-                  className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF] appearance-none"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                <h2 className="text-xl font-bold text-gray-900 dark:text-[#F5F5F5]">
+                  {editingAccount ? 'Edit Account' : 'Add New Account'}
+                </h2>
+                <motion.button
+                  onClick={handleCloseModal}
+                  className="text-gray-500 dark:text-[#888888] hover:text-gray-800 dark:hover:text-[#F5F5F5] transition-colors"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
                 >
-                  <option value="Checking">Checking</option>
-                  <option value="Savings">Savings</option>
-                  <option value="Business Checking">Business Checking</option>
-                  <option value="Investment">Investment</option>
-                  <option value="Credit Card">Credit Card</option>
-                </motion.select>
+                  <X className="h-6 w-6" />
+                </motion.button>
               </motion.div>
               
-              <motion.div
+              <motion.div 
+                className="p-6 space-y-4"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
+                transition={{ delay: 0.2 }}
               >
-                <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
-                  Current Balance *
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={accountForm.balance}
-                  onChange={(e) => setAccountForm({ ...accountForm, balance: e.target.value })}
-                  className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
-                  placeholder="0.00"
-                />
-              </motion.div>
-
-              {accountForm.type === 'Credit Card' && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 }}
+                  transition={{ delay: 0.3 }}
                 >
                   <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
-                    Credit Limit *
+                    Account Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={accountForm.name}
+                    onChange={(e) => setAccountForm({ ...accountForm, name: e.target.value })}
+                    className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
+                    placeholder="e.g., Personal, Business"
+                  />
+                </motion.div>
+                
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
+                    Account Type *
+                  </label>
+                  <motion.select
+                    value={accountForm.type}
+                    onChange={(e) => setAccountForm({ ...accountForm, type: e.target.value })}
+                    className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF] appearance-none"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <option value="Checking">Checking</option>
+                    <option value="Savings">Savings</option>
+                    <option value="Business Checking">Business Checking</option>
+                    <option value="Investment">Investment</option>
+                    <option value="Credit Card">Credit Card</option>
+                  </motion.select>
+                </motion.div>
+                
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
+                    Current Balance *
                   </label>
                   <input
                     type="number"
                     step="0.01"
-                    value={accountForm.limit}
-                    onChange={(e) => setAccountForm({ ...accountForm, limit: e.target.value })}
+                    value={accountForm.balance}
+                    onChange={(e) => setAccountForm({ ...accountForm, balance: e.target.value })}
                     className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
-                    placeholder="5000.00"
+                    placeholder="0.00"
                   />
                 </motion.div>
-              )}
 
-              <motion.div 
-                className="flex items-center justify-end space-x-4 pt-4"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7 }}
-              >
-                <motion.button
-                  onClick={handleCloseModal}
-                  className="px-4 py-2 text-gray-600 dark:text-[#888888] hover:text-gray-900 dark:hover:text-[#F5F5F5] transition-colors"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                {accountForm.type === 'Credit Card' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6 }}
+                  >
+                    <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
+                      Credit Limit *
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={accountForm.limit}
+                      onChange={(e) => setAccountForm({ ...accountForm, limit: e.target.value })}
+                      className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
+                      placeholder="5000.00"
+                    />
+                  </motion.div>
+                )}
+
+                <motion.div 
+                  className="flex items-center justify-end space-x-4 pt-4"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.7 }}
                 >
-                  Cancel
-                </motion.button>
-                <motion.button
-                  onClick={handleSaveAccount}
-                  className="bg-[#007BFF] text-white px-6 py-2 rounded-lg font-medium hover:bg-[#0056b3] transition-all duration-200"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  {editingAccount ? 'Update Account' : 'Add Account'}
-                </motion.button>
+                  <motion.button
+                    onClick={handleCloseModal}
+                    className="px-4 py-2 text-gray-600 dark:text-[#888888] hover:text-gray-900 dark:hover:text-[#F5F5F5] transition-colors"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Cancel
+                  </motion.button>
+                  <motion.button
+                    onClick={handleSaveAccount}
+                    className="bg-[#007BFF] text-white px-6 py-2 rounded-lg font-medium hover:bg-[#0056b3] transition-all duration-200"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {editingAccount ? 'Update Account' : 'Add Account'}
+                  </motion.button>
+                </motion.div>
               </motion.div>
             </motion.div>
           </motion.div>
-        </motion.div>
-      )}
+        )}
+      </AnimatePresence>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <motion.div 
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowDeleteConfirm(null)}
+          >
+            <motion.div
+              className="bg-white dark:bg-[#242424] rounded-lg border border-gray-200 dark:border-gray-700 w-full max-w-md"
+              variants={modalVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <motion.div 
+                className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+              >
+                <h2 className="text-xl font-bold text-gray-900 dark:text-[#F5F5F5]">
+                  Confirm Deletion
+                </h2>
+                <motion.button
+                  onClick={() => setShowDeleteConfirm(null)}
+                  className="text-gray-500 dark:text-[#888888] hover:text-gray-800 dark:hover:text-[#F5F5F5] transition-colors"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <X className="h-6 w-6" />
+                </motion.button>
+              </motion.div>
+              
+              <motion.div 
+                className="p-6 space-y-4"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <p className="text-gray-700 dark:text-gray-300">
+                  Are you sure you want to delete this account? This action cannot be undone and all associated transactions will be affected.
+                </p>
+                
+                <motion.div 
+                  className="flex items-center justify-end space-x-4 pt-4"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <motion.button
+                    onClick={() => setShowDeleteConfirm(null)}
+                    className="px-4 py-2 text-gray-600 dark:text-[#888888] hover:text-gray-900 dark:hover:text-[#F5F5F5] transition-colors"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Cancel
+                  </motion.button>
+                  <motion.button
+                    onClick={() => handleConfirmDeleteAccount(showDeleteConfirm)}
+                    className="bg-red-500 text-white px-6 py-2 rounded-lg font-medium hover:bg-red-600 transition-all duration-200"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Delete Account
+                  </motion.button>
+                </motion.div>
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };

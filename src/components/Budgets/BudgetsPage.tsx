@@ -1,8 +1,8 @@
-import React from 'react';
-import { Target, TrendingUp, Plus, Edit, Trash2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Target, TrendingUp, Plus, Edit, Trash2, X } from 'lucide-react';
 import { Budget, Transaction } from '../../types/types';
-import { motion } from 'framer-motion';
-import { fadeInVariants, staggerContainer, buttonHoverVariants, cardHoverVariants } from '../../components/Common/AnimationVariants';
+import { motion, AnimatePresence } from 'framer-motion';
+import { fadeInVariants, staggerContainer, buttonHoverVariants, cardHoverVariants, modalVariants } from '../../components/Common/AnimationVariants';
 
 interface BudgetsPageProps {
   budgets: Budget[];
@@ -14,6 +14,7 @@ interface BudgetsPageProps {
 }
 
 const BudgetsPage: React.FC<BudgetsPageProps> = ({ budgets, transactions, onEditBudget, onAddBudget, onDeleteBudget, currency }) => {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
 
   const totalSpent = budgets.reduce((total, budget) => {
     const categorySpent = transactions
@@ -21,6 +22,11 @@ const BudgetsPage: React.FC<BudgetsPageProps> = ({ budgets, transactions, onEdit
       .reduce((sum, t) => sum + Math.abs(t.amount), 0);
     return total + categorySpent;
   }, 0);
+
+  const handleConfirmDeleteBudget = (id: string) => {
+    onDeleteBudget(id);
+    setShowDeleteConfirm(null);
+  };
 
   return (
     <motion.div 
@@ -180,7 +186,7 @@ const BudgetsPage: React.FC<BudgetsPageProps> = ({ budgets, transactions, onEdit
                           <Edit className="h-4 w-4" />
                        </motion.button>
                        <motion.button 
-                         onClick={() => onDeleteBudget(budget.id)} 
+                         onClick={() => setShowDeleteConfirm(budget.id)} 
                          className="p-2 text-gray-500 dark:text-[#888888] hover:text-red-500 dark:hover:text-[#DC3545] hover:bg-gray-100 dark:hover:bg-[#1A1A1A] rounded-lg transition-all duration-200"
                          variants={buttonHoverVariants}
                          whileHover="hover"
@@ -222,6 +228,82 @@ const BudgetsPage: React.FC<BudgetsPageProps> = ({ budgets, transactions, onEdit
           })}
         </motion.div>
       </motion.div>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <motion.div 
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowDeleteConfirm(null)}
+          >
+            <motion.div
+              className="bg-white dark:bg-[#242424] rounded-lg border border-gray-200 dark:border-gray-700 w-full max-w-md"
+              variants={modalVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <motion.div 
+                className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+              >
+                <h2 className="text-xl font-bold text-gray-900 dark:text-[#F5F5F5]">
+                  Confirm Deletion
+                </h2>
+                <motion.button
+                  onClick={() => setShowDeleteConfirm(null)}
+                  className="text-gray-500 dark:text-[#888888] hover:text-gray-800 dark:hover:text-[#F5F5F5] transition-colors"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <X className="h-6 w-6" />
+                </motion.button>
+              </motion.div>
+              
+              <motion.div 
+                className="p-6 space-y-4"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <p className="text-gray-700 dark:text-gray-300">
+                  Are you sure you want to delete this budget? This action cannot be undone.
+                </p>
+                
+                <motion.div 
+                  className="flex items-center justify-end space-x-4 pt-4"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <motion.button
+                    onClick={() => setShowDeleteConfirm(null)}
+                    className="px-4 py-2 text-gray-600 dark:text-[#888888] hover:text-gray-900 dark:hover:text-[#F5F5F5] transition-colors"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Cancel
+                  </motion.button>
+                  <motion.button
+                    onClick={() => handleConfirmDeleteBudget(showDeleteConfirm)}
+                    className="bg-red-500 text-white px-6 py-2 rounded-lg font-medium hover:bg-red-600 transition-all duration-200"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Delete Budget
+                  </motion.button>
+                </motion.div>
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };

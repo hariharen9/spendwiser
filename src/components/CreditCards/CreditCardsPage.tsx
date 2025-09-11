@@ -1,23 +1,27 @@
 import React, { useState, useMemo } from 'react';
-import { CreditCard as CreditCardIcon, TrendingUp, Plus, X, Edit } from 'lucide-react';
+import { CreditCard as CreditCardIcon, TrendingUp, Plus, X, Edit, Trash2 } from 'lucide-react';
 import { Account, Transaction } from '../../types/types';
 import MetricCard from '../Dashboard/MetricCard';
+import { motion, AnimatePresence } from 'framer-motion';
+import { modalVariants } from '../Common/AnimationVariants';
 
 interface CreditCardsPageProps {
   accounts: Account[];
   transactions: Transaction[];
   onAddAccount?: (accountData: Omit<Account, 'id'>) => void;
   onEditAccount?: (accountData: Account) => void;
+  onDeleteAccount?: (id: string) => void;
   currency: string;
 }
 
-const CreditCardsPage: React.FC<CreditCardsPageProps> = ({ accounts, transactions, onAddAccount, onEditAccount, currency }) => {
+const CreditCardsPage: React.FC<CreditCardsPageProps> = ({ accounts, transactions, onAddAccount, onEditAccount, onDeleteAccount, currency }) => {
   // No need to filter credit cards here since they're already filtered in App.tsx
   const creditCards = accounts;
 
   const [selectedCardId, setSelectedCardId] = useState(creditCards[0]?.id || '');
   const [showAddCardModal, setShowAddCardModal] = useState(false);
   const [showEditCardModal, setShowEditCardModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [editingCard, setEditingCard] = useState<Account | null>(null);
   const [newCardForm, setNewCardForm] = useState({
     name: '',
@@ -89,6 +93,21 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({ accounts, transaction
       
       onEditAccount(updatedCard);
       handleCloseEditCardModal();
+    }
+  };
+
+  const handleDeleteCard = (id: string) => {
+    if (onDeleteAccount) {
+      onDeleteAccount(id);
+      setShowDeleteConfirm(null);
+      
+      // If we deleted the selected card, select the first available card
+      if (id === selectedCardId && creditCards.length > 1) {
+        const remainingCards = creditCards.filter(card => card.id !== id);
+        if (remainingCards.length > 0) {
+          setSelectedCardId(remainingCards[0].id);
+        }
+      }
     }
   };
 
@@ -212,131 +231,335 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({ accounts, transaction
         </>
       )}
 
-      {/* Add Credit Card Modal */}
-      {showAddCardModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-[#242424] rounded-lg border border-gray-200 dark:border-gray-700 w-full max-w-md">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-[#F5F5F5]">
-                Add New Credit Card
-              </h2>
-              <button
-                onClick={handleCloseAddCardModal}
-                className="text-gray-500 dark:text-[#888888] hover:text-gray-800 dark:hover:text-[#F5F5F5] transition-colors"
-              >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-            
-            <div className="p-6 space-y-4">
+      {/* Credit Cards List */}
+      <div className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-6">All Credit Cards</h3>
+        <div className="space-y-4">
+          {creditCards.map((card) => (
+            <motion.div
+              key={card.id}
+              className="flex items-center justify-between p-4 bg-gray-50 dark:bg-[#1A1A1A] rounded-lg border border-gray-200 dark:border-gray-600"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              whileHover={{ backgroundColor: "rgba(0, 0, 0, 0.02)" }}
+            >
               <div>
-                <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
-                  Card Name *
-                </label>
-                <input
-                  type="text"
-                  value={newCardForm.name}
-                  onChange={(e) => setNewCardForm({ ...newCardForm, name: e.target.value })}
-                  className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
-                  placeholder="e.g., Chase Sapphire"
-                />
+                <h4 className="font-medium text-gray-900 dark:text-[#F5F5F5]">{card.name}</h4>
+                <p className="text-sm text-gray-500 dark:text-[#888888]">Limit: {currency}{card.limit?.toLocaleString()}</p>
               </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
-                  Credit Limit *
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={newCardForm.limit}
-                  onChange={(e) => setNewCardForm({ ...newCardForm, limit: e.target.value })}
-                  className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
-                  placeholder="5000.00"
-                />
-              </div>
-              
-              <div className="flex items-center justify-end space-x-4 pt-4">
-                <button
-                  onClick={handleCloseAddCardModal}
-                  className="px-4 py-2 text-gray-600 dark:text-[#888888] hover:text-gray-900 dark:hover:text-[#F5F5F5] transition-colors"
+              <div className="flex items-center space-x-2">
+                <motion.button 
+                  onClick={() => handleOpenEditCardModal(card)}
+                  className="p-2 text-gray-500 dark:text-[#888888] hover:text-gray-800 dark:hover:text-[#F5F5F5] hover:bg-gray-100 dark:hover:bg-[#242424] rounded-lg transition-all duration-200"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
                 >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSaveNewCard}
-                  className="bg-[#007BFF] text-white px-6 py-2 rounded-lg font-medium hover:bg-[#0056b3] transition-all duration-200"
+                  <Edit className="h-4 w-4" />
+                </motion.button>
+                <motion.button 
+                  onClick={() => setShowDeleteConfirm(card.id)}
+                  className="p-2 text-gray-500 dark:text-[#888888] hover:text-red-500 dark:hover:text-[#DC3545] hover:bg-gray-100 dark:hover:bg-[#242424] rounded-lg transition-all duration-200"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
                 >
-                  Add Card
-                </button>
+                  <Trash2 className="h-4 w-4" />
+                </motion.button>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          ))}
         </div>
-      )}
+      </div>
+
+      {/* Add Credit Card Modal */}
+      <AnimatePresence>
+        {showAddCardModal && (
+          <motion.div 
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={handleCloseAddCardModal}
+          >
+            <motion.div
+              className="bg-white dark:bg-[#242424] rounded-lg border border-gray-200 dark:border-gray-700 w-full max-w-md"
+              variants={modalVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <motion.div 
+                className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+              >
+                <h2 className="text-xl font-bold text-gray-900 dark:text-[#F5F5F5]">
+                  Add New Credit Card
+                </h2>
+                <motion.button
+                  onClick={handleCloseAddCardModal}
+                  className="text-gray-500 dark:text-[#888888] hover:text-gray-800 dark:hover:text-[#F5F5F5] transition-colors"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <X className="h-6 w-6" />
+                </motion.button>
+              </motion.div>
+              
+              <motion.div 
+                className="p-6 space-y-4"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
+                    Card Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={newCardForm.name}
+                    onChange={(e) => setNewCardForm({ ...newCardForm, name: e.target.value })}
+                    className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
+                    placeholder="e.g., Chase Sapphire"
+                  />
+                </motion.div>
+                
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
+                    Credit Limit *
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={newCardForm.limit}
+                    onChange={(e) => setNewCardForm({ ...newCardForm, limit: e.target.value })}
+                    className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
+                    placeholder="5000.00"
+                  />
+                </motion.div>
+                
+                <motion.div 
+                  className="flex items-center justify-end space-x-4 pt-4"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <motion.button
+                    onClick={handleCloseAddCardModal}
+                    className="px-4 py-2 text-gray-600 dark:text-[#888888] hover:text-gray-900 dark:hover:text-[#F5F5F5] transition-colors"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Cancel
+                  </motion.button>
+                  <motion.button
+                    onClick={handleSaveNewCard}
+                    className="bg-[#007BFF] text-white px-6 py-2 rounded-lg font-medium hover:bg-[#0056b3] transition-all duration-200"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Add Card
+                  </motion.button>
+                </motion.div>
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Edit Credit Card Modal */}
-      {showEditCardModal && editingCard && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-[#242424] rounded-lg border border-gray-200 dark:border-gray-700 w-full max-w-md">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-[#F5F5F5]">
-                Edit Credit Card
-              </h2>
-              <button
-                onClick={handleCloseEditCardModal}
-                className="text-gray-500 dark:text-[#888888] hover:text-gray-800 dark:hover:text-[#F5F5F5] transition-colors"
+      <AnimatePresence>
+        {showEditCardModal && editingCard && (
+          <motion.div 
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={handleCloseEditCardModal}
+          >
+            <motion.div
+              className="bg-white dark:bg-[#242424] rounded-lg border border-gray-200 dark:border-gray-700 w-full max-w-md"
+              variants={modalVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <motion.div 
+                className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
               >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-            
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
-                  Card Name *
-                </label>
-                <input
-                  type="text"
-                  value={newCardForm.name}
-                  onChange={(e) => setNewCardForm({ ...newCardForm, name: e.target.value })}
-                  className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
-                  placeholder="e.g., Chase Sapphire"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
-                  Credit Limit *
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={newCardForm.limit}
-                  onChange={(e) => setNewCardForm({ ...newCardForm, limit: e.target.value })}
-                  className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
-                  placeholder="5000.00"
-                />
-              </div>
-              
-              <div className="flex items-center justify-end space-x-4 pt-4">
-                <button
+                <h2 className="text-xl font-bold text-gray-900 dark:text-[#F5F5F5]">
+                  Edit Credit Card
+                </h2>
+                <motion.button
                   onClick={handleCloseEditCardModal}
-                  className="px-4 py-2 text-gray-600 dark:text-[#888888] hover:text-gray-900 dark:hover:text-[#F5F5F5] transition-colors"
+                  className="text-gray-500 dark:text-[#888888] hover:text-gray-800 dark:hover:text-[#F5F5F5] transition-colors"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
                 >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSaveEditedCard}
-                  className="bg-[#007BFF] text-white px-6 py-2 rounded-lg font-medium hover:bg-[#0056b3] transition-all duration-200"
+                  <X className="h-6 w-6" />
+                </motion.button>
+              </motion.div>
+              
+              <motion.div 
+                className="p-6 space-y-4"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
                 >
-                  Save Changes
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+                  <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
+                    Card Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={newCardForm.name}
+                    onChange={(e) => setNewCardForm({ ...newCardForm, name: e.target.value })}
+                    className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
+                    placeholder="e.g., Chase Sapphire"
+                  />
+                </motion.div>
+                
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
+                    Credit Limit *
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={newCardForm.limit}
+                    onChange={(e) => setNewCardForm({ ...newCardForm, limit: e.target.value })}
+                    className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
+                    placeholder="5000.00"
+                  />
+                </motion.div>
+                
+                <motion.div 
+                  className="flex items-center justify-end space-x-4 pt-4"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <motion.button
+                    onClick={handleCloseEditCardModal}
+                    className="px-4 py-2 text-gray-600 dark:text-[#888888] hover:text-gray-900 dark:hover:text-[#F5F5F5] transition-colors"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Cancel
+                  </motion.button>
+                  <motion.button
+                    onClick={handleSaveEditedCard}
+                    className="bg-[#007BFF] text-white px-6 py-2 rounded-lg font-medium hover:bg-[#0056b3] transition-all duration-200"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Save Changes
+                  </motion.button>
+                </motion.div>
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <motion.div 
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowDeleteConfirm(null)}
+          >
+            <motion.div
+              className="bg-white dark:bg-[#242424] rounded-lg border border-gray-200 dark:border-gray-700 w-full max-w-md"
+              variants={modalVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <motion.div 
+                className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+              >
+                <h2 className="text-xl font-bold text-gray-900 dark:text-[#F5F5F5]">
+                  Confirm Deletion
+                </h2>
+                <motion.button
+                  onClick={() => setShowDeleteConfirm(null)}
+                  className="text-gray-500 dark:text-[#888888] hover:text-gray-800 dark:hover:text-[#F5F5F5] transition-colors"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <X className="h-6 w-6" />
+                </motion.button>
+              </motion.div>
+              
+              <motion.div 
+                className="p-6 space-y-4"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <p className="text-gray-700 dark:text-gray-300">
+                  Are you sure you want to delete this credit card? This action cannot be undone and all associated transactions will be affected.
+                </p>
+                
+                <motion.div 
+                  className="flex items-center justify-end space-x-4 pt-4"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <motion.button
+                    onClick={() => setShowDeleteConfirm(null)}
+                    className="px-4 py-2 text-gray-600 dark:text-[#888888] hover:text-gray-900 dark:hover:text-[#F5F5F5] transition-colors"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Cancel
+                  </motion.button>
+                  <motion.button
+                    onClick={() => handleDeleteCard(showDeleteConfirm)}
+                    className="bg-red-500 text-white px-6 py-2 rounded-lg font-medium hover:bg-red-600 transition-all duration-200"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Delete Card
+                  </motion.button>
+                </motion.div>
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

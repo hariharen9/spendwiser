@@ -454,6 +454,7 @@ function App() {
               transactions={transactions}
               onAddAccount={handleAddAccount}
               onEditAccount={handleEditAccount}
+              onDeleteAccount={handleDeleteAccount}
               currency={currency}
             />
           </motion.div>
@@ -585,7 +586,7 @@ function App() {
           transition={{ delay: 0.6 }}
         >
           <p className="text-sm text-[#888888]">
-            Built with <span className="text-red-500">❤️</span> by <a href="https://hariharen9.site" target="_blank" rel="noopener noreferrer" className="text-[#007BFF] hover:underline">Hariharen</a>
+            Built with <span className="text-red-500">❤️</span> by <a href="https://hariharen9.site" target="_blank" rel="noopener noreferrer" className="text-[#007BFF] hover:underline">Hariharen</a> © 2025
           </p>
         </motion.div>
       </motion.div>
@@ -672,7 +673,7 @@ function App() {
           {/* Footer with attribution */}
           <footer className="py-4 text-center text-sm text-gray-500 dark:text-[#888888]">
             <p>
-              Built with <span className="text-red-500">❤️</span> by <a href="https://hariharen9.site" target="_blank" rel="noopener noreferrer" className="text-[#007BFF] hover:underline dark:text-[#007BFF]">Hariharen</a>
+              Built with <span className="text-red-500">❤️</span> by <a href="https://hariharen9.site" target="_blank" rel="noopener noreferrer" className="text-[#007BFF] hover:underline dark:text-[#007BFF]">Hariharen</a> © 2025
             </p>
           </footer>
         </div>
