@@ -441,7 +441,7 @@ function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#1A1A1A] flex items-center justify-center">
+      <div className="min-h-screen bg-[#1A1A1A] flex flex-col items-center justify-center">
         <div className="text-[#F5F5F5]">
           <div className="flex items-center justify-center space-x-2">
             <div className="bg-[#007BFF] p-2 rounded-lg">
@@ -452,6 +452,13 @@ function App() {
           <div className="mt-4 flex justify-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#007BFF]"></div>
           </div>
+        </div>
+        
+        {/* Footer with attribution */}
+        <div className="absolute bottom-4 text-center">
+          <p className="text-sm text-[#888888]">
+            Built with <span className="text-red-500">❤️</span> by <a href="https://hariharen9.site" target="_blank" rel="noopener noreferrer" className="text-[#007BFF] hover:underline">Hariharen</a>
+          </p>
         </div>
       </div>
     );
@@ -519,6 +526,13 @@ function App() {
           <main className="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-8">
             {renderCurrentPage()}
           </main>
+          
+          {/* Footer with attribution */}
+          <footer className="py-4 text-center text-sm text-gray-500 dark:text-[#888888]">
+            <p>
+              Built with <span className="text-red-500">❤️</span> by <a href="https://hariharen9.site" target="_blank" rel="noopener noreferrer" className="text-[#007BFF] hover:underline dark:text-[#007BFF]">Hariharen</a>
+            </p>
+          </footer>
         </div>
       </div>
 

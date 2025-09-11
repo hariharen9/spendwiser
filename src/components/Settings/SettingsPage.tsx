@@ -117,9 +117,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                 />
               </div>
             </div>
-            <button className="mt-4 bg-[#007BFF] text-white px-4 py-2 rounded-lg font-medium hover:bg-[#0056b3] transition-all duration-200">
-              Update Profile
-            </button>
           </div>
         </div>
       </div>

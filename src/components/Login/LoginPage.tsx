@@ -53,6 +53,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             </p>
           </div>
         </div>
+        
+        {/* Footer with attribution */}
+        <div className="mt-8 text-center">
+          <p className="text-sm text-[#888888]">
+            Built with <span className="text-red-500">❤️</span> by <a href="https://hariharen9.site" target="_blank" rel="noopener noreferrer" className="text-[#007BFF] hover:underline">Hariharen</a>
+          </p>
+        </div>
       </div>
     </div>
   );
