@@ -194,7 +194,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, b
       variants={staggerContainer}
     >
       <motion.div 
-        className="flex justify-end mb-6 gap-2"
+        className="hidden md:flex justify-end mb-6 gap-2"
         variants={fadeInVariants}
         initial="initial"
         animate="animate"
