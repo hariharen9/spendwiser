@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Screen, Transaction, Account, Budget } from './types/types';
-import { User } from 'firebase/auth';
+import { User, deleteUser, GoogleAuthProvider, reauthenticateWithPopup } from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
 import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, writeBatch, getDocs } from 'firebase/firestore';
 import { categories, getDefaultCategories, mockTransactions, mockAccounts, mockBudgets } from './data/mockData'; // Updated import
@@ -50,6 +50,7 @@ function App() {
   const [currency, setCurrency] = useState<string>('₹'); // Default currency
   const [isImportCSVModalOpen, setIsImportCSVModalOpen] = useState(false);
   const [userCategories, setUserCategories] = useState<string[]>(categories); // Add user categories state
+  const [showReauthModal, setShowReauthModal] = useState(false);
   
   // Toast system
   const { toasts, showToast, removeToast } = useToast();
@@ -541,6 +542,21 @@ function App() {
     }
   };
 
+  const handleReauthenticate = async () => {
+    setShowReauthModal(false);
+    if (!user) return;
+
+    try {
+      const provider = new GoogleAuthProvider();
+      await reauthenticateWithPopup(user, provider);
+      // If re-authentication is successful, retry deleting the user
+      await handleDeleteUserAccount();
+    } catch (reauthError) {
+      console.error("Error during re-authentication: ", reauthError);
+      showToast('Failed to re-authenticate. Please try again.', 'error');
+    }
+  };
+
   const getPageTitle = () => {
     switch (currentScreen) {
       case 'dashboard': return 'Dashboard';
@@ -689,6 +705,7 @@ function App() {
               onUpdateCategories={handleUpdateCategories}
               onLoadMockData={handleLoadMockData}
               onClearMockData={handleClearMockData}
+              onDeleteUserAccount={handleDeleteUserAccount}
             />
           </motion.div>
         );
@@ -704,6 +721,47 @@ function App() {
             <DashboardPage transactions={transactions} accounts={regularAccounts} budgets={budgets} onViewAllTransactions={() => setCurrentScreen('transactions')} currency={currency} />
           </motion.div>
         );
+    }
+  };
+
+  const handleDeleteUserAccount = async () => {
+    if (!user) return;
+
+    try {
+      // Delete all subcollections first
+      const transactionsRef = collection(db, 'spenders', user.uid, 'transactions');
+      const accountsRef = collection(db, 'spenders', user.uid, 'accounts');
+      const budgetsRef = collection(db, 'spenders', user.uid, 'budgets');
+
+      const transactionsSnapshot = await getDocs(transactionsRef);
+      const accountsSnapshot = await getDocs(accountsRef);
+      const budgetsSnapshot = await getDocs(budgetsRef);
+
+      const batch = writeBatch(db);
+
+      transactionsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+      accountsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+      budgetsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+
+      await batch.commit();
+
+      // Delete the main user document
+      const userDocRef = doc(db, 'spenders', user.uid);
+      await deleteDoc(userDocRef);
+
+      // Delete the user from Firebase Authentication
+      await deleteUser(user);
+
+      // Sign out and reset state
+      handleLogout();
+      showToast('Your account has been permanently deleted.', 'success');
+    } catch (error: any) {
+      if (error.code === 'auth/requires-recent-login') {
+        setShowReauthModal(true);
+      } else {
+        console.error("Error deleting user account: ", error);
+        showToast('Error deleting your account. Please try again.', 'error');
+      }
     }
   };
 
@@ -918,6 +976,83 @@ function App() {
         onSave={handleAddBudget}
         editingBudget={editingBudget}
       />
+
+      {/* Re-authentication Info Modal */}
+      <AnimatePresence>
+        {showReauthModal && (
+          <motion.div
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowReauthModal(false)}
+          >
+            <motion.div
+              className="bg-white dark:bg-[#242424] rounded-lg border border-gray-200 dark:border-gray-700 w-full max-w-md"
+              variants={modalVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <motion.div
+                className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+              >
+                <h2 className="text-xl font-bold text-gray-900 dark:text-[#F5F5F5]">Security Check Required</h2>
+                <motion.button
+                  onClick={() => setShowReauthModal(false)}
+                  className="text-gray-500 dark:text-[#888888] hover:text-gray-800 dark:hover:text-[#F5F5F5] transition-colors"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <X className="h-6 w-6" />
+                </motion.button>
+              </motion.div>
+
+              <motion.div
+                className="p-6 space-y-4"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <p className="text-gray-700 dark:text-gray-300">
+                  For your security, you need to re-authenticate to confirm your identity before deleting your account.
+                </p>
+                <p className="text-gray-700 dark:text-gray-300">
+                  Please click "Continue" to sign in again.
+                </p>
+
+                <motion.div
+                  className="flex items-center justify-end space-x-4 pt-4"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <motion.button
+                    onClick={() => setShowReauthModal(false)}
+                    className="px-4 py-2 text-gray-600 dark:text-[#888888] hover:text-gray-900 dark:hover:text-[#F5F5F5] transition-colors"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Cancel
+                  </motion.button>
+                  <motion.button
+                    onClick={handleReauthenticate}
+                    className="bg-[#007BFF] text-white px-6 py-2 rounded-lg font-medium hover:bg-[#0056b3] transition-all duration-200"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Continue
+                  </motion.button>
+                </motion.div>
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
