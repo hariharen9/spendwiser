@@ -27,6 +27,7 @@ import { LogOut, DollarSign } from 'lucide-react';
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true); // Add loading state here
   const [currentScreen, setCurrentScreen] = useState<Screen>('dashboard');
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -35,7 +36,7 @@ function App() {
   const [editingTransaction, setEditingTransaction] = useState<Transaction | undefined>();
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState<any>();
-  const [darkMode, setDarkMode] = useState(true);
+  const [darkMode, setDarkMode] = useState(true); // Default to dark mode
   const [defaultAccountId, setDefaultAccountId] = useState<string | null>(null);
   const [currency, setCurrency] = useState<string>('₹'); // Default currency
   
@@ -65,11 +66,15 @@ function App() {
             if (userData.currency) {
               setCurrency(userData.currency);
             }
+            if (userData.themePreference) {
+              setDarkMode(userData.themePreference === 'dark');
+            }
           }
         } catch (error) {
           console.error("Error fetching user settings: ", error);
         }
       }
+      setLoading(false);
     });
     return () => unsubscribe();
   }, []);
@@ -114,7 +119,13 @@ function App() {
     } else {
       document.documentElement.classList.remove('dark');
     }
-  }, [darkMode]);
+    
+    // Save theme preference to Firebase
+    if (user) {
+      const userDocRef = doc(db, 'spenders', user.uid);
+      setDoc(userDocRef, { themePreference: darkMode ? 'dark' : 'light' }, { merge: true });
+    }
+  }, [darkMode, user]);
 
   // Calculate account balances dynamically based on transactions
   const accountsWithDynamicBalances = useMemo(() => {
@@ -427,6 +438,24 @@ function App() {
         return <DashboardPage transactions={transactions} accounts={regularAccounts} budgets={budgets} onViewAllTransactions={() => setCurrentScreen('transactions')} currency={currency} />;
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#1A1A1A] flex items-center justify-center">
+        <div className="text-[#F5F5F5]">
+          <div className="flex items-center justify-center space-x-2">
+            <div className="bg-[#007BFF] p-2 rounded-lg">
+              <DollarSign className="h-6 w-6 text-white" />
+            </div>
+            <span className="text-xl font-semibold">Loading SpendWise...</span>
+          </div>
+          <div className="mt-4 flex justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#007BFF]"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!user) {
     return <LoginPage onLogin={handleLogin} />;
