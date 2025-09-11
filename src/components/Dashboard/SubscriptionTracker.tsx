@@ -3,6 +3,7 @@ import { Transaction } from '../../types/types';
 
 interface SubscriptionTrackerProps {
   transactions: Transaction[];
+  currency: string;
 }
 
 interface Subscription {
@@ -11,7 +12,7 @@ interface Subscription {
   lastDate: string;
 }
 
-const SubscriptionTracker: React.FC<SubscriptionTrackerProps> = ({ transactions }) => {
+const SubscriptionTracker: React.FC<SubscriptionTrackerProps> = ({ transactions, currency }) => {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
 
   useEffect(() => {
@@ -68,7 +69,7 @@ const SubscriptionTracker: React.FC<SubscriptionTrackerProps> = ({ transactions 
           {subscriptions.map(sub => (
             <li key={sub.name} className="flex justify-between items-center">
               <span className="font-medium text-gray-800 dark:text-gray-200">{sub.name}</span>
-              <span className="font-semibold text-gray-900 dark:text-white">₹{sub.amount.toLocaleString()}</span>
+              <span className="font-semibold text-gray-900 dark:text-white">{currency}{sub.amount.toLocaleString()}</span>
             </li>
           ))}
         </ul>

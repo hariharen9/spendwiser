@@ -23,6 +23,7 @@ interface DashboardPageProps {
   accounts: Account[];
   budgets: Budget[];
   onViewAllTransactions: () => void;
+  currency: string;
 }
 
 // Define the order of components
@@ -42,7 +43,7 @@ const DEFAULT_COMPONENT_ORDER = [
   'Achievements'
 ];
 
-const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, budgets, onViewAllTransactions }) => {
+const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, budgets, onViewAllTransactions, currency }) => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [componentOrder, setComponentOrder] = useState<string[]>(() => {
     const savedOrder = localStorage.getItem('dashboardComponentOrder');
@@ -131,31 +132,31 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, b
 
     switch (componentName) {
       case 'SpendingChart':
-        return <div {...commonProps} key="SpendingChart"><SpendingChart transactions={currentMonthTxs} /></div>;
+        return <div {...commonProps} key="SpendingChart"><SpendingChart transactions={currentMonthTxs} currency={currency} /></div>;
       case 'RecentTransactions':
-        return <div {...commonProps} key="RecentTransactions"><RecentTransactions transactions={transactions} onViewAll={onViewAllTransactions} /></div>;
+        return <div {...commonProps} key="RecentTransactions"><RecentTransactions transactions={transactions} onViewAll={onViewAllTransactions} currency={currency} /></div>;
       case 'IncomeVsExpenseChart':
-        return <div {...commonProps} key="IncomeVsExpenseChart"><IncomeVsExpenseChart transactions={transactions} /></div>;
+        return <div {...commonProps} key="IncomeVsExpenseChart"><IncomeVsExpenseChart transactions={transactions} currency={currency} /></div>;
       case 'TopSpendingCategories':
-        return <div {...commonProps} key="TopSpendingCategories"><TopSpendingCategories transactions={transactions} /></div>;
+        return <div {...commonProps} key="TopSpendingCategories"><TopSpendingCategories transactions={transactions} currency={currency} /></div>;
       case 'BudgetSummary':
-        return <div {...commonProps} key="BudgetSummary"><BudgetSummary budgets={budgets} transactions={transactions} /></div>;
+        return <div {...commonProps} key="BudgetSummary"><BudgetSummary budgets={budgets} transactions={transactions} currency={currency} /></div>;
       case 'AccountBalances':
-        return <div {...commonProps} key="AccountBalances"><AccountBalances accounts={accounts} /></div>;
+        return <div {...commonProps} key="AccountBalances"><AccountBalances accounts={accounts} currency={currency} /></div>;
       case 'DaysOfBuffer':
-        return <div {...commonProps} key="DaysOfBuffer"><DaysOfBuffer transactions={transactions} accounts={accounts} /></div>;
+        return <div {...commonProps} key="DaysOfBuffer"><DaysOfBuffer transactions={transactions} accounts={accounts} currency={currency} /></div>;
       case 'FutureBalanceProjection':
-        return <div {...commonProps} key="FutureBalanceProjection"><FutureBalanceProjection transactions={transactions} accounts={accounts} /></div>;
+        return <div {...commonProps} key="FutureBalanceProjection"><FutureBalanceProjection transactions={transactions} accounts={accounts} currency={currency} /></div>;
       case 'CashFlowForecast':
-        return <div {...commonProps} key="CashFlowForecast"><CashFlowForecast transactions={transactions} /></div>;
+        return <div {...commonProps} key="CashFlowForecast"><CashFlowForecast transactions={transactions} currency={currency} /></div>;
       case 'LifestyleCreepIndicator':
-        return <div {...commonProps} key="LifestyleCreepIndicator"><LifestyleCreepIndicator transactions={transactions} /></div>;
+        return <div {...commonProps} key="LifestyleCreepIndicator"><LifestyleCreepIndicator transactions={transactions} currency={currency} /></div>;
       case 'InsightsEngine':
-        return <div {...commonProps} key="InsightsEngine"><InsightsEngine transactions={transactions} budgets={budgets} /></div>;
+        return <div {...commonProps} key="InsightsEngine"><InsightsEngine transactions={transactions} budgets={budgets} currency={currency} /></div>;
       case 'SubscriptionTracker':
-        return <div {...commonProps} key="SubscriptionTracker"><SubscriptionTracker transactions={transactions} /></div>;
+        return <div {...commonProps} key="SubscriptionTracker"><SubscriptionTracker transactions={transactions} currency={currency} /></div>;
       case 'Achievements':
-        return <div {...commonProps} key="Achievements"><Achievements transactions={transactions} budgets={budgets} accounts={accounts} /></div>;
+        return <div {...commonProps} key="Achievements"><Achievements transactions={transactions} budgets={budgets} accounts={accounts} currency={currency} /></div>;
       default:
         return null;
     }
@@ -218,19 +219,19 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, b
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <MetricCard
           title="Total Balance"
-          value={`₹${totalBalance.toLocaleString()}`}
+          value={`${currency}${totalBalance.toLocaleString()}`}
           icon={DollarSign}
           color="bg-[#007BFF]"
         />
         <MetricCard
           title="This Month's Income"
-          value={`₹${monthlyIncome.toLocaleString()}`}
+          value={`${currency}${monthlyIncome.toLocaleString()}`}
           icon={TrendingUp}
           color="bg-[#28A745]"
         />
         <MetricCard
           title="This Month's Expenses"
-          value={`₹${monthlyExpenses.toLocaleString()}`}
+          value={`${currency}${monthlyExpenses.toLocaleString()}`}
           icon={TrendingDown}
           color="bg-[#DC3545]"
         />

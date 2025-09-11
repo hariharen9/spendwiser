@@ -37,6 +37,7 @@ function App() {
   const [editingBudget, setEditingBudget] = useState<any>();
   const [darkMode, setDarkMode] = useState(true);
   const [defaultAccountId, setDefaultAccountId] = useState<string | null>(null);
+  const [currency, setCurrency] = useState<string>('₹'); // Default currency
   
   // Transaction filter states
   const [searchTerm, setSearchTerm] = useState('');
@@ -56,8 +57,14 @@ function App() {
         // Fetch default account setting
         try {
           const userDocSnap = await getDoc(userDocRef);
-          if (userDocSnap.exists() && userDocSnap.data().defaultAccountId) {
-            setDefaultAccountId(userDocSnap.data().defaultAccountId);
+          if (userDocSnap.exists()) {
+            const userData = userDocSnap.data();
+            if (userData.defaultAccountId) {
+              setDefaultAccountId(userData.defaultAccountId);
+            }
+            if (userData.currency) {
+              setCurrency(userData.currency);
+            }
           }
         } catch (error) {
           console.error("Error fetching user settings: ", error);
@@ -251,10 +258,15 @@ function App() {
     }
   };
 
-  const handleUpdateCurrency = (currency: string) => {
-    // This will need to be updated to work with the new user object
-    // For now, it will throw an error
-    // setUser(prev => ({ ...prev, currency }));
+  const handleUpdateCurrency = async (newCurrency: string) => {
+    setCurrency(newCurrency);
+    if (!user) return;
+    try {
+      const userDocRef = doc(db, 'spenders', user.uid);
+      await updateDoc(userDocRef, { currency: newCurrency });
+    } catch (error) {
+      console.error("Error updating currency: ", error);
+    }
   };
 
   const handleAddBudget = async (budgetData: Omit<Budget, 'id'>) => {
@@ -351,6 +363,7 @@ function App() {
             accounts={regularAccounts}
             budgets={budgets}
             onViewAllTransactions={() => setCurrentScreen('transactions')}
+            currency={currency}
           />
         );
       case 'transactions':
@@ -370,6 +383,7 @@ function App() {
             endDate={endDate}
             setEndDate={setEndDate}
             categories={categories}
+            currency={currency}
           />
         );
       case 'credit-cards':
@@ -379,6 +393,7 @@ function App() {
             transactions={transactions}
             onAddAccount={handleAddAccount}
             onEditAccount={handleEditAccount}
+            currency={currency}
           />
         );
       case 'budgets':
@@ -389,6 +404,7 @@ function App() {
             onEditBudget={handleEditBudget}
             onAddBudget={() => setIsBudgetModalOpen(true)}
             onDeleteBudget={handleDeleteBudget}
+            currency={currency}
           />
         );
       case 'settings':
@@ -404,10 +420,11 @@ function App() {
             onUpdateCurrency={handleUpdateCurrency}
             defaultAccountId={defaultAccountId}
             onSetDefaultAccount={handleSetDefaultAccount}
+            currency={currency}
           />
         );
       default:
-        return <DashboardPage transactions={transactions} accounts={regularAccounts} budgets={budgets} onViewAllTransactions={() => setCurrentScreen('transactions')} />;
+        return <DashboardPage transactions={transactions} accounts={regularAccounts} budgets={budgets} onViewAllTransactions={() => setCurrentScreen('transactions')} currency={currency} />;
     }
   };
 

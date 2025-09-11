@@ -4,9 +4,10 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 
 interface IncomeVsExpenseChartProps {
   transactions: Transaction[];
+  currency: string;
 }
 
-const IncomeVsExpenseChart: React.FC<IncomeVsExpenseChartProps> = ({ transactions }) => {
+const IncomeVsExpenseChart: React.FC<IncomeVsExpenseChartProps> = ({ transactions, currency }) => {
   const processData = () => {
     const months = Array.from({ length: 6 }, (_, i) => {
       const d = new Date();
@@ -40,8 +41,8 @@ const IncomeVsExpenseChart: React.FC<IncomeVsExpenseChartProps> = ({ transaction
           <BarChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" />
-            <YAxis tickFormatter={(value) => `₹${value / 1000}k`} />
-            <Tooltip formatter={(value: number) => `₹${value.toLocaleString()}`} />
+            <YAxis tickFormatter={(value) => `${currency}${value / 1000}k`} />
+            <Tooltip formatter={(value: number) => `${currency}${value.toLocaleString()}`} />
             <Legend />
             <Bar dataKey="income" fill="#28A745" name="Income" />
             <Bar dataKey="expense" fill="#DC3545" name="Expense" />

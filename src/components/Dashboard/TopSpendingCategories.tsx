@@ -4,9 +4,10 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 
 interface TopSpendingCategoriesProps {
   transactions: Transaction[];
+  currency: string;
 }
 
-const TopSpendingCategories: React.FC<TopSpendingCategoriesProps> = ({ transactions }) => {
+const TopSpendingCategories: React.FC<TopSpendingCategoriesProps> = ({ transactions, currency }) => {
   const processData = () => {
     const categorySpending: { [key: string]: number } = {};
     const currentMonthTxs = transactions.filter(t => {
@@ -54,9 +55,9 @@ const TopSpendingCategories: React.FC<TopSpendingCategoriesProps> = ({ transacti
             }}
           >
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis type="number" tickFormatter={(value) => `₹${value / 1000}k`} />
+            <XAxis type="number" tickFormatter={(value) => `${currency}${value / 1000}k`} />
             <YAxis dataKey="name" type="category" />
-            <Tooltip formatter={(value: number) => `₹${value.toLocaleString()}`} />
+            <Tooltip formatter={(value: number) => `${currency}${value.toLocaleString()}`} />
             <Legend />
             <Bar dataKey="amount" fill="#8884d8" name="Spent" />
           </BarChart>

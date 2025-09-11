@@ -3,9 +3,10 @@ import { Account } from '../../types/types';
 
 interface AccountBalancesProps {
   accounts: Account[];
+  currency: string;
 }
 
-const AccountBalances: React.FC<AccountBalancesProps> = ({ accounts }) => {
+const AccountBalances: React.FC<AccountBalancesProps> = ({ accounts, currency }) => {
   if (accounts.length === 0) {
     return (
       <div className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700">
@@ -22,7 +23,7 @@ const AccountBalances: React.FC<AccountBalancesProps> = ({ accounts }) => {
         {accounts.map(account => (
           <li key={account.id} className="flex justify-between items-center">
             <span className="font-medium text-gray-800 dark:text-gray-200">{account.name}</span>
-            <span className="font-semibold text-gray-900 dark:text-white">₹{account.balance.toLocaleString()}</span>
+            <span className="font-semibold text-gray-900 dark:text-white">{currency}{account.balance.toLocaleString()}</span>
           </li>
         ))}
       </ul>

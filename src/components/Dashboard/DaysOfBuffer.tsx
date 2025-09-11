@@ -4,9 +4,10 @@ import { Transaction, Account } from '../../types/types';
 interface DaysOfBufferProps {
   transactions: Transaction[];
   accounts: Account[];
+  currency: string;
 }
 
-const DaysOfBuffer: React.FC<DaysOfBufferProps> = ({ transactions, accounts }) => {
+const DaysOfBuffer: React.FC<DaysOfBufferProps> = ({ transactions, accounts, currency }) => {
   const calculateDaysOfBuffer = () => {
     const totalBalance = accounts.reduce((sum, acc) => sum + acc.balance, 0);
 
@@ -40,7 +41,7 @@ const DaysOfBuffer: React.FC<DaysOfBufferProps> = ({ transactions, accounts }) =
         <p className="text-gray-500 dark:text-[#888888]">days</p>
       </div>
       <div className="text-center mt-4">
-        <p className="text-sm text-gray-600 dark:text-gray-400">Based on an average daily spend of <strong>₹{avgDailyExpense.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong> over the last 90 days.</p>
+        <p className="text-sm text-gray-600 dark:text-gray-400">Based on an average daily spend of <strong>{currency}{avgDailyExpense.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong> over the last 90 days.</p>
       </div>
     </div>
   );

@@ -4,9 +4,10 @@ import { Budget, Transaction } from '../../types/types';
 interface BudgetSummaryProps {
   budgets: Budget[];
   transactions: Transaction[];
+  currency: string;
 }
 
-const BudgetSummary: React.FC<BudgetSummaryProps> = ({ budgets, transactions }) => {
+const BudgetSummary: React.FC<BudgetSummaryProps> = ({ budgets, transactions, currency }) => {
 
   const getSpentAmount = (category: string) => {
     return transactions
@@ -36,7 +37,7 @@ const BudgetSummary: React.FC<BudgetSummaryProps> = ({ budgets, transactions }) 
             <div key={budget.id}>
               <div className="flex justify-between mb-1">
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{budget.category}</span>
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">₹{spent.toLocaleString()} / ₹{budget.limit.toLocaleString()}</span>
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{currency}{spent.toLocaleString()} / {currency}{budget.limit.toLocaleString()}</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
                 <div className={`${progressBarColor} h-2.5 rounded-full`} style={{ width: `${Math.min(percentage, 100)}%` }}></div>

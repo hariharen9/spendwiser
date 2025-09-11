@@ -10,9 +10,10 @@ interface ChartData {
 
 interface SpendingChartProps {
   transactions: Transaction[];
+  currency: string;
 }
 
-const SpendingChart: React.FC<SpendingChartProps> = ({ transactions }) => {
+const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, currency }) => {
   const categoryColors: { [key: string]: string } = {
     'Groceries': '#007BFF',
     'Food & Dining': '#00C9A7',
@@ -69,7 +70,7 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions }) => {
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
             </Pie>
-            <Tooltip formatter={(value: number) => `₹${value.toLocaleString()}`} />
+            <Tooltip formatter={(value: number) => `${currency}${value.toLocaleString()}`} />
             <Legend />
           </PieChart>
         </ResponsiveContainer>

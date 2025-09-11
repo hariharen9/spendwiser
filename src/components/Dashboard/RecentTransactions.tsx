@@ -5,9 +5,10 @@ import { Transaction } from '../../types/types';
 interface RecentTransactionsProps {
   transactions: Transaction[];
   onViewAll: () => void;
+  currency: string;
 }
 
-const RecentTransactions: React.FC<RecentTransactionsProps> = ({ transactions, onViewAll }) => {
+const RecentTransactions: React.FC<RecentTransactionsProps> = ({ transactions, onViewAll, currency }) => {
   const recentTransactions = transactions.slice(0, 5);
 
   return (
@@ -50,7 +51,7 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({ transactions, o
               <p className={`font-semibold ${
                 transaction.type === 'income' ? 'text-[#28A745]' : 'text-[#DC3545]'
               }`}>
-                {transaction.type === 'income' ? '+' : ''}₹{Math.abs(transaction.amount)}
+                {transaction.type === 'income' ? '+' : ''}{currency}{Math.abs(transaction.amount)}
               </p>
               <p className="text-sm text-[#888888]">
                 {new Date(transaction.date).toLocaleDateString()}

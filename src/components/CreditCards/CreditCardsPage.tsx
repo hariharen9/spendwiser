@@ -8,9 +8,10 @@ interface CreditCardsPageProps {
   transactions: Transaction[];
   onAddAccount?: (accountData: Omit<Account, 'id'>) => void;
   onEditAccount?: (accountData: Account) => void;
+  currency: string;
 }
 
-const CreditCardsPage: React.FC<CreditCardsPageProps> = ({ accounts, transactions, onAddAccount, onEditAccount }) => {
+const CreditCardsPage: React.FC<CreditCardsPageProps> = ({ accounts, transactions, onAddAccount, onEditAccount, currency }) => {
   // No need to filter credit cards here since they're already filtered in App.tsx
   const creditCards = accounts;
 
@@ -135,7 +136,7 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({ accounts, transaction
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <MetricCard
               title="Total Spend"
-              value={`₹${totalSpend.toLocaleString()}`}
+              value={`${currency}${totalSpend.toLocaleString()}`}
               change={limit > 0 ? `${Math.round((totalSpend / limit) * 100)}% of limit` : ''}
               changeType="neutral"
               icon={CreditCardIcon}
@@ -143,8 +144,8 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({ accounts, transaction
             />
             <MetricCard
               title="Remaining Limit"
-              value={`₹${(limit - totalSpend).toLocaleString()}`}
-              change={`₹${limit.toLocaleString()} total limit`}
+              value={`${currency}${(limit - totalSpend).toLocaleString()}`}
+              change={`${currency}${limit.toLocaleString()} total limit`}
               changeType="neutral"
               icon={TrendingUp}
               color="bg-[#00C9A7]"
@@ -158,7 +159,7 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({ accounts, transaction
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500 dark:text-[#888888]">Used</span>
                 <span className="text-gray-900 dark:text-[#F5F5F5]">
-                  ₹{totalSpend.toLocaleString()} of ₹{limit.toLocaleString()}
+                  {currency}{totalSpend.toLocaleString()} of {currency}{limit.toLocaleString()}
                 </span>
               </div>
               <div className="w-full bg-gray-200 dark:bg-[#1A1A1A] rounded-full h-3">
@@ -198,7 +199,7 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({ accounts, transaction
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-[#DC3545]">
-                      ₹{Math.abs(transaction.amount)}
+                      {currency}{Math.abs(transaction.amount)}
                     </p>
                     <p className="text-sm text-gray-500 dark:text-[#888888]">
                       {new Date(transaction.date).toLocaleDateString()}

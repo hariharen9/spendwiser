@@ -8,9 +8,10 @@ interface BudgetsPageProps {
   onEditBudget: (budget: Budget) => void;
   onAddBudget: () => void;
   onDeleteBudget: (id: string) => void;
+  currency: string;
 }
 
-const BudgetsPage: React.FC<BudgetsPageProps> = ({ budgets, transactions, onEditBudget, onAddBudget, onDeleteBudget }) => {
+const BudgetsPage: React.FC<BudgetsPageProps> = ({ budgets, transactions, onEditBudget, onAddBudget, onDeleteBudget, currency }) => {
 
   const totalSpent = budgets.reduce((total, budget) => {
     const categorySpent = transactions
@@ -31,7 +32,7 @@ const BudgetsPage: React.FC<BudgetsPageProps> = ({ budgets, transactions, onEdit
             <div>
               <h3 className="text-sm font-medium text-gray-500 dark:text-[#888888]">Total Budgeted</h3>
               <p className="text-2xl font-bold text-gray-900 dark:text-[#F5F5F5]">
-                ₹{budgets.reduce((sum, b) => sum + b.limit, 0).toLocaleString()}
+                {currency}{budgets.reduce((sum, b) => sum + b.limit, 0).toLocaleString()}
               </p>
             </div>
           </div>
@@ -45,7 +46,7 @@ const BudgetsPage: React.FC<BudgetsPageProps> = ({ budgets, transactions, onEdit
             <div>
               <h3 className="text-sm font-medium text-gray-500 dark:text-[#888888]">Total Spent</h3>
               <p className="text-2xl font-bold text-gray-900 dark:text-[#F5F5F5]">
-                ₹{totalSpent.toLocaleString()}
+                {currency}{totalSpent.toLocaleString()}
               </p>
             </div>
           </div>
@@ -80,7 +81,7 @@ const BudgetsPage: React.FC<BudgetsPageProps> = ({ budgets, transactions, onEdit
                   <div>
                     <h4 className="font-medium text-gray-900 dark:text-[#F5F5F5]">{budget.category}</h4>
                     <p className="text-sm text-gray-500 dark:text-[#888888]">
-                      ₹{calculatedSpent.toFixed(2)} of ₹{budget.limit} spent
+                      {currency}{calculatedSpent.toFixed(2)} of {currency}{budget.limit} spent
                     </p>
                   </div>
                   <div className="flex items-center space-x-4">
@@ -95,7 +96,7 @@ const BudgetsPage: React.FC<BudgetsPageProps> = ({ budgets, transactions, onEdit
                         {Math.round(percentage)}%
                       </span>
                       <p className="text-sm text-gray-500 dark:text-[#888888]">
-                        ₹{(budget.limit - calculatedSpent).toFixed(2)} remaining
+                        {currency}{(budget.limit - calculatedSpent).toFixed(2)} remaining
                       </p>
                     </div>
                     <div className="flex items-center space-x-1">
@@ -124,7 +125,7 @@ const BudgetsPage: React.FC<BudgetsPageProps> = ({ budgets, transactions, onEdit
 
                 {isOverBudget && (
                   <p className="text-xs text-[#DC3545] font-medium">
-                    Over budget by ₹{(calculatedSpent - budget.limit).toFixed(2)}
+                    Over budget by {currency}{(calculatedSpent - budget.limit).toFixed(2)}
                   </p>
                 )}
               </div>

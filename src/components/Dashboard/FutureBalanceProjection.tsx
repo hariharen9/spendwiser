@@ -4,9 +4,10 @@ import { Transaction, Account } from '../../types/types';
 interface FutureBalanceProjectionProps {
   transactions: Transaction[];
   accounts: Account[];
+  currency: string;
 }
 
-const FutureBalanceProjection: React.FC<FutureBalanceProjectionProps> = ({ transactions, accounts }) => {
+const FutureBalanceProjection: React.FC<FutureBalanceProjectionProps> = ({ transactions, accounts, currency }) => {
   const calculateProjection = () => {
     const totalBalance = accounts.reduce((sum, acc) => sum + acc.balance, 0);
 
@@ -40,19 +41,19 @@ const FutureBalanceProjection: React.FC<FutureBalanceProjectionProps> = ({ trans
       <ul className="space-y-3">
         <li className="flex justify-between items-center">
           <span className="font-medium text-gray-800 dark:text-gray-200">In 3 Months</span>
-          <span className="font-semibold text-gray-900 dark:text-white">₹{projection3Months.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+          <span className="font-semibold text-gray-900 dark:text-white">{currency}{projection3Months.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
         </li>
         <li className="flex justify-between items-center">
           <span className="font-medium text-gray-800 dark:text-gray-200">In 6 Months</span>
-          <span className="font-semibold text-gray-900 dark:text-white">₹{projection6Months.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+          <span className="font-semibold text-gray-900 dark:text-white">{currency}{projection6Months.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
         </li>
         <li className="flex justify-between items-center">
           <span className="font-medium text-gray-800 dark:text-gray-200">In 12 Months</span>
-          <span className="font-semibold text-gray-900 dark:text-white">₹{projection12Months.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+          <span className="font-semibold text-gray-900 dark:text-white">{currency}{projection12Months.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
         </li>
       </ul>
       <div className="text-center mt-4">
-        <p className="text-sm text-gray-600 dark:text-gray-400">Based on an average net saving of <strong>₹{avgMonthlyNet.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong> per month.</p>
+        <p className="text-sm text-gray-600 dark:text-gray-400">Based on an average net saving of <strong>{currency}{avgMonthlyNet.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong> per month.</p>
       </div>
     </div>
   );

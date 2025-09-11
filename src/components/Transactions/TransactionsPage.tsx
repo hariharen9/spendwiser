@@ -18,6 +18,7 @@ interface TransactionsPageProps {
   endDate: string;
   setEndDate: (value: string) => void;
   categories: string[];
+  currency: string;
 }
 
 const TransactionsPage: React.FC<TransactionsPageProps> = ({
@@ -34,7 +35,8 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
   setStartDate,
   endDate,
   setEndDate,
-  categories
+  categories,
+  currency
 }) => {
   const filteredTransactions = useMemo(() => {
     return transactions.filter(transaction => {
@@ -92,6 +94,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
         transactions={filteredTransactions}
         onEditTransaction={onEditTransaction}
         onDeleteTransaction={onDeleteTransaction}
+        currency={currency}
       />
     </div>
   );

@@ -6,12 +6,14 @@ interface TransactionTableProps {
   transactions: Transaction[];
   onEditTransaction: (transaction: Transaction) => void;
   onDeleteTransaction: (id: string) => void;
+  currency: string;
 }
 
 const TransactionTable: React.FC<TransactionTableProps> = ({
   transactions,
   onEditTransaction,
-  onDeleteTransaction
+  onDeleteTransaction,
+  currency
 }) => {
   const [sortBy, setSortBy] = useState<keyof Transaction>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -81,7 +83,7 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
                 <td className={`px-6 py-4 text-sm font-semibold ${
                   transaction.type === 'income' ? 'text-[#28A745]' : 'text-[#DC3545]'
                 }`}>
-                  {transaction.type === 'income' ? '+' : ''}₹{Math.abs(transaction.amount)}
+                  {transaction.type === 'income' ? '+' : ''}{currency}{Math.abs(transaction.amount)}
                 </td>
                 <td className="px-6 py-4 text-sm">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${

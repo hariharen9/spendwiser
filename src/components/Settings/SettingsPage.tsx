@@ -14,6 +14,7 @@ interface SettingsPageProps {
   onUpdateCurrency: (currency: string) => void;
   defaultAccountId?: string | null;
   onSetDefaultAccount?: (accountId: string) => void;
+  currency: string;
 }
 
 const SettingsPage: React.FC<SettingsPageProps> = ({ 
@@ -26,7 +27,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   onDeleteAccount, 
   onUpdateCurrency,
   defaultAccountId,
-  onSetDefaultAccount
+  onSetDefaultAccount,
+  currency
 }) => {
   const [showAddAccountModal, setShowAddAccountModal] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
@@ -134,12 +136,13 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
             Default Currency
           </label>
           <select
+            value={currency}
             onChange={(e) => onUpdateCurrency(e.target.value)}
             className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF] appearance-none"
           >
-            {currencies.map(currency => (
-              <option key={currency.code} value={currency.symbol}>
-                {currency.symbol} - {currency.name}
+            {currencies.map(currencyItem => (
+              <option key={currencyItem.code} value={currencyItem.symbol}>
+                {currencyItem.symbol} - {currencyItem.name}
               </option>
             ))}
           </select>

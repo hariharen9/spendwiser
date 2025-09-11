@@ -4,9 +4,10 @@ import { Transaction, Budget } from '../../types/types';
 interface InsightsEngineProps {
   transactions: Transaction[];
   budgets: Budget[];
+  currency: string;
 }
 
-const InsightsEngine: React.FC<InsightsEngineProps> = ({ transactions, budgets }) => {
+const InsightsEngine: React.FC<InsightsEngineProps> = ({ transactions, budgets, currency }) => {
   const [insights, setInsights] = useState<string[]>([]);
 
   useEffect(() => {
