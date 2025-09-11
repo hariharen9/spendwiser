@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Screen, Transaction, Account, Budget } from './types/types';
 import { User } from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
-import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, writeBatch } from 'firebase/firestore';
 import { categories } from './data/mockData'; // Keep these for now
 
 // Components
@@ -22,6 +22,7 @@ import SettingsPage from './components/Settings/SettingsPage';
 // Modals
 import AddTransactionModal from './components/Modals/AddTransactionModal';
 import BudgetModal from './components/Modals/BudgetModal';
+import ImportCSVModal from './components/Modals/ImportCSVModal';
 
 // Icons
 import { LogOut, DollarSign } from 'lucide-react';
@@ -47,6 +48,7 @@ function App() {
   const [darkMode, setDarkMode] = useState(true); // Default to dark mode
   const [defaultAccountId, setDefaultAccountId] = useState<string | null>(null);
   const [currency, setCurrency] = useState<string>('₹'); // Default currency
+  const [isImportCSVModalOpen, setIsImportCSVModalOpen] = useState(false);
   
   // Toast system
   const { toasts, showToast, removeToast } = useToast();
@@ -271,7 +273,8 @@ function App() {
     if (!user) return;
     try {
       const accountDoc = doc(db, 'spenders', user.uid, 'accounts', account.id);
-      await updateDoc(accountDoc, account);
+      const { id, ...accountData } = account;
+      await updateDoc(accountDoc, accountData);
       showToast('Account updated successfully!', 'success');
     } catch (error) {
       console.error("Error updating account: ", error);
@@ -340,14 +343,13 @@ function App() {
 
   const handleExportCSV = () => {
     const csvContent = [
-      ['Date', 'Name', 'Category', 'Amount', 'Type', 'Credit Card'],
+      ['Date', 'Name', 'Category', 'Amount', 'Type'],
       ...filteredTransactions.map(t => [
         t.date,
         t.name,
         t.category,
         t.amount,
-        t.type,
-        t.creditCard || ''
+        t.type
       ])
     ].map(row => row.join(',')).join('\n');
 
@@ -357,6 +359,27 @@ function App() {
     a.href = url;
     a.download = 'transactions.csv';
     a.click();
+  };
+
+  const handleImportCSV = async (transactions: Omit<Transaction, 'id'>[]) => {
+    if (!user) return;
+    
+    try {
+      const transactionsRef = collection(db, 'spenders', user.uid, 'transactions');
+      const batch = writeBatch(db);
+      
+      // Add all transactions in a batch operation
+      transactions.forEach(transaction => {
+        const newTransactionRef = doc(transactionsRef);
+        batch.set(newTransactionRef, transaction);
+      });
+      
+      await batch.commit();
+      showToast(`${transactions.length} transactions imported successfully!`, 'success');
+    } catch (error) {
+      console.error("Error importing transactions: ", error);
+      showToast('Error importing transactions', 'error');
+    }
   };
 
   const handleSetDefaultAccount = async (accountId: string) => {
@@ -387,6 +410,17 @@ function App() {
         label: 'Export to CSV',
         onClick: handleExportCSV,
         variant: 'secondary' as const
+      };
+    }
+    return undefined;
+  };
+
+  const getSecondaryActionButton = () => {
+    if (currentScreen === 'transactions') {
+      return {
+        label: 'Import CSV',
+        onClick: () => setIsImportCSVModalOpen(true),
+        variant: 'primary' as const
       };
     }
     return undefined;
@@ -605,7 +639,7 @@ function App() {
           <AnimatedToast
             key={toast.id}
             message={toast.message}
-            type={toast.type}
+            type={toast.type === 'info' ? 'success' : toast.type}
             onClose={() => removeToast(toast.id)}
           />
         ))}
@@ -659,6 +693,7 @@ function App() {
             <Header
               title={getPageTitle()}
               actionButton={getActionButton()}
+              secondaryActionButton={getSecondaryActionButton()}
               onAddTransaction={() => setIsAddTransactionModalOpen(true)}
             />
           </div>
@@ -706,6 +741,14 @@ function App() {
         accounts={regularAccounts}
         creditCards={creditCards}
         defaultAccountId={defaultAccountId}
+      />
+
+      {/* Import CSV Modal */}
+      <ImportCSVModal
+        isOpen={isImportCSVModalOpen}
+        onClose={() => setIsImportCSVModalOpen(false)}
+        onImport={handleImportCSV}
+        currency={currency}
       />
 
       {/* Budget Modal */}

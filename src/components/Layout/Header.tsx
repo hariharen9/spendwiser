@@ -1,5 +1,5 @@
 import React from 'react';
-import { Download } from 'lucide-react';
+import { Download, Upload } from 'lucide-react';
 import { Transaction } from '../../types/types';
 import AnimatedButton from '../Common/AnimatedButton';
 import { motion } from 'framer-motion';
@@ -12,6 +12,11 @@ interface HeaderProps {
     onClick: () => void;
     variant?: 'primary' | 'secondary';
   };
+  secondaryActionButton?: {
+    label: string;
+    onClick: () => void;
+    variant?: 'primary' | 'secondary';
+  };
   onAddTransaction?: () => void;
   onExportCSV?: () => void;
   filteredTransactions?: Transaction[];
@@ -20,6 +25,7 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ 
   title, 
   actionButton, 
+  secondaryActionButton,
   onAddTransaction,
   onExportCSV,
   filteredTransactions
@@ -52,6 +58,24 @@ const Header: React.FC<HeaderProps> = ({
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
         >
+          {secondaryActionButton && (
+            <motion.button
+              onClick={secondaryActionButton.onClick}
+              className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center ${
+                secondaryActionButton.variant === 'secondary'
+                  ? 'bg-[#242424] text-[#F5F5F5] border border-gray-600 hover:bg-[#2A2A2A]'
+                  : 'bg-[#007BFF] text-white hover:bg-[#0056b3]'
+              }`}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              {secondaryActionButton.label === 'Import CSV' && <Upload className="h-4 w-4 mr-2" />}
+              {secondaryActionButton.label}
+            </motion.button>
+          )}
           {actionButton && (
             <motion.button
               onClick={actionButton.onClick}
