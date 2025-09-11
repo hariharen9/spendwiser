@@ -23,7 +23,8 @@ interface SettingsPageProps {
   onDeleteCategory: (category: string) => void;
   onResetCategories: () => void;
   onUpdateCategories: (categories: string[]) => void;
-  onLoadMockData?: () => void; // Add this new prop
+  onLoadMockData?: () => void;
+  onClearMockData?: () => void; // Add clear mock data prop
 }
 
 const SettingsPage: React.FC<SettingsPageProps> = ({ 
@@ -44,7 +45,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   onDeleteCategory,
   onResetCategories,
   onUpdateCategories,
-  onLoadMockData // Add this new prop
+  onLoadMockData,
+  onClearMockData // Add clear mock data prop
 }) => {
   const [showAddAccountModal, setShowAddAccountModal] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
@@ -421,8 +423,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
           </div>
         </motion.div>
         
-        {/* Two-column layout for category editor and load mock data button */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        {/* Three buttons in a responsive grid layout */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <motion.button 
             onClick={handleOpenCategoryEditor}
             className="flex items-center justify-center space-x-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-3 py-2 rounded-lg font-medium text-sm w-full"
@@ -443,6 +445,16 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
           >
             <span>Load MockData</span>
           </motion.button>
+          
+          <motion.button 
+            onClick={onClearMockData}
+            className="flex items-center justify-center space-x-1 bg-red-500 text-white px-3 py-2 rounded-lg font-medium text-sm w-full"
+            variants={buttonHoverVariants}
+            whileHover="hover"
+            whileTap="tap"
+          >
+            <span>Clear MockData</span>
+          </motion.button>
         </div>
         
         <motion.p 
@@ -451,7 +463,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
         >
-          Manage your transaction categories. Click "Edit Categories" to add, remove, or rearrange categories.
+          Manage your transaction categories. Click "Edit Categories" to add, remove, or rearrange categories. Use "Load MockData" to populate demo data and "Clear MockData" to remove it.
         </motion.p>
       </motion.div>
 

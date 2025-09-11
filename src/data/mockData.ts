@@ -14,74 +14,152 @@ export const currencies = [
     { code: 'GBP', name: 'British Pound', symbol: '£' },
 ];
 
+// Calculate dates for transactions (1-3 days before today)
+const today = new Date();
+const date1 = new Date(today);
+date1.setDate(today.getDate() - 1);
+const date2 = new Date(today);
+date2.setDate(today.getDate() - 2);
+const date3 = new Date(today);
+date3.setDate(today.getDate() - 3);
+
+const formatDate = (date: Date): string => {
+  return date.toISOString().split('T')[0];
+};
+
+const dateString1 = formatDate(date1);
+const dateString2 = formatDate(date2);
+const dateString3 = formatDate(date3);
+
 export const mockTransactions: Transaction[] = [
+  // Income transactions
   {
     id: '1',
     name: 'Salary Deposit',
     amount: 5200,
-    date: '2024-01-15',
+    date: dateString1,
     category: 'Salary',
     type: 'income'
   },
   {
     id: '2',
+    name: 'Freelance Project',
+    amount: 850,
+    date: dateString2,
+    category: 'Freelance',
+    type: 'income'
+  },
+  {
+    id: '3',
+    name: 'Dividend Payment',
+    amount: 120,
+    date: dateString3,
+    category: 'Investment',
+    type: 'income'
+  },
+  {
+    id: '4',
     name: 'Grocery Store',
     amount: -156.78,
-    date: '2024-01-14',
+    date: dateString1,
     category: 'Groceries',
     type: 'expense',
     creditCard: 'Chase Sapphire'
   },
   {
-    id: '3',
+    id: '5',
     name: 'Netflix Subscription',
     amount: -15.99,
-    date: '2024-01-13',
+    date: dateString1,
     category: 'Entertainment',
     type: 'expense',
     creditCard: 'Chase Sapphire'
   },
   {
-    id: '4',
+    id: '6',
     name: 'Gas Station',
     amount: -48.50,
-    date: '2024-01-12',
+    date: dateString1,
     category: 'Transportation',
     type: 'expense',
     creditCard: 'Amex Gold'
   },
   {
-    id: '5',
-    name: 'Freelance Project',
-    amount: 850,
-    date: '2024-01-11',
-    category: 'Freelance',
-    type: 'income'
-  },
-  {
-    id: '6',
+    id: '7',
     name: 'Coffee Shop',
     amount: -12.45,
-    date: '2024-01-11',
+    date: dateString1,
     category: 'Food & Dining',
     type: 'expense',
     creditCard: 'Chase Sapphire'
   },
   {
-    id: '7',
+    id: '8',
     name: 'Uber Ride',
     amount: -23.50,
-    date: '2024-01-10',
+    date: dateString1,
     category: 'Transportation',
     type: 'expense',
     creditCard: 'Amex Gold'
   },
   {
-    id: '8',
+    id: '9',
     name: 'Amazon Purchase',
     amount: -89.99,
-    date: '2024-01-09',
+    date: dateString2,
     category: 'Shopping',
+    type: 'expense',
+    creditCard: 'Chase Sapphire'
+  },
+  {
+    id: '10',
+    name: 'Electricity Bill',
+    amount: -120.30,
+    date: dateString2,
+    category: 'Utilities',
+    type: 'expense'
+  },
+  {
+    id: '11',
+    name: 'Restaurant Dinner',
+    amount: -65.40,
+    date: dateString2,
+    category: 'Food & Dining',
+    type: 'expense',
+    creditCard: 'Amex Gold'
+  },
+  {
+    id: '12',
+    name: 'Pharmacy',
+    amount: -32.15,
+    date: dateString2,
+    category: 'Healthcare',
+    type: 'expense',
+    creditCard: 'Chase Sapphire'
+  },
+  {
+    id: '13',
+    name: 'Online Course',
+    amount: -49.99,
+    date: dateString3,
+    category: 'Education',
+    type: 'expense'
+  },
+  {
+    id: '14',
+    name: 'Movie Tickets',
+    amount: -28.50,
+    date: dateString3,
+    category: 'Entertainment',
+    type: 'expense',
+    creditCard: 'Amex Gold'
+  },
+  {
+    id: '15',
+    name: 'Grocery Store',
+    amount: -98.75,
+    date: dateString3,
+    category: 'Groceries',
     type: 'expense',
     creditCard: 'Chase Sapphire'
   }
@@ -90,15 +168,27 @@ export const mockTransactions: Transaction[] = [
 export const mockCreditCards: CreditCard[] = [
   {
     id: '1',
-    name: 'Chase Sapphire',
+    name: 'Chase Sapphire Reserve',
     totalSpend: 1250.50,
     limit: 5000
   },
   {
     id: '2',
-    name: 'Amex Gold',
+    name: 'American Express Gold',
     totalSpend: 890.25,
     limit: 3000
+  },
+  {
+    id: '3',
+    name: 'Capital One Venture',
+    totalSpend: 450.75,
+    limit: 2500
+  },
+  {
+    id: '4',
+    name: 'Citi Double Cash',
+    totalSpend: 320.40,
+    limit: 2000
   }
 ];
 
@@ -106,32 +196,50 @@ export const mockBudgets: Budget[] = [
   {
     id: '1',
     category: 'Groceries',
-    spent: 320,
+    spent: 255.53,
     limit: 400
   },
   {
     id: '2',
     category: 'Entertainment',
-    spent: 125,
+    spent: 44.49,
     limit: 200
   },
   {
     id: '3',
     category: 'Transportation',
-    spent: 180,
+    spent: 72.00,
     limit: 300
   },
   {
     id: '4',
     category: 'Food & Dining',
-    spent: 240,
+    spent: 77.85,
     limit: 350
   },
   {
     id: '5',
     category: 'Shopping',
-    spent: 150,
+    spent: 89.99,
     limit: 250
+  },
+  {
+    id: '6',
+    category: 'Utilities',
+    spent: 120.30,
+    limit: 150
+  },
+  {
+    id: '7',
+    category: 'Healthcare',
+    spent: 32.15,
+    limit: 100
+  },
+  {
+    id: '8',
+    category: 'Education',
+    spent: 49.99,
+    limit: 100
   }
 ];
 
@@ -139,6 +247,8 @@ export const mockAccounts: Account[] = [
     { id: 'acc1', name: 'Personal Checking', type: 'Checking', balance: 12750.50 },
     { id: 'acc2', name: 'Business Account', type: 'Business Checking', balance: 45800.00 },
     { id: 'acc3', name: 'Savings', type: 'Savings', balance: 8900.00 },
+    { id: 'acc4', name: 'Emergency Fund', type: 'Savings', balance: 15000.00 },
+    { id: 'acc5', name: 'Investment Account', type: 'Investment', balance: 32500.00 },
 ];
 
 export const categories = [

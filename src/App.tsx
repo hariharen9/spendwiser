@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Screen, Transaction, Account, Budget } from './types/types';
 import { User } from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
-import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, writeBatch } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, writeBatch, getDocs } from 'firebase/firestore';
 import { categories, getDefaultCategories, mockTransactions, mockAccounts, mockBudgets } from './data/mockData'; // Updated import
 
 // Components
@@ -492,6 +492,48 @@ function App() {
     }
   };
 
+  const handleClearMockData = async () => {
+    if (!user) return;
+    
+    try {
+      // Get references to all collections
+      const transactionsRef = collection(db, 'spenders', user.uid, 'transactions');
+      const accountsRef = collection(db, 'spenders', user.uid, 'accounts');
+      const budgetsRef = collection(db, 'spenders', user.uid, 'budgets');
+      
+      // Get all documents in each collection
+      const transactionsSnapshot = await getDocs(transactionsRef);
+      const accountsSnapshot = await getDocs(accountsRef);
+      const budgetsSnapshot = await getDocs(budgetsRef);
+      
+      // Delete all transactions
+      const transactionBatch = writeBatch(db);
+      transactionsSnapshot.docs.forEach(doc => {
+        transactionBatch.delete(doc.ref);
+      });
+      await transactionBatch.commit();
+      
+      // Delete all accounts
+      const accountBatch = writeBatch(db);
+      accountsSnapshot.docs.forEach(doc => {
+        accountBatch.delete(doc.ref);
+      });
+      await accountBatch.commit();
+      
+      // Delete all budgets
+      const budgetBatch = writeBatch(db);
+      budgetsSnapshot.docs.forEach(doc => {
+        budgetBatch.delete(doc.ref);
+      });
+      await budgetBatch.commit();
+      
+      showToast('Mock data cleared successfully!', 'success');
+    } catch (error) {
+      console.error("Error clearing mock data: ", error);
+      showToast('Error clearing mock data', 'error');
+    }
+  };
+
   const getPageTitle = () => {
     switch (currentScreen) {
       case 'dashboard': return 'Dashboard';
@@ -639,6 +681,7 @@ function App() {
               onResetCategories={handleResetCategories}
               onUpdateCategories={handleUpdateCategories}
               onLoadMockData={handleLoadMockData}
+              onClearMockData={handleClearMockData}
             />
           </motion.div>
         );
