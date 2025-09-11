@@ -475,11 +475,6 @@ function App() {
         </div>
       </div>
 
-      {/* Floating Action Button - Visible only on mobile and positioned above bottom nav */}
-      <div className="md:hidden fixed bottom-24 right-6 z-50">
-        <FAB onClick={() => setIsAddTransactionModalOpen(true)} />
-      </div>
-
       {/* Bottom Navigation for Mobile */}
       <div className="md:hidden bg-white dark:bg-[#242424] border-t border-gray-200 dark:border-gray-700 fixed bottom-0 w-full">
         <div className="flex justify-around">
@@ -492,10 +487,8 @@ function App() {
         </div>
       </div>
 
-      {/* Floating Action Button - Visible only on desktop */}
-      <div className="hidden md:block fixed bottom-6 right-6 z-50">
-        <FAB onClick={() => setIsAddTransactionModalOpen(true)} />
-      </div>
+      {/* Floating Action Button - Visible on all screens, positioned appropriately for each */}
+      <FAB onClick={() => setIsAddTransactionModalOpen(true)} />
 
       {/* Add Transaction Modal */}
       <AddTransactionModal

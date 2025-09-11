@@ -1,6 +1,7 @@
 import React from 'react';
-import { Plus, Download } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { Transaction } from '../../types/types';
+import AnimatedButton from '../Common/AnimatedButton';
 
 interface HeaderProps {
   title: string;
@@ -46,12 +47,7 @@ const Header: React.FC<HeaderProps> = ({
             </button>
           )}
           {onAddTransaction && (
-            <button
-              onClick={onAddTransaction}
-              className="bg-[#00C9A7] text-white p-3 rounded-full hover:bg-[#00B8A0] transition-all duration-200 shadow-lg"
-            >
-              <Plus className="h-5 w-5" />
-            </button>
+            <AnimatedButton onClick={onAddTransaction} />
           )}
         </div>
       </div>
