@@ -5,6 +5,7 @@
   margin-left: -30px; /* gutter size offset */
   width: auto;
 }
+
 .my-masonry-grid_column {
   padding-left: 30px; /* gutter size */
   background-clip: padding-box;
@@ -13,4 +14,29 @@
 /* Style your items */
 .my-masonry-grid_column > div { /* change div to reference your elements you put in <Masonry> */
   margin-bottom: 30px;
+}
+
+/* Add cursor style for draggable items */
+.my-masonry-grid_column > div[draggable="true"] {
+  cursor: move;
+}
+
+/* Add a subtle shadow to indicate draggable items */
+.my-masonry-grid_column > div[draggable="true"]:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+  transition: all 0.2s ease;
+}
+
+/* Animation for edit mode */
+@keyframes jiggle {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-2px, -2px); }
+  50% { transform: translate(2px, -2px); }
+  75% { transform: translate(-2px, 2px); }
+  100% { transform: translate(0, 0); }
+}
+
+.animate-pulse {
+  animation: jiggle 0.3s infinite;
 }
