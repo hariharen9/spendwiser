@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import FilterBar from './FilterBar';
 import TransactionTable from './TransactionTable';
+import MobileTransactionList from './MobileTransactionList';
 import { Transaction } from '../../types/types';
 import { motion } from 'framer-motion';
 import { fadeInVariants, staggerContainer } from '../../components/Common/AnimationVariants';
@@ -114,13 +115,31 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
         />
       </motion.div>
 
+      {/* Desktop View */}
       <motion.div
+        className="hidden md:block"
         variants={fadeInVariants}
         initial="initial"
         animate="animate"
         transition={{ delay: 0.3 }}
       >
         <TransactionTable
+          transactions={filteredTransactions}
+          onEditTransaction={onEditTransaction}
+          onDeleteTransaction={onDeleteTransaction}
+          currency={currency}
+        />
+      </motion.div>
+
+      {/* Mobile View */}
+      <motion.div
+        className="md:hidden"
+        variants={fadeInVariants}
+        initial="initial"
+        animate="animate"
+        transition={{ delay: 0.3 }}
+      >
+        <MobileTransactionList
           transactions={filteredTransactions}
           onEditTransaction={onEditTransaction}
           onDeleteTransaction={onDeleteTransaction}
