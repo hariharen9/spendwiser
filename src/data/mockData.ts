@@ -1,4 +1,4 @@
-import { Transaction, Budget, User, Account } from '../types/types';
+import { Transaction, Budget, User, Account, CreditCard } from '../types/types';
 
 export const mockUser: User = {
   name: 'Sarah Johnson',
@@ -14,117 +14,125 @@ export const currencies = [
     { code: 'GBP', name: 'British Pound', symbol: '£' },
 ];
 
-// Calculate dates for transactions (1-3 days before today)
 const today = new Date();
-const date1 = new Date(today);
-date1.setDate(today.getDate() - 1);
-const date2 = new Date(today);
-date2.setDate(today.getDate() - 2);
-const date3 = new Date(today);
-date3.setDate(today.getDate() - 3);
 
 const formatDate = (date: Date): string => {
   return date.toISOString().split('T')[0];
 };
 
-const dateString1 = formatDate(date1);
-const dateString2 = formatDate(date2);
-const dateString3 = formatDate(date3);
+// Dates for recent transactions
+const dateRecent1 = formatDate(new Date(today.setDate(today.getDate() - 1)));
+const dateRecent2 = formatDate(new Date(today.setDate(today.getDate() - 2)));
+const dateRecent3 = formatDate(new Date(today.setDate(today.getDate() - 3)));
+
+// Dates for a couple of months back
+const twoMonthsAgo = new Date();
+twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
+const dateTwoMonthsAgo1 = formatDate(new Date(twoMonthsAgo.setDate(twoMonthsAgo.getDate() - 5)));
+const dateTwoMonthsAgo2 = formatDate(new Date(twoMonthsAgo.setDate(twoMonthsAgo.getDate() - 10)));
+
+// Dates for five months back
+const fiveMonthsAgo = new Date();
+fiveMonthsAgo.setMonth(fiveMonthsAgo.getMonth() - 5);
+const dateFiveMonthsAgo1 = formatDate(new Date(fiveMonthsAgo.setDate(fiveMonthsAgo.getDate() - 7)));
+const dateFiveMonthsAgo2 = formatDate(new Date(fiveMonthsAgo.setDate(fiveMonthsAgo.getDate() - 12)));
+
 
 export const mockTransactions: Transaction[] = [
-  // Income transactions
+  // Recent Income transactions
   {
     id: '1',
-    name: 'Salary Deposit',
-    amount: 5200,
-    date: dateString1,
+    name: 'Monthly Salary',
+    amount: 75000,
+    date: dateRecent1,
     category: 'Salary',
     type: 'income',
     isMock: true
   },
   {
     id: '2',
-    name: 'Freelance Project',
-    amount: 850,
-    date: dateString2,
+    name: 'Freelance Project Payment',
+    amount: 25000,
+    date: dateRecent2,
     category: 'Freelance',
     type: 'income',
     isMock: true
   },
   {
     id: '3',
-    name: 'Dividend Payment',
-    amount: 120,
-    date: dateString3,
+    name: 'Investment Dividend',
+    amount: 1500,
+    date: dateRecent3,
     category: 'Investment',
     type: 'income',
     isMock: true
   },
+  // Recent Expense transactions
   {
     id: '4',
-    name: 'Grocery Store',
-    amount: -156.78,
-    date: dateString1,
+    name: 'Grocery Shopping',
+    amount: -2500,
+    date: dateRecent1,
     category: 'Groceries',
     type: 'expense',
-    accountId: '1',
+    accountId: 'acc1',
     isMock: true
   },
   {
     id: '5',
     name: 'Netflix Subscription',
-    amount: -15.99,
-    date: dateString1,
+    amount: -649,
+    date: dateRecent1,
     category: 'Entertainment',
     type: 'expense',
-    accountId: '1',
+    accountId: 'acc1',
     isMock: true
   },
   {
     id: '6',
-    name: 'Gas Station',
-    amount: -48.50,
-    date: dateString1,
+    name: 'Fuel for Car',
+    amount: -1800,
+    date: dateRecent1,
     category: 'Transportation',
     type: 'expense',
-    accountId: '2',
+    accountId: 'acc2',
     isMock: true
   },
   {
     id: '7',
-    name: 'Coffee Shop',
-    amount: -12.45,
-    date: dateString1,
+    name: 'Coffee with Friends',
+    amount: -450,
+    date: dateRecent1,
     category: 'Food & Dining',
     type: 'expense',
-    accountId: '1',
+    accountId: 'acc1',
     isMock: true
   },
   {
     id: '8',
-    name: 'Uber Ride',
-    amount: -23.50,
-    date: dateString1,
+    name: 'Uber Ride to Office',
+    amount: -220,
+    date: dateRecent1,
     category: 'Transportation',
     type: 'expense',
-    accountId: '2',
+    accountId: 'acc2',
     isMock: true
   },
   {
     id: '9',
-    name: 'Amazon Purchase',
-    amount: -89.99,
-    date: dateString2,
+    name: 'Amazon Online Purchase',
+    amount: -3500,
+    date: dateRecent2,
     category: 'Shopping',
     type: 'expense',
-    accountId: '1',
+    accountId: 'acc1',
     isMock: true
   },
   {
     id: '10',
     name: 'Electricity Bill',
-    amount: -120.30,
-    date: dateString2,
+    amount: -1200,
+    date: dateRecent2,
     category: 'Utilities',
     type: 'expense',
     isMock: true
@@ -132,28 +140,28 @@ export const mockTransactions: Transaction[] = [
   {
     id: '11',
     name: 'Restaurant Dinner',
-    amount: -65.40,
-    date: dateString2,
+    amount: -1800,
+    date: dateRecent2,
     category: 'Food & Dining',
     type: 'expense',
-    accountId: '2',
+    accountId: 'acc2',
     isMock: true
   },
   {
     id: '12',
-    name: 'Pharmacy',
-    amount: -32.15,
-    date: dateString2,
+    name: 'Pharmacy Purchase',
+    amount: -750,
+    date: dateRecent2,
     category: 'Healthcare',
     type: 'expense',
-    accountId: '1',
+    accountId: 'acc1',
     isMock: true
   },
   {
     id: '13',
-    name: 'Online Course',
-    amount: -49.99,
-    date: dateString3,
+    name: 'Online Course Fee',
+    amount: -4999,
+    date: dateRecent3,
     category: 'Education',
     type: 'expense',
     isMock: true
@@ -161,121 +169,235 @@ export const mockTransactions: Transaction[] = [
   {
     id: '14',
     name: 'Movie Tickets',
-    amount: -28.50,
-    date: dateString3,
+    amount: -700,
+    date: dateRecent3,
     category: 'Entertainment',
     type: 'expense',
-    accountId: '2',
+    accountId: 'acc2',
     isMock: true
   },
   {
     id: '15',
-    name: 'Grocery Store',
-    amount: -98.75,
-    date: dateString3,
+    name: 'Weekly Groceries',
+    amount: -1800,
+    date: dateRecent3,
     category: 'Groceries',
     type: 'expense',
-    accountId: '1',
+    accountId: 'acc1',
+    isMock: true
+  },
+
+  // Transactions from two months ago
+  {
+    id: '16',
+    name: 'Salary (2 months ago)',
+    amount: 72000,
+    date: dateTwoMonthsAgo1,
+    category: 'Salary',
+    type: 'income',
+    isMock: true
+  },
+  {
+    id: '17',
+    name: 'Rent Payment',
+    amount: -15000,
+    date: dateTwoMonthsAgo1,
+    category: 'Housing',
+    type: 'expense',
+    accountId: 'acc1',
+    isMock: true
+  },
+  {
+    id: '18',
+    name: 'Internet Bill',
+    amount: -999,
+    date: dateTwoMonthsAgo1,
+    category: 'Utilities',
+    type: 'expense',
+    isMock: true
+  },
+  {
+    id: '19',
+    name: 'Gym Membership',
+    amount: -1200,
+    date: dateTwoMonthsAgo2,
+    category: 'Health',
+    type: 'expense',
+    accountId: 'acc2',
+    isMock: true
+  },
+  {
+    id: '20',
+    name: 'New Clothes',
+    amount: -4500,
+    date: dateTwoMonthsAgo2,
+    category: 'Shopping',
+    type: 'expense',
+    accountId: 'acc1',
+    isMock: true
+  },
+
+  // Transactions from five months ago
+  {
+    id: '21',
+    name: 'Bonus Payment',
+    amount: 10000,
+    date: dateFiveMonthsAgo1,
+    category: 'Salary',
+    type: 'income',
+    isMock: true
+  },
+  {
+    id: '22',
+    name: 'Flight Ticket',
+    amount: -8000,
+    date: dateFiveMonthsAgo1,
+    category: 'Travel',
+    type: 'expense',
+    accountId: 'acc2',
+    isMock: true
+  },
+  {
+    id: '23',
+    name: 'Hotel Stay',
+    amount: -6000,
+    date: dateFiveMonthsAgo1,
+    category: 'Travel',
+    type: 'expense',
+    accountId: 'acc1',
+    isMock: true
+  },
+  {
+    id: '24',
+    name: 'Car Service',
+    amount: -3000,
+    date: dateFiveMonthsAgo2,
+    category: 'Transportation',
+    type: 'expense',
+    accountId: 'acc2',
+    isMock: true
+  },
+  {
+    id: '25',
+    name: 'Gift Purchase',
+    amount: -1500,
+    date: dateFiveMonthsAgo2,
+    category: 'Shopping',
+    type: 'expense',
+    accountId: 'acc1',
     isMock: true
   }
 ];
 
 export const mockCreditCards: CreditCard[] = [
   {
-    id: '1',
-    name: 'Chase Sapphire Reserve',
-    totalSpend: 1250.50,
-    limit: 5000,
+    id: 'cc1',
+    name: 'Axis Bank My Zone',
+    totalSpend: 12500,
+    limit: 50000,
     isMock: true
   },
   {
-    id: '2',
-    name: 'American Express Gold',
-    totalSpend: 890.25,
-    limit: 3000,
+    id: 'cc2',
+    name: 'HDFC Bank MoneyBack',
+    totalSpend: 8900,
+    limit: 30000,
     isMock: true
   },
   {
-    id: '3',
-    name: 'Capital One Venture',
-    totalSpend: 450.75,
-    limit: 2500,
-    isMock: true
-  },
-  {
-    id: '4',
-    name: 'Citi Double Cash',
-    totalSpend: 320.40,
-    limit: 2000,
+    id: 'cc3',
+    name: 'SBI SimplyCLICK',
+    totalSpend: 4500,
+    limit: 25000,
     isMock: true
   }
 ];
 
 export const mockBudgets: Budget[] = [
   {
-    id: '1',
+    id: 'b1',
     category: 'Groceries',
-    spent: 255.53,
-    limit: 400,
+    spent: 4300, // Sum of recent groceries
+    limit: 8000,
     isMock: true
   },
   {
-    id: '2',
+    id: 'b2',
     category: 'Entertainment',
-    spent: 44.49,
-    limit: 200,
+    spent: 1349, // Netflix + Movie Tickets
+    limit: 3000,
     isMock: true
   },
   {
-    id: '3',
+    id: 'b3',
     category: 'Transportation',
-    spent: 72.00,
-    limit: 300,
+    spent: 2020, // Fuel + Uber
+    limit: 5000,
     isMock: true
   },
   {
-    id: '4',
+    id: 'b4',
     category: 'Food & Dining',
-    spent: 77.85,
-    limit: 350,
+    spent: 2250, // Coffee + Restaurant
+    limit: 6000,
     isMock: true
   },
   {
-    id: '5',
+    id: 'b5',
     category: 'Shopping',
-    spent: 89.99,
-    limit: 250,
+    spent: 3500, // Amazon
+    limit: 7000,
     isMock: true
   },
   {
-    id: '6',
+    id: 'b6',
     category: 'Utilities',
-    spent: 120.30,
-    limit: 150,
+    spent: 2199, // Electricity + Internet
+    limit: 4000,
     isMock: true
   },
   {
-    id: '7',
+    id: 'b7',
     category: 'Healthcare',
-    spent: 32.15,
-    limit: 100,
+    spent: 750, // Pharmacy
+    limit: 2000,
     isMock: true
   },
   {
-    id: '8',
+    id: 'b8',
     category: 'Education',
-    spent: 49.99,
-    limit: 100,
+    spent: 4999, // Online Course
+    limit: 5000,
+    isMock: true
+  },
+  {
+    id: 'b9',
+    category: 'Housing',
+    spent: 15000, // Rent
+    limit: 15000,
+    isMock: true
+  },
+  {
+    id: 'b10',
+    category: 'Health',
+    spent: 1200, // Gym
+    limit: 2000,
+    isMock: true
+  },
+  {
+    id: 'b11',
+    category: 'Travel',
+    spent: 14000, // Flight + Hotel
+    limit: 15000,
     isMock: true
   }
 ];
 
 export const mockAccounts: Account[] = [
-    { id: 'acc1', name: 'Personal Checking', type: 'Checking', balance: 12750.50, isMock: true },
-    { id: 'acc2', name: 'Business Account', type: 'Business Checking', balance: 45800.00, isMock: true },
-    { id: 'acc3', name: 'Savings', type: 'Savings', balance: 8900.00, isMock: true },
-    { id: 'acc4', name: 'Emergency Fund', type: 'Savings', balance: 15000.00, isMock: true },
-    { id: 'acc5', name: 'Investment Account', type: 'Investment', balance: 32500.00, isMock: true },
+    { id: 'acc1', name: 'Personal Checking', type: 'Checking', balance: 125000, isMock: true },
+    { id: 'acc2', name: 'Savings Account', type: 'Savings', balance: 85000, isMock: true },
+    { id: 'acc3', name: 'Investment Portfolio', type: 'Investment', balance: 250000, isMock: true },
+    { id: 'acc4', name: 'Emergency Fund', type: 'Savings', balance: 50000, isMock: true },
 ];
 
 export const categories = [
@@ -290,6 +412,9 @@ export const categories = [
   'Utilities',
   'Healthcare',
   'Education',
+  'Housing',
+  'Health',
+  'Travel',
   'Other'
 ];
 
@@ -306,5 +431,8 @@ export const getDefaultCategories = () => [
   'Utilities',
   'Healthcare',
   'Education',
+  'Housing',
+  'Health',
+  'Travel',
   'Other'
 ];
