@@ -85,9 +85,15 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, currency, t
     setViewMode(mode);
   };
 
-  // Handle category selection
+  // Handle category selection (for legend clicks)
   const handleCategorySelect = (categoryName: string) => {
     setSelectedCategory(selectedCategory === categoryName ? null : categoryName);
+  };
+
+  // Handle chart hover (separate from selection)
+  const handleChartHover = (categoryName: string | null) => {
+    // We'll use a different state for hover effects to prevent jittering
+    // For now, we'll just keep the existing behavior but can optimize further if needed
   };
 
   if (data.length === 0) {
@@ -327,8 +333,6 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, currency, t
                     paddingAngle={2}
                     dataKey="value"
                     nameKey="name"
-                    onMouseEnter={(data) => handleCategorySelect(data.name)}
-                    onMouseLeave={() => setSelectedCategory(null)}
                   >
                     {data.map((entry, index) => {
                       const isSelected = selectedCategory === entry.name;
@@ -368,8 +372,6 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, currency, t
                   <Bar 
                     dataKey="value" 
                     name="Amount"
-                    onMouseEnter={(data) => handleCategorySelect(data.name)}
-                    onMouseLeave={() => setSelectedCategory(null)}
                   >
                     {data.map((entry, index) => {
                       const isSelected = selectedCategory === entry.name;
