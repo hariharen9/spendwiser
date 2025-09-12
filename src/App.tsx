@@ -25,11 +25,11 @@ import BudgetModal from './components/Modals/BudgetModal';
 import ImportCSVModal from './components/Modals/ImportCSVModal';
 
 // Icons
-import { LogOut, DollarSign } from 'lucide-react';
+import { LogOut, DollarSign, X } from 'lucide-react';
 
 // Framer Motion
 import { AnimatePresence, motion } from 'framer-motion';
-import { pageVariants } from './components/Common/AnimationVariants';
+import { pageVariants, modalVariants } from './components/Common/AnimationVariants';
 
 // Hooks
 import { useToast } from './hooks/useToast';
@@ -62,6 +62,25 @@ function App() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
+  const [hasLoadedMockData, setHasLoadedMockData] = useState(false);
+  const [hasShownMockDataReminder, setHasShownMockDataReminder] = useState(false);
+
+  const checkIfMockDataExists = async (uid: string) => {
+    const transactionsRef = collection(db, 'spenders', uid, 'transactions');
+    const accountsRef = collection(db, 'spenders', uid, 'accounts');
+    const budgetsRef = collection(db, 'spenders', uid, 'budgets');
+
+    const transactionsSnapshot = await getDocs(transactionsRef);
+    const accountsSnapshot = await getDocs(accountsRef);
+    const budgetsSnapshot = await getDocs(budgetsRef);
+
+    const hasMockTransactions = transactionsSnapshot.docs.some(doc => doc.data().isMock === true);
+    const hasMockAccounts = accountsSnapshot.docs.some(doc => doc.data().isMock === true);
+    const hasMockBudgets = budgetsSnapshot.docs.some(doc => doc.data().isMock === true);
+
+    return hasMockTransactions || hasMockAccounts || hasMockBudgets;
+  };
+
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       setUser(user);
@@ -92,11 +111,13 @@ function App() {
         } catch (error) {
           console.error("Error fetching user settings: ", error);
         }
+
+        
       }
       setLoading(false);
     });
     return () => unsubscribe();
-  }, []);
+  }, [hasLoadedMockData]);
 
   useEffect(() => {
     if (user) {
@@ -131,6 +152,22 @@ function App() {
     }
   }, [user]);
 
+  // Effect to load mock data if user has no data
+  useEffect(() => {
+    const loadMockDataIfEmpty = async () => {
+      if (user && !loading && !hasLoadedMockData &&
+          transactions.length === 0 && accounts.length === 0 && budgets.length === 0) {
+        await handleLoadMockData();
+        setHasLoadedMockData(true);
+        showToast(
+          'Welcome! We\'ve loaded some mock data to get you started. You can clear it from Settings.',
+          'info'
+        );
+      }
+    };
+    loadMockDataIfEmpty();
+  }, [user, loading, hasLoadedMockData, transactions, accounts, budgets]);
+
 
   useEffect(() => {
     if (darkMode) {
@@ -153,6 +190,23 @@ function App() {
       setDoc(userDocRef, { categories: userCategories }, { merge: true });
     }
   }, [userCategories, user]);
+
+  // Effect to show mock data reminder in settings
+  useEffect(() => {
+    const showReminder = async () => {
+      if (user && currentScreen === 'settings' && !hasShownMockDataReminder) {
+        const mockDataExists = await checkIfMockDataExists(user.uid);
+        if (mockDataExists) {
+          showToast(
+            'Psst! Your financial journey awaits! Clear the mock data in Settings to start fresh.',
+            'info'
+          );
+          setHasShownMockDataReminder(true);
+        }
+      }
+    };
+    showReminder();
+  }, [user, currentScreen, hasShownMockDataReminder]);
 
   // Calculate account balances dynamically based on transactions
   const accountsWithDynamicBalances = useMemo(() => {
@@ -233,6 +287,8 @@ function App() {
     auth.signOut();
     setUser(null);
     setCurrentScreen('dashboard');
+    setHasLoadedMockData(false);
+    setHasShownMockDataReminder(false);
   };
 
   const handleAddTransaction = async (transactionData: Omit<Transaction, 'id'>) => {
