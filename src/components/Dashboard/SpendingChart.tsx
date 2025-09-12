@@ -83,6 +83,7 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, currency, t
   // Handle view mode change
   const handleViewModeChange = (mode: 'pie' | 'bar') => {
     setViewMode(mode);
+    setAnimationKey(prevKey => prevKey + 1);
   };
 
   // Handle category selection (for legend clicks)
