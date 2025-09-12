@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Masonry from 'react-masonry-css';
 import { DollarSign, TrendingUp, TrendingDown, Edit3, Save, X } from 'lucide-react';
 import MetricCard from './MetricCard';
@@ -47,6 +47,7 @@ const DEFAULT_COMPONENT_ORDER = [
 
 const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, budgets, onViewAllTransactions, currency }) => {
   const [isEditMode, setIsEditMode] = useState(false);
+  const [timeRange, setTimeRange] = useState<'month' | 'quarter' | 'year'>('month');
   const [componentOrder, setComponentOrder] = useState<string[]>(() => {
     const savedOrder = localStorage.getItem('dashboardComponentOrder');
     return savedOrder ? JSON.parse(savedOrder) : DEFAULT_COMPONENT_ORDER;
@@ -55,6 +56,32 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, b
     const savedOrder = localStorage.getItem('dashboardComponentOrder');
     return savedOrder ? JSON.parse(savedOrder) : DEFAULT_COMPONENT_ORDER;
   });
+
+  const filteredTransactions = useMemo(() => {
+    const now = new Date();
+    let txs = transactions.filter(t => t.type === 'expense');
+
+    if (timeRange === 'month') {
+      txs = txs.filter(t => {
+        const txDate = new Date(t.date);
+        return txDate.getMonth() === now.getMonth() && txDate.getFullYear() === now.getFullYear();
+      });
+    } else if (timeRange === 'quarter') {
+      const currentQuarter = Math.floor(now.getMonth() / 3);
+      txs = txs.filter(t => {
+        const txDate = new Date(t.date);
+        const txQuarter = Math.floor(txDate.getMonth() / 3);
+        return txQuarter === currentQuarter && txDate.getFullYear() === now.getFullYear();
+      });
+    } else if (timeRange === 'year') {
+      txs = txs.filter(t => {
+        const txDate = new Date(t.date);
+        return txDate.getFullYear() === now.getFullYear();
+      });
+    }
+
+    return txs;
+  }, [transactions, timeRange]);
   
   const totalBalance = accounts.reduce((sum, acc) => sum + acc.balance, 0);
 
@@ -134,7 +161,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, b
 
     switch (componentName) {
       case 'SpendingChart':
-        return <div {...commonProps} key="SpendingChart"><SpendingChart transactions={currentMonthTxs} currency={currency} /></div>;
+        return <div {...commonProps} key="SpendingChart"><SpendingChart transactions={filteredTransactions} currency={currency} timeRange={timeRange} setTimeRange={setTimeRange} /></div>;
       case 'RecentTransactions':
         return <div {...commonProps} key="RecentTransactions"><RecentTransactions transactions={transactions} onViewAll={onViewAllTransactions} currency={currency} /></div>;
       case 'IncomeVsExpenseChart':
