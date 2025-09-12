@@ -5,6 +5,15 @@ import { auth } from '../../firebaseConfig';
 import { motion } from 'framer-motion';
 import { pageVariants, buttonHoverVariants } from '../../components/Common/AnimationVariants';
 
+const GoogleIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" className="w-5 h-5">
+    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC04"/>
+    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+  </svg>
+);
+
 interface LoginPageProps {
   onLogin: (user: User) => void;
 }
@@ -26,7 +35,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
 
   return (
     <motion.div 
-      className="min-h-screen bg-[#1A1A1A] flex items-center justify-center px-4"
+      className="min-h-screen bg-slate-50 dark:bg-dark-bg amoled:bg-amoled-bg flex items-center justify-center px-4"
       variants={pageVariants}
       initial="initial"
       animate="animate"
@@ -46,7 +55,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             <DollarSign className="h-8 w-8 text-white" />
           </motion.div>
           <motion.h1 
-            className="text-4xl font-bold text-[#F5F5F5] mb-2"
+            className="text-4xl font-bold text-slate-900 dark:text-dark-text amoled:text-amoled-text mb-2"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
@@ -54,7 +63,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             SpendWiser
           </motion.h1>
           <motion.p 
-            className="text-lg text-[#888888]"
+            className="text-lg text-slate-600 dark:text-dark-text-secondary amoled:text-amoled-text-secondary"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
@@ -64,15 +73,18 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         </motion.div>
 
         <motion.div 
-          className="bg-[#242424] rounded-lg p-8 border border-gray-700"
+          className="bg-white/80 dark:bg-dark-card/80 amoled:bg-amoled-card/80 rounded-lg p-8 border border-gray-200/50 dark:border-dark-border/50 amoled:border-amoled-border/50"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <div className="group">
+          <div className="relative">
+            {/* Background gradient blur effect */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/30 via-red-500/30 to-green-500/30 rounded-xl blur-sm opacity-60 dark:opacity-40 amoled:opacity-30 animate-pulse"></div>
+            
             <motion.button
               onClick={handleGoogleSignIn}
-              className="w-full bg-gradient-to-r from-[#4285F4] to-[#34A853] text-white py-4 px-6 rounded-lg font-semibold text-lg flex items-center justify-center space-x-3 transition-all duration-300 ease-in-out group-hover:from-[#34A853] group-hover:to-[#4285F4]"
+              className="group relative w-full flex items-center justify-center gap-3 px-6 py-4 text-sm font-semibold text-gray-700 dark:text-dark-text amoled:text-amoled-text backdrop-blur-sm bg-white/90 dark:bg-dark-card/90 amoled:bg-amoled-card/90 border border-gray-200/60 dark:border-dark-border/60 amoled:border-amoled-border/60 rounded-xl hover:bg-white dark:hover:bg-dark-card amoled:hover:bg-amoled-card transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] hover:-translate-y-0.5"
               variants={buttonHoverVariants}
               whileHover="hover"
               whileTap="tap"
@@ -80,23 +92,24 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
             >
-              <svg className="w-5 h-5" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-              </svg>
-              <span>Sign in with Google</span>
+              {/* Gradient overlay on hover */}
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-red-500/10 to-green-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              
+              {/* Enhanced glow effect */}
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/20 via-red-400/20 to-green-400/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10"></div>
+              
+              <GoogleIcon />
+              <span className="relative z-10">Continue with Google</span>
             </motion.button>
           </div>
 
           <motion.div 
-            className="mt-6 pt-6 border-t border-gray-600 text-center"
+            className="mt-6 pt-6 border-t border-gray-200 dark:border-dark-border amoled:border-amoled-border text-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
           >
-            <p className="text-sm text-[#888888]">
+            <p className="text-sm text-slate-600 dark:text-dark-text-secondary amoled:text-amoled-text-secondary">
               Secure, fast, and intuitive financial management
             </p>
           </motion.div>
@@ -109,8 +122,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.7 }}
         >
-          <p className="text-sm text-[#888888]">
-            Built with <span className="text-red-500">❤️</span> by <a href="https://hariharen9.site" target="_blank" rel="noopener noreferrer" className="text-[#007BFF] hover:underline">Hariharen</a> © 2025
+          <p className="text-sm text-slate-600 dark:text-dark-text-secondary amoled:text-amoled-text-secondary">
+            Built with <span className="text-red-500">❤️</span> by <a href="https://hariharen9.site" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Hariharen</a> © 2025
           </p>
         </motion.div>
       </div>
