@@ -1,5 +1,5 @@
-import React from 'react';
-import { DollarSign } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { DollarSign, Sun, Moon } from 'lucide-react';
 import { GoogleAuthProvider, signInWithPopup, User } from 'firebase/auth';
 import { auth } from '../../firebaseConfig';
 import { motion } from 'framer-motion';
@@ -19,6 +19,32 @@ interface LoginPageProps {
 }
 
 const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
+  const [darkMode, setDarkMode] = useState(true);
+
+  useEffect(() => {
+    // Check for saved theme preference or default to dark mode
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    if (savedTheme) {
+      setDarkMode(savedTheme === 'dark');
+    } else {
+      setDarkMode(prefersDark);
+    }
+  }, []);
+
+  useEffect(() => {
+    // Apply theme to document
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    
+    // Save theme preference
+    localStorage.setItem('theme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
+
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
     try {
@@ -33,14 +59,33 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     }
   };
 
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
+
   return (
     <motion.div 
-      className="min-h-screen bg-slate-50 dark:bg-dark-bg amoled:bg-amoled-bg flex items-center justify-center px-4"
+      className="min-h-screen bg-slate-50 dark:bg-[#1A1A1A] flex items-center justify-center px-4"
       variants={pageVariants}
       initial="initial"
       animate="animate"
     >
       <div className="max-w-md w-full">
+        {/* Theme Toggle */}
+        <div className="absolute top-4 right-4">
+          <button
+            onClick={toggleDarkMode}
+            className="p-2 rounded-full bg-white dark:bg-[#242424] shadow-md hover:shadow-lg transition-shadow"
+            aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {darkMode ? (
+              <Sun className="h-5 w-5 text-yellow-500" />
+            ) : (
+              <Moon className="h-5 w-5 text-gray-700" />
+            )}
+          </button>
+        </div>
+
         <motion.div 
           className="text-center mb-8"
           initial={{ opacity: 0, y: -20 }}
@@ -55,7 +100,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             <DollarSign className="h-8 w-8 text-white" />
           </motion.div>
           <motion.h1 
-            className="text-4xl font-bold text-slate-900 dark:text-dark-text amoled:text-amoled-text mb-2"
+            className="text-4xl font-bold text-slate-900 dark:text-[#F5F5F5] mb-2"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
@@ -63,7 +108,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             SpendWiser
           </motion.h1>
           <motion.p 
-            className="text-lg text-slate-600 dark:text-dark-text-secondary amoled:text-amoled-text-secondary"
+            className="text-lg text-slate-600 dark:text-[#888888]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
@@ -73,18 +118,18 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         </motion.div>
 
         <motion.div 
-          className="bg-white/80 dark:bg-dark-card/80 amoled:bg-amoled-card/80 rounded-lg p-8 border border-gray-200/50 dark:border-dark-border/50 amoled:border-amoled-border/50"
+          className="bg-white/80 dark:bg-[#242424]/80 rounded-lg p-8 border border-gray-200/50 dark:border-gray-700/50"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
           <div className="relative">
             {/* Background gradient blur effect */}
-            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/30 via-red-500/30 to-green-500/30 rounded-xl blur-sm opacity-60 dark:opacity-40 amoled:opacity-30 animate-pulse"></div>
+            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/30 via-red-500/30 to-green-500/30 rounded-xl blur-sm opacity-60 dark:opacity-40 animate-pulse"></div>
             
             <motion.button
               onClick={handleGoogleSignIn}
-              className="group relative w-full flex items-center justify-center gap-3 px-6 py-4 text-sm font-semibold text-gray-700 dark:text-dark-text amoled:text-amoled-text backdrop-blur-sm bg-white/90 dark:bg-dark-card/90 amoled:bg-amoled-card/90 border border-gray-200/60 dark:border-dark-border/60 amoled:border-amoled-border/60 rounded-xl hover:bg-white dark:hover:bg-dark-card amoled:hover:bg-amoled-card transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] hover:-translate-y-0.5"
+              className="group relative w-full flex items-center justify-center gap-3 px-6 py-4 text-sm font-semibold text-gray-700 dark:text-[#F5F5F5] backdrop-blur-sm bg-white/90 dark:bg-[#242424]/90 border border-gray-200/60 dark:border-gray-700/60 rounded-xl hover:bg-white dark:hover:bg-[#242424] transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] hover:-translate-y-0.5"
               variants={buttonHoverVariants}
               whileHover="hover"
               whileTap="tap"
@@ -104,12 +149,12 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
           </div>
 
           <motion.div 
-            className="mt-6 pt-6 border-t border-gray-200 dark:border-dark-border amoled:border-amoled-border text-center"
+            className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700 text-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
           >
-            <p className="text-sm text-slate-600 dark:text-dark-text-secondary amoled:text-amoled-text-secondary">
+            <p className="text-sm text-slate-600 dark:text-[#888888]">
               Secure, fast, and intuitive financial management
             </p>
           </motion.div>
@@ -122,8 +167,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.7 }}
         >
-          <p className="text-sm text-slate-600 dark:text-dark-text-secondary amoled:text-amoled-text-secondary">
-            Built with <span className="text-red-500">❤️</span> by <a href="https://hariharen9.site" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Hariharen</a> © 2025
+          <p className="text-sm text-slate-600 dark:text-[#888888]">
+            Built with <span className="text-red-500">❤️</span> by <a href="https://hariharen9.site" target="_blank" rel="noopener noreferrer" className="text-[#007BFF] hover:underline dark:text-[#007BFF]">Hariharen</a> © 2025
           </p>
         </motion.div>
       </div>
