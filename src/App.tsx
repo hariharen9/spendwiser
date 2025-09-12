@@ -4,6 +4,8 @@ import { User, deleteUser, GoogleAuthProvider, reauthenticateWithPopup } from 'f
 import { auth, db } from './firebaseConfig';
 import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, writeBatch, getDocs } from 'firebase/firestore';
 import { categories, getDefaultCategories, mockTransactions, mockAccounts, mockBudgets, mockCreditCards } from './data/mockData'; // Updated import
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 // Components
 import LoginPage from './components/Login/LoginPage';
@@ -23,6 +25,7 @@ import SettingsPage from './components/Settings/SettingsPage';
 import AddTransactionModal from './components/Modals/AddTransactionModal';
 import BudgetModal from './components/Modals/BudgetModal';
 import ImportCSVModal from './components/Modals/ImportCSVModal';
+import ExportModal from './components/Modals/ExportModal';
 
 // Icons
 import { LogOut, DollarSign, X } from 'lucide-react';
@@ -49,6 +52,7 @@ function App() {
   const [defaultAccountId, setDefaultAccountId] = useState<string | null>(null);
   const [currency, setCurrency] = useState<string>('₹'); // Default currency
   const [isImportCSVModalOpen, setIsImportCSVModalOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [userCategories, setUserCategories] = useState<string[]>(categories); // Add user categories state
   const [showReauthModal, setShowReauthModal] = useState(false);
   
@@ -632,6 +636,28 @@ function App() {
     }
   };
 
+  const handleExportDashboard = async (format: 'pdf' | 'png') => {
+    const dashboardElement = document.getElementById('dashboard-content');
+    if (!dashboardElement) return;
+
+    const canvas = await html2canvas(dashboardElement);
+    if (format === 'png') {
+      const image = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = image;
+      link.download = 'dashboard.png';
+      link.click();
+    } else {
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save('dashboard.pdf');
+    }
+    setIsExportModalOpen(false);
+  };
+
   const getPageTitle = () => {
     switch (currentScreen) {
       case 'dashboard': return 'Dashboard';
@@ -648,6 +674,13 @@ function App() {
       return {
         label: 'Export to CSV',
         onClick: handleExportCSV,
+        variant: 'secondary' as const
+      };
+    }
+    if (currentScreen === 'dashboard') {
+      return {
+        label: 'Export Dashboard',
+        onClick: () => setIsExportModalOpen(true),
         variant: 'secondary' as const
       };
     }
@@ -670,6 +703,7 @@ function App() {
       case 'dashboard':
         return (
           <motion.div
+            id="dashboard-content"
             key="dashboard"
             variants={pageVariants}
             initial="initial"
@@ -862,11 +896,11 @@ function App() {
           >
             <motion.div 
               className="bg-[#007BFF] p-2 rounded-lg"
-              animate={{ 
+              animate={{
                 scale: [1, 1.1, 1],
                 rotate: [0, 5, -5, 0]
               }}
-              transition={{ 
+              transition={{
                 duration: 2,
                 repeat: Infinity,
                 repeatType: "reverse"
@@ -1050,6 +1084,13 @@ function App() {
         }}
         onSave={handleAddBudget}
         editingBudget={editingBudget}
+      />
+
+      {/* Export Modal */}
+      <ExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        onExport={handleExportDashboard}
       />
 
       {/* Re-authentication Info Modal */}

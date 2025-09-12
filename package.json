@@ -13,6 +13,8 @@
     "canvas-confetti": "^1.9.3",
     "firebase": "^11.10.0",
     "framer-motion": "^12.23.12",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^2.5.1",
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -23,6 +25,7 @@
   "devDependencies": {
     "@eslint/js": "^9.9.1",
     "@types/canvas-confetti": "^1.9.0",
+    "@types/jspdf": "^2.0.0",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",

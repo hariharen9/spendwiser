@@ -15,14 +15,21 @@ const InsightsEngine: React.FC<InsightsEngineProps> = ({ transactions, budgets, 
   useEffect(() => {
     const generateInsights = () => {
       const newInsights: string[] = [];
+      const thisMonth = new Date().getMonth();
+      const today = new Date();
+
+      // Rule 0: No transactions
+      if (transactions.length === 0) {
+        newInsights.push("You haven't added any transactions yet. Add some to see your financial insights!");
+        setInsights(newInsights);
+        return;
+      }
 
       // Rule 1: High spending in a category
       const threeMonthsAgo = new Date();
       threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-      const thisMonth = new Date().getMonth();
 
       const spendingByCategory: { [key: string]: { current: number; past: number } } = {};
-
       transactions.forEach(t => {
         if (t.type === 'expense') {
           const txDate = new Date(t.date);
@@ -46,7 +53,6 @@ const InsightsEngine: React.FC<InsightsEngineProps> = ({ transactions, budgets, 
       }
 
       // Rule 2: Approaching budget limit
-      const today = new Date();
       const daysLeft = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate() - today.getDate();
       budgets.forEach(b => {
         const spent = transactions
@@ -69,11 +75,43 @@ const InsightsEngine: React.FC<InsightsEngineProps> = ({ transactions, budgets, 
         newInsights.push('Great job! Your savings rate is high this month.');
       }
 
+      // Rule 4: Subscription detection
+      const potentialSubscriptions: { [key: string]: number[] } = {};
+      transactions.forEach(t => {
+        if (t.type === 'expense') {
+          const key = `${t.name}-${t.amount}`;
+          if (!potentialSubscriptions[key]) {
+            potentialSubscriptions[key] = [];
+          }
+          potentialSubscriptions[key].push(new Date(t.date).getTime());
+        }
+      });
+
+      for (const key in potentialSubscriptions) {
+        if (potentialSubscriptions[key].length >= 3) {
+          const [name] = key.split('-');
+          newInsights.push(`We've noticed a recurring payment for "${name}". Is this a subscription?`);
+        }
+      }
+
+      // Rule 5: Top spending category
+      let topCategory = '';
+      let maxSpent = 0;
+      for (const category in spendingByCategory) {
+        if (spendingByCategory[category].current > maxSpent) {
+          maxSpent = spendingByCategory[category].current;
+          topCategory = category;
+        }
+      }
+      if (topCategory) {
+        newInsights.push(`Your top spending category this month is "${topCategory}", with a total of ${currency}${maxSpent.toFixed(2)}.`);
+      }
+
       setInsights(newInsights);
     };
 
     generateInsights();
-  }, [transactions, budgets]);
+  }, [transactions, budgets, currency]);
 
   return (
     <motion.div 
