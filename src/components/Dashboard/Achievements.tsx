@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Transaction, Budget, Account } from '../../types/types';
 import { motion } from 'framer-motion';
-import { fadeInVariants } from '../../components/Common/AnimationVariants';
+import { fadeInVariants, cardHoverVariants } from '../../components/Common/AnimationVariants';
 
 // Define achievement interface
 interface Achievement {
@@ -216,7 +216,14 @@ const Achievements: React.FC<AchievementsProps> = ({ transactions, budgets, acco
   };
 
   return (
-    <div className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+    <motion.div 
+      className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700"
+      variants={cardHoverVariants}
+      initial="initial"
+      whileHover="hover"
+      whileFocus="hover"
+      layout
+    >
       <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-4">Achievements</h3>
       {achievements.length > 0 ? (
         <div className="flex flex-wrap gap-2">
@@ -264,7 +271,7 @@ const Achievements: React.FC<AchievementsProps> = ({ transactions, budgets, acco
       ) : (
         <p className="text-gray-500 dark:text-[#888888]">No achievements unlocked yet. Keep going!</p>
       )}
-    </div>
+    </motion.div>
   );
 };
 

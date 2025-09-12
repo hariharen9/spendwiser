@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Transaction, Account } from '../../types/types';
+import { motion } from 'framer-motion';
+import { cardHoverVariants } from '../../components/Common/AnimationVariants';
 
 interface DaysOfBufferProps {
   transactions: Transaction[];
@@ -61,7 +63,14 @@ const DaysOfBuffer: React.FC<DaysOfBufferProps> = ({ transactions, accounts, cur
   };
 
   return (
-    <div className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+    <motion.div 
+      className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700"
+      variants={cardHoverVariants}
+      initial="initial"
+      whileHover="hover"
+      whileFocus="hover"
+      layout
+    >
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5]">Days of Buffer</h3>
         <div className="flex space-x-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
@@ -114,7 +123,7 @@ const DaysOfBuffer: React.FC<DaysOfBufferProps> = ({ transactions, accounts, cur
       <div className="text-center mt-4">
         <p className="text-sm text-gray-600 dark:text-gray-400">Based on an average daily spend of <strong>{currency}{avgDailyExpense.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong> over the last {getPeriodLabel()}.</p>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

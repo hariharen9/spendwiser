@@ -1,5 +1,7 @@
 import React from 'react';
 import { Transaction } from '../../types/types';
+import { motion } from 'framer-motion';
+import { cardHoverVariants } from '../../components/Common/AnimationVariants';
 
 interface CashFlowForecastProps {
   transactions: Transaction[];
@@ -44,7 +46,14 @@ const CashFlowForecast: React.FC<CashFlowForecastProps> = ({ transactions, curre
   const { forecast, incomeThisMonth, expensesSoFar } = calculateForecast();
 
   return (
-    <div className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+    <motion.div 
+      className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700"
+      variants={cardHoverVariants}
+      initial="initial"
+      whileHover="hover"
+      whileFocus="hover"
+      layout
+    >
       <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-4">End of Month Forecast</h3>
       <div className="text-center">
         <p className={`text-4xl font-bold ${forecast >= 0 ? 'text-green-500' : 'text-red-500'}`}>{currency}{forecast.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
@@ -60,7 +69,7 @@ const CashFlowForecast: React.FC<CashFlowForecastProps> = ({ transactions, curre
           <span className="text-sm font-medium text-red-500">{currency}{expensesSoFar.toLocaleString()}</span>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

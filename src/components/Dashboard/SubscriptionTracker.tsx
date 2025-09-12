@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Transaction } from '../../types/types';
+import { motion } from 'framer-motion';
+import { cardHoverVariants } from '../../components/Common/AnimationVariants';
 
 interface SubscriptionTrackerProps {
   transactions: Transaction[];
@@ -62,7 +64,14 @@ const SubscriptionTracker: React.FC<SubscriptionTrackerProps> = ({ transactions,
   }, [transactions]);
 
   return (
-    <div className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+    <motion.div 
+      className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700"
+      variants={cardHoverVariants}
+      initial="initial"
+      whileHover="hover"
+      whileFocus="hover"
+      layout
+    >
       <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-4">Recurring Subscriptions</h3>
       {subscriptions.length > 0 ? (
         <ul className="space-y-3">
@@ -76,7 +85,7 @@ const SubscriptionTracker: React.FC<SubscriptionTrackerProps> = ({ transactions,
       ) : (
         <p className="text-gray-500 dark:text-[#888888]">No recurring subscriptions found.</p>
       )}
-    </div>
+    </motion.div>
   );
 };
 

@@ -1,6 +1,8 @@
 import React from 'react';
 import { ArrowUpRight, ArrowDownLeft, Eye } from 'lucide-react';
 import { Transaction } from '../../types/types';
+import { motion } from 'framer-motion';
+import { cardHoverVariants } from '../../components/Common/AnimationVariants';
 
 interface RecentTransactionsProps {
   transactions: Transaction[];
@@ -12,7 +14,14 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({ transactions, o
   const recentTransactions = transactions.slice(0, 5);
 
   return (
-    <div className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+    <motion.div 
+      className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700"
+      variants={cardHoverVariants}
+      initial="initial"
+      whileHover="hover"
+      whileFocus="hover"
+      layout
+    >
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5]">Recent Transactions</h3>
         <button
@@ -60,7 +69,7 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({ transactions, o
           </div>
         ))}
       </div>
-    </div>
+    </motion.div>
   );
 };
 

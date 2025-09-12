@@ -1,6 +1,8 @@
 import React from 'react';
 import { Transaction } from '../../types/types';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { motion } from 'framer-motion';
+import { cardHoverVariants } from '../../components/Common/AnimationVariants';
 
 interface TopSpendingCategoriesProps {
   transactions: Transaction[];
@@ -35,15 +37,29 @@ const TopSpendingCategories: React.FC<TopSpendingCategoriesProps> = ({ transacti
 
   if (topCategories.length === 0) {
     return (
-      <div className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+      <motion.div 
+        className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700"
+        variants={cardHoverVariants}
+        initial="initial"
+        whileHover="hover"
+        whileFocus="hover"
+        layout
+      >
         <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-4">Top Spending Categories</h3>
         <p className="text-gray-500 dark:text-[#888888]">No spending this month.</p>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+    <motion.div 
+      className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700"
+      variants={cardHoverVariants}
+      initial="initial"
+      whileHover="hover"
+      whileFocus="hover"
+      layout
+    >
       <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-4">Top Spending Categories (This Month)</h3>
       <div style={{ width: '100%', height: 300 }}>
         <ResponsiveContainer>
@@ -63,7 +79,7 @@ const TopSpendingCategories: React.FC<TopSpendingCategoriesProps> = ({ transacti
           </BarChart>
         </ResponsiveContainer>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

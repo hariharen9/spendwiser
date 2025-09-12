@@ -1,5 +1,7 @@
 import React from 'react';
 import { Transaction, Account } from '../../types/types';
+import { motion } from 'framer-motion';
+import { cardHoverVariants } from '../../components/Common/AnimationVariants';
 
 interface FutureBalanceProjectionProps {
   transactions: Transaction[];
@@ -36,7 +38,14 @@ const FutureBalanceProjection: React.FC<FutureBalanceProjectionProps> = ({ trans
   const { projection3Months, projection6Months, projection12Months, avgMonthlyNet } = calculateProjection();
 
   return (
-    <div className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+    <motion.div 
+      className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700"
+      variants={cardHoverVariants}
+      initial="initial"
+      whileHover="hover"
+      whileFocus="hover"
+      layout
+    >
       <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-4">Future Balance Projection</h3>
       <ul className="space-y-3">
         <li className="flex justify-between items-center">
@@ -55,7 +64,7 @@ const FutureBalanceProjection: React.FC<FutureBalanceProjectionProps> = ({ trans
       <div className="text-center mt-4">
         <p className="text-sm text-gray-600 dark:text-gray-400">Based on an average net saving of <strong>{currency}{avgMonthlyNet.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong> per month.</p>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

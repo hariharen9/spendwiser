@@ -1,5 +1,7 @@
 import React from 'react';
 import { Budget, Transaction } from '../../types/types';
+import { motion } from 'framer-motion';
+import { cardHoverVariants } from '../../components/Common/AnimationVariants';
 
 interface BudgetSummaryProps {
   budgets: Budget[];
@@ -17,15 +19,29 @@ const BudgetSummary: React.FC<BudgetSummaryProps> = ({ budgets, transactions, cu
 
   if (budgets.length === 0) {
     return (
-      <div className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+      <motion.div 
+        className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700"
+        variants={cardHoverVariants}
+        initial="initial"
+        whileHover="hover"
+        whileFocus="hover"
+        layout
+      >
         <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-4">Budget Summary</h3>
         <p className="text-gray-500 dark:text-[#888888]">No budgets set up yet.</p>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+    <motion.div 
+      className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700"
+      variants={cardHoverVariants}
+      initial="initial"
+      whileHover="hover"
+      whileFocus="hover"
+      layout
+    >
       <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-4">Budget Summary</h3>
       <div className="space-y-4">
         {budgets.map(budget => {
@@ -46,7 +62,7 @@ const BudgetSummary: React.FC<BudgetSummaryProps> = ({ budgets, transactions, cu
           );
         })}
       </div>
-    </div>
+    </motion.div>
   );
 };
 

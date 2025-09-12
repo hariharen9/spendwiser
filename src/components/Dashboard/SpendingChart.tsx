@@ -1,6 +1,8 @@
 import React from 'react';
 import { Transaction } from '../../types/types';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { motion } from 'framer-motion';
+import { cardHoverVariants } from '../../components/Common/AnimationVariants';
 
 interface ChartData {
   name: string;
@@ -44,14 +46,28 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, currency })
 
   if (data.length === 0) {
     return (
-      <div className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700 flex items-center justify-center h-full">
+      <motion.div 
+        className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700 flex items-center justify-center h-full"
+        variants={cardHoverVariants}
+        initial="initial"
+        whileHover="hover"
+        whileFocus="hover"
+        layout
+      >
         <p className="text-gray-500 dark:text-[#888888]">No spending data for this month.</p>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+    <motion.div 
+      className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700"
+      variants={cardHoverVariants}
+      initial="initial"
+      whileHover="hover"
+      whileFocus="hover"
+      layout
+    >
       <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-4">Monthly Spending by Category</h3>
       <div style={{ width: '100%', height: 300 }}>
         <ResponsiveContainer>
@@ -75,7 +91,7 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, currency })
           </PieChart>
         </ResponsiveContainer>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

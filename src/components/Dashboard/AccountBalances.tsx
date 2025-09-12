@@ -1,5 +1,7 @@
 import React from 'react';
 import { Account } from '../../types/types';
+import { motion } from 'framer-motion';
+import { cardHoverVariants } from '../../components/Common/AnimationVariants';
 
 interface AccountBalancesProps {
   accounts: Account[];
@@ -9,15 +11,29 @@ interface AccountBalancesProps {
 const AccountBalances: React.FC<AccountBalancesProps> = ({ accounts, currency }) => {
   if (accounts.length === 0) {
     return (
-      <div className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+      <motion.div 
+        className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700"
+        variants={cardHoverVariants}
+        initial="initial"
+        whileHover="hover"
+        whileFocus="hover"
+        layout
+      >
         <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-4">Account Balances</h3>
         <p className="text-gray-500 dark:text-[#888888]">No accounts added yet.</p>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+    <motion.div 
+      className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700"
+      variants={cardHoverVariants}
+      initial="initial"
+      whileHover="hover"
+      whileFocus="hover"
+      layout
+    >
       <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-4">Account Balances</h3>
       <ul className="space-y-3">
         {accounts.map(account => (
@@ -27,7 +43,7 @@ const AccountBalances: React.FC<AccountBalancesProps> = ({ accounts, currency })
           </li>
         ))}
       </ul>
-    </div>
+    </motion.div>
   );
 };
 

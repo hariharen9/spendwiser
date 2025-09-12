@@ -1,8 +1,11 @@
 import React from 'react';
 import { Transaction } from '../../types/types';
+import { motion } from 'framer-motion';
+import { cardHoverVariants } from '../../components/Common/AnimationVariants';
 
 interface LifestyleCreepIndicatorProps {
   transactions: Transaction[];
+  currency: string;
 }
 
 const LifestyleCreepIndicator: React.FC<LifestyleCreepIndicatorProps> = ({ transactions }) => {
@@ -44,7 +47,14 @@ const LifestyleCreepIndicator: React.FC<LifestyleCreepIndicatorProps> = ({ trans
   const { percentageChange, isCreep } = calculateLifestyleCreep();
 
   return (
-    <div className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+    <motion.div 
+      className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700"
+      variants={cardHoverVariants}
+      initial="initial"
+      whileHover="hover"
+      whileFocus="hover"
+      layout
+    >
       <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-4">Lifestyle Creep Indicator</h3>
       <div className="text-center">
         <p className={`text-4xl font-bold ${isCreep ? 'text-red-500' : 'text-green-500'}`}>
@@ -55,7 +65,7 @@ const LifestyleCreepIndicator: React.FC<LifestyleCreepIndicatorProps> = ({ trans
       <div className="text-center mt-4">
         <p className="text-sm text-gray-600 dark:text-gray-400">Comparing the last 3 months to the 3 months before.</p>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
