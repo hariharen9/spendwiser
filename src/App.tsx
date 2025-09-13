@@ -71,6 +71,7 @@ function App() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [sortOption, setSortOption] = useState('date');
 
   const [hasLoadedMockData, setHasLoadedMockData] = useState(false);
   const [hasShownMockDataReminder, setHasShownMockDataReminder] = useState(false);
@@ -324,7 +325,7 @@ function App() {
   );
 
   const filteredTransactions = useMemo(() => {
-    return transactions.filter(transaction => {
+    const filtered = transactions.filter(transaction => {
       const matchesSearch = transaction.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            transaction.category.toLowerCase().includes(searchTerm.toLowerCase());
       
@@ -351,7 +352,25 @@ function App() {
 
       return matchesSearch && matchesType && matchesCategory && matchesDate;
     });
-  }, [transactions, searchTerm, transactionType, selectedCategory, startDate, endDate]);
+
+    let sorted = [...filtered];
+    switch (sortOption) {
+      case 'highest':
+        sorted.sort((a, b) => b.amount - a.amount);
+        break;
+      case 'lowest':
+        sorted.sort((a, b) => a.amount - b.amount);
+        break;
+      case 'category':
+        sorted.sort((a, b) => a.category.localeCompare(b.category));
+        break;
+      case 'date':
+      default:
+        sorted.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        break;
+    }
+    return sorted;
+  }, [transactions, searchTerm, transactionType, selectedCategory, startDate, endDate, sortOption]);
 
   const handleLogin = (loggedInUser: User) => {
     setUser(loggedInUser);
@@ -873,7 +892,7 @@ function App() {
             exit="exit"
           >
             <TransactionsPage
-              transactions={transactions}
+              transactions={filteredTransactions}
               onEditTransaction={handleEditTransaction}
               onDeleteTransaction={handleDeleteTransaction}
               searchTerm={searchTerm}
@@ -888,6 +907,8 @@ function App() {
               setEndDate={setEndDate}
               categories={userCategories} // Use user categories
               currency={currency}
+              sortOption={sortOption}
+              setSortOption={setSortOption}
             />
           </motion.div>
         );
@@ -1232,7 +1253,10 @@ function App() {
               <DollarSign className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-[#F5F5F5]">SpendWiser</h1>
+              <a href="https://hariharen9.site" target="_blank" rel="noopener noreferrer">
+                <h1 className="text-xl font-bold text-gray-900 dark:text-[#F5F5F5]">SpendWiser</h1>
+              </a>
+              <p className="text-xs text-gray-500 dark:text-gray-400">By <span className="text-blue-500 underline">Hariharen</span></p>
             </div>
           </div>
           {user && (

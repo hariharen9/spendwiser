@@ -23,6 +23,8 @@ interface TransactionsPageProps {
   setEndDate: (value: string) => void;
   categories: string[];
   currency: string;
+  sortOption: string;
+  setSortOption: (value: string) => void;
 }
 
 const TransactionsPage: React.FC<TransactionsPageProps> = ({
@@ -40,41 +42,13 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
   endDate,
   setEndDate,
   categories,
-  currency
+  currency,
+  sortOption,
+  setSortOption
 }) => {
-  const filteredTransactions = useMemo(() => {
-    return transactions.filter(transaction => {
-      const matchesSearch = transaction.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           transaction.category.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesType = transactionType === 'all' || transaction.type === transactionType;
-      
-      const matchesCategory = selectedCategory === '' || transaction.category === selectedCategory;
-      
-      // Date filtering
-      let matchesDate = true;
-      if (startDate && endDate) {
-        const transactionDate = new Date(transaction.date);
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        matchesDate = transactionDate >= start && transactionDate <= end;
-      } else if (startDate) {
-        const transactionDate = new Date(transaction.date);
-        const start = new Date(startDate);
-        matchesDate = transactionDate >= start;
-      } else if (endDate) {
-        const transactionDate = new Date(transaction.date);
-        const end = new Date(endDate);
-        matchesDate = transactionDate <= end;
-      }
-
-      return matchesSearch && matchesType && matchesCategory && matchesDate;
-    });
-  }, [transactions, searchTerm, transactionType, selectedCategory, startDate, endDate]);
-
   const summary = useMemo(() => {
-    const incomeTransactions = filteredTransactions.filter(t => t.type === 'income');
-    const expenseTransactions = filteredTransactions.filter(t => t.type === 'expense');
+    const incomeTransactions = transactions.filter(t => t.type === 'income');
+    const expenseTransactions = transactions.filter(t => t.type === 'expense');
 
     const totalIncome = incomeTransactions.reduce((sum, t) => sum + t.amount, 0);
     const totalExpenses = expenseTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
@@ -120,7 +94,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
       topCategory,
       dailyAverage
     };
-  }, [filteredTransactions, startDate, endDate]);
+  }, [transactions, startDate, endDate]);
 
   return (
     <motion.div 
@@ -141,7 +115,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.1 }}
         >
-          {filteredTransactions.length} Transaction{filteredTransactions.length !== 1 ? 's' : ''}
+          {transactions.length} Transaction{transactions.length !== 1 ? 's' : ''}
         </motion.h2>
       </motion.div>
 
@@ -163,6 +137,8 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
           endDate={endDate}
           onStartDateChange={setStartDate}
           onEndDateChange={setEndDate}
+          sortOption={sortOption}
+          onSortChange={setSortOption}
         />
       </motion.div>
 
@@ -175,7 +151,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
         transition={{ delay: 0.3 }}
       >
         <TransactionTable
-          transactions={filteredTransactions}
+          transactions={transactions}
           onEditTransaction={onEditTransaction}
           onDeleteTransaction={onDeleteTransaction}
           currency={currency}
@@ -191,7 +167,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
         transition={{ delay: 0.3 }}
       >
         <MobileTransactionList
-          transactions={filteredTransactions}
+          transactions={transactions}
           onEditTransaction={onEditTransaction}
           onDeleteTransaction={onDeleteTransaction}
           currency={currency}

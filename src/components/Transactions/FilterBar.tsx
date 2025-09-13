@@ -13,6 +13,8 @@ interface FilterBarProps {
   endDate: string;
   onStartDateChange: (date: string) => void;
   onEndDateChange: (date: string) => void;
+  sortOption: string;
+  onSortChange: (value: string) => void;
 }
 
 const FilterBar: React.FC<FilterBarProps> = ({
@@ -26,7 +28,9 @@ const FilterBar: React.FC<FilterBarProps> = ({
   startDate,
   endDate,
   onStartDateChange,
-  onEndDateChange
+  onEndDateChange,
+  sortOption,
+  onSortChange
 }) => {
   const [showDateInputs, setShowDateInputs] = useState(false);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
@@ -83,6 +87,20 @@ const FilterBar: React.FC<FilterBarProps> = ({
                 {categories.map(category => (
                   <option key={category} value={category}>{category}</option>
                 ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="sort-select" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sort by</label>
+              <select
+                id="sort-select"
+                value={sortOption}
+                onChange={(e) => onSortChange(e.target.value)}
+                className="w-full pl-3 pr-8 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF] appearance-none"
+              >
+                <option value="date">Date</option>
+                <option value="highest">Highest Amount</option>
+                <option value="lowest">Lowest Amount</option>
+                <option value="category">Category</option>
               </select>
             </div>
             
