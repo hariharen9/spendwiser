@@ -109,16 +109,116 @@ const LoansPage: React.FC<LoansPageProps> = ({ loans, onAddLoan, onEditLoan, onD
           <h3 className="text-xl font-bold text-gray-900 dark:text-white">Loan Details: {selectedLoan.name}</h3>
           
           {/* Strategy Simulator */}
-          <div className="bg-white dark:bg-[#242424] rounded-lg shadow p-6 space-y-4">
-            <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Strategy Simulator</h4>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center">
-                <input type="checkbox" id="extra-emi" checked={extraEmiPerYear} onChange={() => setExtraEmiPerYear(!extraEmiPerYear)} className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
-                <label htmlFor="extra-emi" className="ml-2 block text-sm text-gray-900 dark:text-white">Pay 1 Extra EMI Every Year</label>
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-xl shadow-lg p-6 space-y-6 border-2 border-blue-200 dark:border-blue-800/50">
+            <div className="flex items-center space-x-3">
+              <div className="bg-blue-500 rounded-lg p-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
               </div>
-              <div className="flex items-center">
-                <input type="number" id="emi-increase" value={annualEmiIncrease} onChange={(e) => setAnnualEmiIncrease(parseFloat(e.target.value) || 0)} className="w-20 px-2 py-1 text-sm border-gray-300 rounded-md dark:bg-gray-700 dark:text-white" />
-                <label htmlFor="emi-increase" className="ml-2 block text-sm text-gray-900 dark:text-white">% Annual EMI Increase</label>
+              <h4 className="text-xl font-bold text-gray-900 dark:text-white">Strategy Simulator</h4>
+            </div>
+            <p className="text-gray-700 dark:text-gray-300 text-sm">
+              Experiment with different repayment strategies to see how much you can save in interest and time.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-white dark:bg-[#242424] rounded-lg p-4 shadow border border-blue-100 dark:border-blue-800/30 flex flex-col h-full">
+                <div className="flex items-start space-x-3 flex-1">
+                  <div className="mt-1 bg-blue-100 dark:bg-blue-900/50 p-1 rounded-full flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 flex flex-col justify-center">
+                    <div className="flex items-center">
+                      <div className="flex items-center justify-center w-6">
+                        <motion.div 
+                          className="relative flex items-center justify-center w-6 h-6 cursor-pointer"
+                          onClick={() => setExtraEmiPerYear(!extraEmiPerYear)}
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                        >
+                          <motion.div 
+                            className="absolute w-6 h-6 rounded border-2 border-gray-300 dark:border-gray-600 flex items-center justify-center"
+                            animate={{ 
+                              backgroundColor: extraEmiPerYear ? '#3B82F6' : 'transparent',
+                              borderColor: extraEmiPerYear ? '#3B82F6' : '#D1D5DB'
+                            }}
+                            transition={{ duration: 0.2 }}
+                          />
+                          <motion.svg 
+                            className="absolute w-4 h-4 text-white"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="3"
+                            initial={false}
+                            animate={{ pathLength: extraEmiPerYear ? 1 : 0 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <motion.path 
+                              d="M5 13l4 4L19 7" 
+                              initial={{ pathLength: 0 }}
+                            />
+                          </motion.svg>
+                        </motion.div>
+                      </div>
+                      <label htmlFor="extra-emi" className="ml-3 block text-sm font-medium text-gray-900 dark:text-white cursor-pointer">
+                        Pay 1 Extra EMI Every Year
+                      </label>
+                    </div>
+                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                      Make one additional EMI payment annually to significantly reduce your loan tenure.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white dark:bg-[#242424] rounded-lg p-4 shadow border border-blue-100 dark:border-blue-800/30 flex flex-col h-full">
+                <div className="flex items-start space-x-3 flex-1">
+                  <div className="mt-1 bg-blue-100 dark:bg-blue-900/50 p-1 rounded-full flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 flex flex-col justify-center">
+                    <label htmlFor="emi-increase" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                      Annual EMI Increase
+                    </label>
+                    <div className="flex items-center">
+                      <div className="flex items-center justify-center w-6 mr-3">
+                        <motion.div 
+                          className="relative"
+                          whileHover={{ scale: 1.02 }}
+                          whileFocus={{ scale: 1.02 }}
+                        >
+                          <input 
+                            type="number" 
+                            id="emi-increase" 
+                            value={annualEmiIncrease} 
+                            onChange={(e) => setAnnualEmiIncrease(parseFloat(e.target.value) || 0)} 
+                            className="w-20 px-3 py-2 text-sm border-2 border-gray-300 rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none" 
+                            min="0" 
+                            max="100"
+                          />
+                        </motion.div>
+                      </div>
+                      <span className="text-sm text-gray-900 dark:text-white">% per year</span>
+                    </div>
+                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                      Gradually increase your EMI as your income grows to pay off the loan faster.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800/30">
+              <div className="flex items-start space-x-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="text-sm text-blue-800 dark:text-blue-200">
+                  <span className="font-semibold">Tip:</span> Combining both strategies can help you become debt-free years earlier while saving thousands in interest.
+                </p>
               </div>
             </div>
           </div>
