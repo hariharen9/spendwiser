@@ -477,38 +477,38 @@ export const mockAccounts: Account[] = [
 ];
 
 export const categories = [
-  'Salary',
-  'Freelance',
-  'Investment',
+  'Home',
   'Groceries',
   'Food & Dining',
   'Transportation',
   'Entertainment',
   'Shopping',
+  'Personal',
+  'Fuel',
   'Utilities',
   'Healthcare',
   'Education',
-  'Housing',
-  'Health',
+  'Rent & Housing',
+  'Investment',
   'Travel',
   'Other'
 ];
 
 // Add a function to get the default categories
 export const getDefaultCategories = () => [
-  'Salary',
-  'Freelance',
-  'Investment',
+  'Home',
   'Groceries',
   'Food & Dining',
   'Transportation',
   'Entertainment',
   'Shopping',
+  'Personal',
+  'Fuel',
   'Utilities',
   'Healthcare',
   'Education',
-  'Housing',
-  'Health',
+  'Rent & Housing',
+  'Investment',
   'Travel',
   'Other'
 ];

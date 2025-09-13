@@ -54,8 +54,9 @@ function App() {
   const [currency, setCurrency] = useState<string>('₹'); // Default currency
   const [isImportCSVModalOpen, setIsImportCSVModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [userCategories, setUserCategories] = useState<string[]>(categories); // Add user categories state
+  const [userCategories, setUserCategories] = useState<string[]>([]); // Add user categories state
   const [showReauthModal, setShowReauthModal] = useState(false);
+  const [categoriesLoaded, setCategoriesLoaded] = useState(false);
   
   // Toast system
   const { toasts, showToast, removeToast } = useToast();
@@ -90,11 +91,7 @@ function App() {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       setUser(user);
       if (user) {
-        // Ensure a user document exists in the 'spenders' collection
         const userDocRef = doc(db, 'spenders', user.uid);
-        await setDoc(userDocRef, { email: user.email, name: user.displayName }, { merge: true });
-        
-        // Fetch default account setting
         try {
           const userDocSnap = await getDoc(userDocRef);
           if (userDocSnap.exists()) {
@@ -108,16 +105,28 @@ function App() {
             if (userData.themePreference) {
               setDarkMode(userData.themePreference === 'dark');
             }
-            // Load user categories if they exist
-            if (userData.categories) {
+            // Load user categories if they exist, otherwise use default categories and update Firestore
+            if (userData.categories !== null && userData.categories !== undefined) {
               setUserCategories(userData.categories);
+            } else {
+              const defaultCategories = getDefaultCategories();
+              setUserCategories(defaultCategories);
+              await updateDoc(userDocRef, { categories: defaultCategories });
             }
+          } else {
+            // If the user document doesn't exist, create it with default categories
+            const defaultCategories = getDefaultCategories();
+            await setDoc(userDocRef, {
+              email: user.email,
+              name: user.displayName,
+              categories: defaultCategories,
+            });
+            setUserCategories(defaultCategories);
           }
+          setCategoriesLoaded(true);
         } catch (error) {
           console.error("Error fetching user settings: ", error);
         }
-
-        
       }
       setLoading(false);
     });
@@ -244,13 +253,7 @@ function App() {
     }
   }, [darkMode, user]);
 
-  // Save categories to Firebase when they change
-  useEffect(() => {
-    if (user) {
-      const userDocRef = doc(db, 'spenders', user.uid);
-      setDoc(userDocRef, { categories: userCategories }, { merge: true });
-    }
-  }, [userCategories, user]);
+  
 
   // Effect to show mock data reminder in settings
   useEffect(() => {
@@ -437,49 +440,97 @@ function App() {
   };
 
   // Add category management functions
-  const handleAddCategory = (category: string) => {
+  const handleAddCategory = async (category: string) => {
     if (category && !userCategories.includes(category)) {
-      setUserCategories([...userCategories, category]);
+      const newCategories = [...userCategories, category];
+      setUserCategories(newCategories);
+      if (user) {
+        const userDocRef = doc(db, 'spenders', user.uid);
+        await updateDoc(userDocRef, { categories: newCategories });
+      }
     }
   };
 
-  const handleEditCategory = (oldCategory: string, newCategory: string) => {
-    if (newCategory && newCategory !== oldCategory) {
-      // Update the category in the user's list
+  const handleEditCategory = async (oldCategory: string, newCategory: string) => {
+    if (newCategory && newCategory !== oldCategory && user) {
       const updatedCategories = userCategories.map(cat => cat === oldCategory ? newCategory : cat);
       setUserCategories(updatedCategories);
-      
-      // Update all transactions with this category
-      setTransactions(prevTransactions => 
-        prevTransactions.map(tx => 
-          tx.category === oldCategory ? { ...tx, category: newCategory } : tx
-        )
-      );
+  
+      const userDocRef = doc(db, 'spenders', user.uid);
+      const transactionsRef = collection(db, 'spenders', user.uid, 'transactions');
+  
+      try {
+        const batch = writeBatch(db);
+  
+        // Update categories array in user document
+        batch.update(userDocRef, { categories: updatedCategories });
+  
+        // Find all transactions with the old category and update them
+        const transactionsToUpdate = transactions.filter(tx => tx.category === oldCategory);
+        transactionsToUpdate.forEach(tx => {
+          const transactionDocRef = doc(transactionsRef, tx.id);
+          batch.update(transactionDocRef, { category: newCategory });
+        });
+  
+        await batch.commit();
+        showToast('Category and associated transactions updated successfully!', 'success');
+      } catch (error) {
+        console.error("Error updating category and transactions: ", error);
+        showToast('Error updating category.', 'error');
+        // Revert UI changes on error
+        setUserCategories(userCategories);
+      }
     }
   };
 
-  const handleDeleteCategory = (category: string) => {
-    if (userCategories.includes(category)) {
-      // Remove the category from the user's list
+  const handleDeleteCategory = async (category: string) => {
+    if (userCategories.includes(category) && user) {
       const updatedCategories = userCategories.filter(cat => cat !== category);
       setUserCategories(updatedCategories);
-      
-      // Update all transactions with this category to "Other"
-      setTransactions(prevTransactions => 
-        prevTransactions.map(tx => 
-          tx.category === category ? { ...tx, category: 'Other' } : tx
-        )
-      );
+
+      const userDocRef = doc(db, 'spenders', user.uid);
+      const transactionsRef = collection(db, 'spenders', user.uid, 'transactions');
+
+      try {
+        const batch = writeBatch(db);
+
+        // Update categories array in user document
+        batch.update(userDocRef, { categories: updatedCategories });
+
+        // Find all transactions with the category and update them to "Other"
+        const transactionsToUpdate = transactions.filter(tx => tx.category === category);
+        transactionsToUpdate.forEach(tx => {
+          const transactionDocRef = doc(transactionsRef, tx.id);
+          batch.update(transactionDocRef, { category: 'Other' });
+        });
+
+        await batch.commit();
+        showToast('Category deleted and transactions moved to "Other".', 'success');
+      } catch (error) {
+        console.error("Error deleting category and updating transactions: ", error);
+        showToast('Error deleting category.', 'error');
+        // Revert UI changes on error
+        setUserCategories(userCategories);
+      }
     }
   };
 
-  const handleResetCategories = () => {
-    setUserCategories(getDefaultCategories());
+  const handleResetCategories = async () => {
+    const defaultCategories = getDefaultCategories();
+    setUserCategories(defaultCategories);
+    if (user) {
+      const userDocRef = doc(db, 'spenders', user.uid);
+      await updateDoc(userDocRef, { categories: defaultCategories });
+    }
   };
 
   // Add function to update category order
-  const handleUpdateCategories = (categories: string[]) => {
+  const handleUpdateCategories = async (categories: string[]) => {
     setUserCategories(categories);
+    if (user) {
+      const userDocRef = doc(db, 'spenders', user.uid);
+      await updateDoc(userDocRef, { categories: categories });
+    }
   };
 
   const handleAddBudget = async (budgetData: Omit<Budget, 'id'>) => {
