@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Budget, Transaction, TotalBudget } from '../../types/types';
 import { motion } from 'framer-motion';
 import { cardHoverVariants } from '../../components/Common/AnimationVariants';
-import { RotateCcw } from 'lucide-react';
+import { FlipHorizontal } from 'lucide-react';
 
 interface BudgetSummaryProps {
   budgets: Budget[];
@@ -55,7 +55,7 @@ const BudgetSummary: React.FC<BudgetSummaryProps> = ({ budgets, transactions, to
             onClick={toggleView}
             className="text-gray-500 dark:text-[#888888] hover:text-gray-800 dark:hover:text-[#F5F5F5]"
           >
-            <RotateCcw size={16} />
+            <FlipHorizontal size={16} />
           </button>
         </div>
         <p className="text-gray-500 dark:text-[#888888]">No budgets set up yet.</p>
@@ -99,7 +99,7 @@ const BudgetSummary: React.FC<BudgetSummaryProps> = ({ budgets, transactions, to
             onClick={toggleView}
             className="text-gray-500 dark:text-[#888888] hover:text-gray-800 dark:hover:text-[#F5F5F5]"
           >
-            <RotateCcw size={16} />
+            <FlipHorizontal size={16} />
           </button>
         </div>
         
@@ -172,7 +172,7 @@ const BudgetSummary: React.FC<BudgetSummaryProps> = ({ budgets, transactions, to
             onClick={toggleView}
             className="text-gray-500 dark:text-[#888888] hover:text-gray-800 dark:hover:text-[#F5F5F5]"
           >
-            <RotateCcw size={16} />
+            <FlipHorizontal size={16} />
           </button>
         )}
       </div>
