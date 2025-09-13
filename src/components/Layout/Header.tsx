@@ -1,5 +1,5 @@
 import React from 'react';
-import { Download, Upload, FileDown } from 'lucide-react';
+import { Upload } from 'lucide-react';
 import AnimatedButton from '../Common/AnimatedButton';
 import { motion } from 'framer-motion';
 
@@ -63,7 +63,7 @@ const Header: React.FC<HeaderProps> = ({
               {secondaryActionButton.label}
             </motion.button>
           )}
-          {actionButton && (
+          {actionButton && actionButton.label !== 'Export Dashboard' && ( // Exclude export dashboard button
             <motion.button
               onClick={actionButton.onClick}
               className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center ${actionButton.variant === 'secondary'
@@ -76,8 +76,7 @@ const Header: React.FC<HeaderProps> = ({
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
             >
-              {actionButton.label === 'Export to CSV' && <Download className="h-4 w-4 mr-2" />}
-              {actionButton.label === 'Export Dashboard' && <FileDown className="h-4 w-4 mr-2" />}
+              {actionButton.label === 'Export to CSV' && <Upload className="h-4 w-4 mr-2" />}
               {actionButton.label}
             </motion.button>
           )}

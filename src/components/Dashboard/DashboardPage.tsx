@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import Masonry from 'react-masonry-css';
-import { DollarSign, TrendingUp, TrendingDown, Edit3, Save, X } from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown, Edit3, Save, X, Download } from 'lucide-react';
 import MetricCard from './MetricCard';
 import SpendingChart from './SpendingChart';
 import RecentTransactions from './RecentTransactions';
@@ -26,6 +26,7 @@ interface DashboardPageProps {
   budgets: Budget[];
   onViewAllTransactions: () => void;
   currency: string;
+  onExportDashboard?: () => void; // Add export function prop
 }
 
 // Define the order of components
@@ -45,7 +46,7 @@ const DEFAULT_COMPONENT_ORDER = [
   'Achievements'
 ];
 
-const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, budgets, onViewAllTransactions, currency }) => {
+const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, budgets, onViewAllTransactions, currency, onExportDashboard }) => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [timeRange, setTimeRange] = useState<'month' | 'quarter' | 'year'>('month');
   const [componentOrder, setComponentOrder] = useState<string[]>(() => {
@@ -226,6 +227,22 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, b
         initial="initial"
         animate="animate"
       >
+        {/* Export button - moved to be near edit button */}
+        {onExportDashboard && !isEditMode && (
+          <motion.button
+            onClick={onExportDashboard}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            variants={buttonHoverVariants}
+            whileHover="hover"
+            whileTap="tap"
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <Download size={14} />
+            Export
+          </motion.button>
+        )}
+        
         {isEditMode ? (
           <>
             <motion.button

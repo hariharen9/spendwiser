@@ -121,7 +121,7 @@ function App() {
       setLoading(false);
     });
     return () => unsubscribe();
-  }, [hasLoadedMockData]);
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -158,19 +158,35 @@ function App() {
 
   // Effect to load mock data if user has no data
   useEffect(() => {
+    let isMounted = true; // To prevent state updates if component unmounts
+    
     const loadMockDataIfEmpty = async () => {
-      if (user && !loading && !hasLoadedMockData &&
+      // Only proceed if:
+      // 1. User is authenticated
+      // 2. App is not in loading state
+      // 3. Mock data hasn't been loaded yet
+      // 4. All data arrays are empty
+      // 5. Component is still mounted
+      if (user && !loading && !hasLoadedMockData && isMounted &&
           transactions.length === 0 && accounts.length === 0 && budgets.length === 0) {
         await handleLoadMockData();
-        setHasLoadedMockData(true);
-        showToast(
-          'Welcome! We\'ve loaded some mock data to get you started. You can clear it from Settings.',
-          'info'
-        );
+        if (isMounted) {
+          setHasLoadedMockData(true);
+          showToast(
+            'Welcome! We\'ve loaded some mock data to get you started. You can clear it from Settings.',
+            'info'
+          );
+        }
       }
     };
+    
     loadMockDataIfEmpty();
-  }, [user, loading, hasLoadedMockData, transactions, accounts, budgets]);
+    
+    // Cleanup function to prevent state updates if component unmounts
+    return () => {
+      isMounted = false;
+    };
+  }, [user, loading, hasLoadedMockData]); // Simplified dependencies - only check when these core values change
 
 
   useEffect(() => {
@@ -677,13 +693,6 @@ function App() {
         variant: 'secondary' as const
       };
     }
-    if (currentScreen === 'dashboard') {
-      return {
-        label: 'Export Dashboard',
-        onClick: () => setIsExportModalOpen(true),
-        variant: 'secondary' as const
-      };
-    }
     return undefined;
   };
 
@@ -716,6 +725,7 @@ function App() {
               budgets={budgets}
               onViewAllTransactions={() => setCurrentScreen('transactions')}
               currency={currency}
+              onExportDashboard={() => setIsExportModalOpen(true)} // Pass export function
             />
           </motion.div>
         );
