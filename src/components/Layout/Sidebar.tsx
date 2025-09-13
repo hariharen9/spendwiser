@@ -38,7 +38,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onScreenChange, user, 
     // Mobile bottom navigation with icons only
     return (
       <motion.div 
-        className="flex justify-around w-full py-2"
+        className="flex justify-evenly w-full py-2"
         initial="initial"
         animate="animate"
         variants={{
@@ -59,7 +59,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onScreenChange, user, 
             <motion.button
               key={item.id}
               onClick={() => onScreenChange(item.id)}
-              className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all duration-200 ${
+              className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all duration-200 w-20 ${
                 isActive
                   ? 'text-[#007BFF]'
                   : 'text-gray-500 dark:text-[#888888]'
