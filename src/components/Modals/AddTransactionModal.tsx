@@ -169,7 +169,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
 
               {/* Amount and Type */}
               <motion.div 
-                className="grid grid-cols-2 gap-4"
+                className="grid grid-cols-1 md:grid-cols-2 gap-4"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
@@ -198,7 +198,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                     <motion.button
                       type="button"
                       onClick={() => setFormData({ ...formData, type: 'income' })}
-                      className={`px-3 py-2 rounded-lg font-medium transition-all duration-200 ${
+                      className={`px-2 py-2 rounded-lg font-medium transition-all duration-200 text-sm md:text-base ${
                         formData.type === 'income'
                           ? 'bg-[#28A745] text-white'
                           : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-700 dark:text-[#888888] border border-gray-300 dark:border-gray-600 hover:text-gray-900 dark:hover:text-[#F5F5F5]'
@@ -211,7 +211,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                     <motion.button
                       type="button"
                       onClick={() => setFormData({ ...formData, type: 'expense' })}
-                      className={`px-3 py-2 rounded-lg font-medium transition-all duration-200 ${
+                      className={`px-2 py-2 rounded-lg font-medium transition-all duration-200 text-sm md:text-base ${
                         formData.type === 'expense'
                           ? 'bg-[#DC3545] text-white'
                           : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-700 dark:text-[#888888] border border-gray-300 dark:border-gray-600 hover:text-gray-900 dark:hover:text-[#F5F5F5]'
