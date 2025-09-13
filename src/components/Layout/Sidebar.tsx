@@ -105,7 +105,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onScreenChange, user, 
           </motion.div>
           <div>
             <h1 className="text-xl font-bold text-gray-900 dark:text-[#F5F5F5]">SpendWiser</h1>
-            <p className="text-sm text-gray-500 dark:text-[#888888]">Financial Command Center</p>
+            <p className="text-sm text-gray-500 dark:text-[#888888]">Your Ultimate Financial Command Center</p>
           </div>
         </div>
       </motion.div>
@@ -169,7 +169,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onScreenChange, user, 
           </div>
           <motion.button
             onClick={onLogout}
-            className="w-full flex items-center space-x-2 px-3 py-2 text-gray-500 dark:text-[#888888] hover:text-gray-900 dark:hover:text-[#F5F5F5] hover:bg-gray-200 dark:hover:bg-[#1A1A1A] rounded-lg transition-all duration-200"
+            className="w-full flex items-center space-x-2 px-3 py-2 text-gray-500 dark:text-[#888888] hover:text-red-500 dark:hover:text-red-500 hover:bg-gray-200 dark:hover:bg-[#1A1A1A] rounded-lg transition-all duration-200"
             variants={buttonHoverVariants}
             whileHover="hover"
             whileTap="tap"

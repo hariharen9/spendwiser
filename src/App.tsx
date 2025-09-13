@@ -66,6 +66,7 @@ function App() {
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(true); // Default to dark mode
+  const [themeLoaded, setThemeLoaded] = useState(false);
   const [defaultAccountId, setDefaultAccountId] = useState<string | null>(null);
   const [currency, setCurrency] = useState<string>('₹'); // Default currency
   const [isImportCSVModalOpen, setIsImportCSVModalOpen] = useState(false);
@@ -139,7 +140,11 @@ function App() {
           }
           if (userData.themePreference) {
             setDarkMode(userData.themePreference === 'dark');
+          } else {
+            // If themePreference doesn't exist, set it to dark mode by default for existing users
+            setDarkMode(true);
           }
+          setThemeLoaded(true);
           // Load user categories if they exist, otherwise use default categories
           if (userData.categories) {
             setUserCategories(userData.categories);
@@ -147,14 +152,17 @@ function App() {
             setUserCategories(getDefaultCategories());
           }
         } else {
-          // If the user document doesn't exist, create it with default categories
+          // If the user document doesn't exist, create it with default categories and dark theme
           const defaultCategories = getDefaultCategories();
           await setDoc(userDocRef, {
             email: user.email,
             name: user.displayName,
             categories: defaultCategories,
+            themePreference: 'dark', // Set dark theme for new users
           });
           setUserCategories(defaultCategories);
+          setDarkMode(true);
+          setThemeLoaded(true);
         }
         setCategoriesLoaded(true);
       }, (error) => {
@@ -275,6 +283,7 @@ function App() {
 
 
   useEffect(() => {
+    if (!themeLoaded) return;
     if (darkMode) {
       document.documentElement.classList.add('dark');
     } else {
@@ -286,7 +295,7 @@ function App() {
       const userDocRef = doc(db, 'spenders', user.uid);
       setDoc(userDocRef, { themePreference: darkMode ? 'dark' : 'light' }, { merge: true });
     }
-  }, [darkMode, user]);
+  }, [darkMode, user, themeLoaded]);
 
   
 
