@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Budget, Transaction, TotalBudget } from '../../types/types';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cardHoverVariants } from '../../components/Common/AnimationVariants';
 import { FlipHorizontal } from 'lucide-react';
 
@@ -64,7 +64,9 @@ const BudgetSummary: React.FC<BudgetSummaryProps> = ({ budgets, transactions, to
   }
 
   // Render detailed total budget view
-  if (showDetailedView && totalBudget) {
+  const renderDetailedView = () => {
+    if (!totalBudget) return null;
+    
     const monthlyExpenses = calculateMonthlyExpenses();
     const percentageUsed = totalBudget.limit > 0 ? (monthlyExpenses / totalBudget.limit) * 100 : 0;
     const remaining = totalBudget.limit - monthlyExpenses;
@@ -85,21 +87,25 @@ const BudgetSummary: React.FC<BudgetSummaryProps> = ({ budgets, transactions, to
     }
 
     return (
-      <motion.div 
-        className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700"
+      <motion.div
+        className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700 backface-hidden"
         variants={cardHoverVariants}
         initial="initial"
         whileHover="hover"
         whileFocus="hover"
         layout
+        style={{ 
+          transformStyle: 'preserve-3d',
+          backfaceVisibility: 'hidden'
+        }}
       >
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5]">Total Monthly Budget</h3>
           <button 
             onClick={toggleView}
-            className="text-gray-500 dark:text-[#888888] hover:text-gray-800 dark:hover:text-[#F5F5F5]"
+            className="text-gray-500 dark:text-[#888888] hover:text-gray-800 dark:hover:text-[#F5F5F5] transition-transform duration-200 hover:scale-110"
           >
-            <FlipHorizontal size={16} />
+            <FlipHorizontal size={20} />
           </button>
         </div>
         
@@ -153,54 +159,92 @@ const BudgetSummary: React.FC<BudgetSummaryProps> = ({ budgets, transactions, to
         </div>
       </motion.div>
     );
-  }
+  };
 
   // Render summary view
-  return (
-    <motion.div 
-      className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700"
-      variants={cardHoverVariants}
-      initial="initial"
-      whileHover="hover"
-      whileFocus="hover"
-      layout
-    >
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5]">Budget Summary</h3>
-        {totalBudget && (
-          <button 
-            onClick={toggleView}
-            className="text-gray-500 dark:text-[#888888] hover:text-gray-800 dark:hover:text-[#F5F5F5]"
-          >
-            <FlipHorizontal size={16} />
-          </button>
-        )}
-      </div>
-      
-      {budgets.length === 0 ? (
-        <p className="text-gray-500 dark:text-[#888888]">No budgets set up yet.</p>
-      ) : (
-        <div className="space-y-4">
-          {budgets.map(budget => {
-            const spent = getSpentAmount(budget.category);
-            const percentage = budget.limit > 0 ? (spent / budget.limit) * 100 : 0;
-            const progressBarColor = percentage > 100 ? 'bg-red-500' : 'bg-green-500';
-
-            return (
-              <div key={budget.id}>
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{budget.category}</span>
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{currency}{spent.toLocaleString()} / {currency}{budget.limit.toLocaleString()}</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-                  <div className={`${progressBarColor} h-2.5 rounded-full`} style={{ width: `${Math.min(percentage, 100)}%` }}></div>
-                </div>
-              </div>
-            );
-          })}
+  const renderSummaryView = () => {
+    return (
+      <motion.div 
+        className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700 backface-hidden"
+        variants={cardHoverVariants}
+        initial="initial"
+        whileHover="hover"
+        whileFocus="hover"
+        layout
+        style={{ 
+          transformStyle: 'preserve-3d',
+          backfaceVisibility: 'hidden'
+        }}
+      >
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5]">Budget Summary</h3>
+          {totalBudget && (
+            <button 
+              onClick={toggleView}
+              className="text-gray-500 dark:text-[#888888] hover:text-gray-800 dark:hover:text-[#F5F5F5] transition-transform duration-200 hover:scale-110"
+            >
+              <FlipHorizontal size={20} />
+            </button>
+          )}
         </div>
-      )}
-    </motion.div>
+        
+        {budgets.length === 0 ? (
+          <p className="text-gray-500 dark:text-[#888888]">No budgets set up yet.</p>
+        ) : (
+          <div className="space-y-4">
+            {budgets.map(budget => {
+              const spent = getSpentAmount(budget.category);
+              const percentage = budget.limit > 0 ? (spent / budget.limit) * 100 : 0;
+              const progressBarColor = percentage > 100 ? 'bg-red-500' : 'bg-green-500';
+
+              return (
+                <div key={budget.id}>
+                  <div className="flex justify-between mb-1">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{budget.category}</span>
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{currency}{spent.toLocaleString()} / {currency}{budget.limit.toLocaleString()}</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                    <div className={`${progressBarColor} h-2.5 rounded-full`} style={{ width: `${Math.min(percentage, 100)}%` }}></div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </motion.div>
+    );
+  };
+
+  return (
+    <div className="perspective-1000" style={{ perspective: '1000px' }}>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={showDetailedView ? 'detailed' : 'summary'}
+          initial={{ 
+            rotateY: showDetailedView ? -180 : 180,
+            zIndex: 10
+          }}
+          animate={{ 
+            rotateY: 0,
+            zIndex: 20
+          }}
+          exit={{ 
+            rotateY: showDetailedView ? 180 : -180,
+            zIndex: 0
+          }}
+          transition={{ 
+            duration: 0.6,
+            ease: [0.645, 0.045, 0.355, 1] // Custom easing for smoother animation
+          }}
+          style={{ 
+            transformStyle: 'preserve-3d',
+            transformOrigin: 'center center'
+          }}
+        >
+          {showDetailedView ? renderDetailedView() : renderSummaryView()}
+        </motion.div>
+      </AnimatePresence>
+    </div>
   );
 };
 
