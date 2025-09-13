@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Screen, Transaction, Account, Budget } from './types/types';
+import { Screen, Transaction, Account, Budget, TotalBudget } from './types/types';
 import { User, deleteUser, GoogleAuthProvider, reauthenticateWithPopup } from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
 import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, writeBatch, getDocs } from 'firebase/firestore';
@@ -44,6 +44,7 @@ function App() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
+  const [totalBudget, setTotalBudget] = useState<TotalBudget | null>(null);
   const [isAddTransactionModalOpen, setIsAddTransactionModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | undefined>();
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
@@ -155,6 +156,46 @@ function App() {
       return () => unsubscribe();
     }
   }, [user]);
+
+  // Total budget listener
+  useEffect(() => {
+    if (user) {
+      const totalBudgetRef = doc(db, 'spenders', user.uid, 'totalBudget', 'current');
+      const unsubscribe = onSnapshot(totalBudgetRef, (doc) => {
+        if (doc.exists()) {
+          setTotalBudget({ id: doc.id, ...doc.data() } as TotalBudget);
+        } else {
+          setTotalBudget(null);
+        }
+      });
+      return () => unsubscribe();
+    }
+  }, [user]);
+
+  // Add total budget monitoring for toast notifications
+  useEffect(() => {
+    if (totalBudget && transactions.length > 0) {
+      const currentMonth = new Date().toISOString().slice(0, 7);
+      if (totalBudget.month === currentMonth) {
+        const monthlyExpenses = transactions
+          .filter(t => {
+            const txDate = new Date(t.date);
+            return t.type === 'expense' && 
+                   txDate.toISOString().slice(0, 7) === currentMonth;
+          })
+          .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+        
+        const percentageUsed = (monthlyExpenses / totalBudget.limit) * 100;
+        
+        if (percentageUsed >= 80 && percentageUsed < 100) {
+          showToast(
+            `You've used ${Math.round(percentageUsed)}% of your monthly budget. ${Math.round(totalBudget.limit - monthlyExpenses)} ${currency} remaining.`,
+            'warning'
+          );
+        }
+      }
+    }
+  }, [transactions, totalBudget, currency, showToast]);
 
   // Effect to load mock data if user has no data
   useEffect(() => {
@@ -477,6 +518,41 @@ function App() {
     }
   };
 
+  const handleSaveTotalBudget = async (limit: number) => {
+    if (!user) return;
+    
+    try {
+      const totalBudgetRef = doc(db, 'spenders', user.uid, 'totalBudget', 'current');
+      const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
+      
+      const totalBudgetData: Omit<TotalBudget, 'id'> = {
+        limit,
+        month: currentMonth,
+        isMock: false
+      };
+      
+      await setDoc(totalBudgetRef, totalBudgetData);
+      showToast('Total monthly budget set successfully!', 'success');
+    } catch (error) {
+      console.error("Error saving total budget: ", error);
+      showToast('Error saving total budget', 'error');
+    }
+  };
+
+  const handleDeleteTotalBudget = async () => {
+    if (!user) return;
+    
+    try {
+      const totalBudgetRef = doc(db, 'spenders', user.uid, 'totalBudget', 'current');
+      await deleteDoc(totalBudgetRef);
+      setTotalBudget(null);
+      showToast('Total monthly budget removed successfully!', 'success');
+    } catch (error) {
+      console.error("Error deleting total budget: ", error);
+      showToast('Error deleting total budget', 'error');
+    }
+  };
+
   const handleExportCSV = () => {
     const csvContent = [
       ['Date', 'Name', 'Category', 'Amount', 'Type'],
@@ -563,6 +639,15 @@ function App() {
       });
       await budgetBatch.commit();
       
+      // Add mock total budget
+      const totalBudgetRef = doc(db, 'spenders', user.uid, 'totalBudget', 'current');
+      const mockTotalBudget: Omit<TotalBudget, 'id'> = {
+        limit: 50000,
+        month: new Date().toISOString().slice(0, 7),
+        isMock: true
+      };
+      await setDoc(totalBudgetRef, mockTotalBudget);
+      
       showToast('Mock data loaded successfully!', 'success');
     } catch (error) {
       console.error("Error loading mock data: ", error);
@@ -578,11 +663,13 @@ function App() {
       const transactionsRef = collection(db, 'spenders', user.uid, 'transactions');
       const accountsRef = collection(db, 'spenders', user.uid, 'accounts');
       const budgetsRef = collection(db, 'spenders', user.uid, 'budgets');
+      const totalBudgetRef = doc(db, 'spenders', user.uid, 'totalBudget', 'current');
       
       // Get all documents in each collection
       const transactionsSnapshot = await getDocs(transactionsRef);
       const accountsSnapshot = await getDocs(accountsRef);
       const budgetsSnapshot = await getDocs(budgetsRef);
+      const totalBudgetSnapshot = await getDoc(totalBudgetRef);
       
       // Delete only mock transactions
       const transactionBatch = writeBatch(db);
@@ -610,6 +697,11 @@ function App() {
         }
       });
       await budgetBatch.commit();
+      
+      // Delete mock total budget if it exists
+      if (totalBudgetSnapshot.exists() && totalBudgetSnapshot.data().isMock === true) {
+        await deleteDoc(totalBudgetRef);
+      }
       
       showToast('Mock data cleared successfully!', 'success');
     } catch (error) {
@@ -700,13 +792,13 @@ function App() {
             animate="animate"
             exit="exit"
           >
-            <DashboardPage
-              transactions={transactions}
-              accounts={regularAccounts}
-              budgets={budgets}
-              onViewAllTransactions={() => setCurrentScreen('transactions')}
-              currency={currency}
-              onExportDashboard={() => setIsExportModalOpen(true)} // Pass export function
+            <DashboardPage 
+              transactions={transactions} 
+              accounts={regularAccounts} 
+              budgets={budgets} 
+              totalBudget={totalBudget}
+              onViewAllTransactions={() => setCurrentScreen('transactions')} 
+              currency={currency} 
             />
           </motion.div>
         );
@@ -769,9 +861,12 @@ function App() {
             <BudgetsPage 
               budgets={budgets} 
               transactions={transactions}
+              totalBudget={totalBudget}
               onEditBudget={handleEditBudget}
               onAddBudget={() => setIsBudgetModalOpen(true)}
               onDeleteBudget={handleDeleteBudget}
+              onSaveTotalBudget={handleSaveTotalBudget}
+              onDeleteTotalBudget={handleDeleteTotalBudget}
               currency={currency}
             />
           </motion.div>

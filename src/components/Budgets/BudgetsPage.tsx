@@ -1,20 +1,35 @@
 import React, { useState } from 'react';
-import { Target, TrendingUp, Plus, Edit, Trash2, X } from 'lucide-react';
-import { Budget, Transaction } from '../../types/types';
+import { Target, TrendingUp, Plus, Edit, Trash2, X, DollarSign } from 'lucide-react';
+import { Budget, Transaction, TotalBudget } from '../../types/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fadeInVariants, staggerContainer, buttonHoverVariants, cardHoverVariants, modalVariants } from '../../components/Common/AnimationVariants';
 
 interface BudgetsPageProps {
   budgets: Budget[];
   transactions: Transaction[];
+  totalBudget: TotalBudget | null;
   onEditBudget: (budget: Budget) => void;
   onAddBudget: () => void;
   onDeleteBudget: (id: string) => void;
+  onSaveTotalBudget: (limit: number) => void;
+  onDeleteTotalBudget: () => void;
   currency: string;
 }
 
-const BudgetsPage: React.FC<BudgetsPageProps> = ({ budgets, transactions, onEditBudget, onAddBudget, onDeleteBudget, currency }) => {
+const BudgetsPage: React.FC<BudgetsPageProps> = ({ 
+  budgets, 
+  transactions, 
+  totalBudget,
+  onEditBudget, 
+  onAddBudget, 
+  onDeleteBudget, 
+  onSaveTotalBudget,
+  onDeleteTotalBudget,
+  currency 
+}) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [showTotalBudgetModal, setShowTotalBudgetModal] = useState(false);
+  const [totalBudgetInput, setTotalBudgetInput] = useState('');
 
   const totalSpent = budgets.reduce((total, budget) => {
     const categorySpent = transactions
@@ -28,6 +43,36 @@ const BudgetsPage: React.FC<BudgetsPageProps> = ({ budgets, transactions, onEdit
     setShowDeleteConfirm(null);
   };
 
+  const handleSaveTotalBudget = () => {
+    const limit = parseFloat(totalBudgetInput);
+    if (!isNaN(limit) && limit > 0) {
+      onSaveTotalBudget(limit);
+      setShowTotalBudgetModal(false);
+      setTotalBudgetInput('');
+    }
+  };
+
+  const handleDeleteTotalBudget = () => {
+    onDeleteTotalBudget();
+    setShowTotalBudgetModal(false);
+  };
+
+  // Calculate monthly expenses for total budget
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  const monthlyExpenses = transactions
+    .filter(t => {
+      const txDate = new Date(t.date);
+      return t.type === 'expense' && 
+             txDate.toISOString().slice(0, 7) === currentMonth;
+    })
+    .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+
+  const totalBudgetPercentage = totalBudget && totalBudget.limit > 0 
+    ? (monthlyExpenses / totalBudget.limit) * 100 
+    : 0;
+  const isTotalBudgetOver = totalBudgetPercentage > 100;
+  const isTotalBudgetNearLimit = totalBudgetPercentage > 80;
+
   return (
     <motion.div 
       className="space-y-8"
@@ -37,11 +82,107 @@ const BudgetsPage: React.FC<BudgetsPageProps> = ({ budgets, transactions, onEdit
     >
       {/* Overview Cards */}
       <motion.div 
-        className="grid grid-cols-1 md:grid-cols-2 gap-6"
+        className="grid grid-cols-1 md:grid-cols-3 gap-6"
         variants={staggerContainer}
         initial="initial"
         animate="animate"
       >
+        {/* Total Monthly Budget Card */}
+        <motion.div 
+          className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700"
+          variants={cardHoverVariants}
+          initial="initial"
+          whileHover="hover"
+        >
+          <div className="flex items-center space-x-3 mb-4">
+            <motion.div 
+              className="p-3 bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] rounded-lg"
+              whileHover={{ scale: 1.1 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <DollarSign className="h-6 w-6 text-white" />
+            </motion.div>
+            <div className="flex-1">
+              <h3 className="text-sm font-medium text-gray-500 dark:text-[#888888]">Total Monthly Budget</h3>
+              {totalBudget ? (
+                <motion.p 
+                  className="text-2xl font-bold text-gray-900 dark:text-[#F5F5F5]"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  {currency}{totalBudget.limit.toLocaleString()}
+                </motion.p>
+              ) : (
+                <motion.p 
+                  className="text-sm text-gray-500 dark:text-[#888888]"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  Not set
+                </motion.p>
+              )}
+            </div>
+          </div>
+          
+          {totalBudget && (
+            <div className="space-y-3">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500 dark:text-[#888888]">Spent this month:</span>
+                <span className="font-medium text-gray-900 dark:text-[#F5F5F5]">
+                  {currency}{monthlyExpenses.toLocaleString()}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500 dark:text-[#888888]">Remaining:</span>
+                <span className={`font-medium ${
+                  isTotalBudgetOver ? 'text-[#DC3545]' : 
+                  isTotalBudgetNearLimit ? 'text-[#FFC107]' : 
+                  'text-[#28A745]'
+                }`}>
+                  {currency}{Math.max(0, totalBudget.limit - monthlyExpenses).toLocaleString()}
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 dark:bg-[#1A1A1A] rounded-full h-2 overflow-hidden">
+                <motion.div
+                  className={`h-2 rounded-full ${
+                    isTotalBudgetOver
+                      ? 'bg-[#DC3545]'
+                      : isTotalBudgetNearLimit
+                      ? 'bg-gradient-to-r from-[#FFC107] to-[#DC3545]'
+                      : 'bg-gradient-to-r from-[#00C9A7] to-[#007BFF]'
+                  }`}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min(totalBudgetPercentage, 100)}%` }}
+                  transition={{ duration: 1, delay: 0.3 }}
+                />
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500 dark:text-[#888888]">Usage:</span>
+                <span className={`font-medium ${
+                  isTotalBudgetOver ? 'text-[#DC3545]' : 
+                  isTotalBudgetNearLimit ? 'text-[#FFC107]' : 
+                  'text-[#28A745]'
+                }`}>
+                  {Math.round(totalBudgetPercentage)}%
+                </span>
+              </div>
+            </div>
+          )}
+          
+          <motion.button 
+            onClick={() => setShowTotalBudgetModal(true)}
+            className="w-full mt-4 bg-gradient-to-r from-[#007BFF] to-[#00C9A7] text-white px-4 py-2 rounded-lg font-medium"
+            variants={buttonHoverVariants}
+            whileHover="hover"
+            whileTap="tap"
+          >
+            {totalBudget ? 'Edit Total Budget' : 'Set Total Budget'}
+          </motion.button>
+        </motion.div>
+
+        {/* Existing Total Budgeted Card */}
         <motion.div 
           className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700"
           variants={cardHoverVariants}
@@ -70,6 +211,7 @@ const BudgetsPage: React.FC<BudgetsPageProps> = ({ budgets, transactions, onEdit
           </div>
         </motion.div>
 
+        {/* Existing Total Spent Card */}
         <motion.div 
           className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700"
           variants={cardHoverVariants}
@@ -98,6 +240,78 @@ const BudgetsPage: React.FC<BudgetsPageProps> = ({ budgets, transactions, onEdit
           </div>
         </motion.div>
       </motion.div>
+
+      {/* Total Budget Modal */}
+      <AnimatePresence>
+        {showTotalBudgetModal && (
+          <motion.div 
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowTotalBudgetModal(false)}
+          >
+            <motion.div 
+              className="bg-white dark:bg-[#242424] rounded-lg p-6 w-full max-w-md"
+              variants={modalVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5]">
+                  {totalBudget ? 'Edit Total Budget' : 'Set Total Budget'}
+                </h3>
+                <button 
+                  onClick={() => setShowTotalBudgetModal(false)}
+                  className="text-gray-500 dark:text-[#888888] hover:text-gray-800 dark:hover:text-[#F5F5F5]"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-[#888888] mb-2">
+                    Monthly Budget Limit
+                  </label>
+                  <input
+                    type="number"
+                    value={totalBudgetInput}
+                    onChange={(e) => setTotalBudgetInput(e.target.value)}
+                    placeholder={totalBudget ? totalBudget.limit.toString() : "Enter amount"}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-[#007BFF] bg-white dark:bg-[#1A1A1A] text-gray-900 dark:text-[#F5F5F5]"
+                  />
+                </div>
+
+                <div className="flex space-x-3">
+                  <motion.button 
+                    onClick={handleSaveTotalBudget}
+                    className="flex-1 bg-[#00C9A7] text-white px-4 py-2 rounded-lg font-medium"
+                    variants={buttonHoverVariants}
+                    whileHover="hover"
+                    whileTap="tap"
+                  >
+                    Save
+                  </motion.button>
+                  {totalBudget && (
+                    <motion.button 
+                      onClick={handleDeleteTotalBudget}
+                      className="flex-1 bg-[#DC3545] text-white px-4 py-2 rounded-lg font-medium"
+                      variants={buttonHoverVariants}
+                      whileHover="hover"
+                      whileTap="tap"
+                    >
+                      Remove
+                    </motion.button>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Budget Categories */}
       <motion.div 
@@ -239,67 +453,48 @@ const BudgetsPage: React.FC<BudgetsPageProps> = ({ budgets, transactions, onEdit
             exit={{ opacity: 0 }}
             onClick={() => setShowDeleteConfirm(null)}
           >
-            <motion.div
-              className="bg-white dark:bg-[#242424] rounded-lg border border-gray-200 dark:border-gray-700 w-full max-w-md"
+            <motion.div 
+              className="bg-white dark:bg-[#242424] rounded-lg p-6 w-full max-w-md"
               variants={modalVariants}
               initial="initial"
               animate="animate"
               exit="exit"
               onClick={(e) => e.stopPropagation()}
             >
-              <motion.div 
-                className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-              >
-                <h2 className="text-xl font-bold text-gray-900 dark:text-[#F5F5F5]">
-                  Confirm Deletion
-                </h2>
-                <motion.button
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5]">Delete Budget</h3>
+                <button 
                   onClick={() => setShowDeleteConfirm(null)}
-                  className="text-gray-500 dark:text-[#888888] hover:text-gray-800 dark:hover:text-[#F5F5F5] transition-colors"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
+                  className="text-gray-500 dark:text-[#888888] hover:text-gray-800 dark:hover:text-[#F5F5F5]"
                 >
-                  <X className="h-6 w-6" />
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <p className="text-gray-600 dark:text-[#888888] mb-6">
+                Are you sure you want to delete this budget category? This action cannot be undone.
+              </p>
+
+              <div className="flex space-x-3">
+                <motion.button 
+                  onClick={() => setShowDeleteConfirm(null)}
+                  className="flex-1 bg-gray-300 dark:bg-[#1A1A1A] text-gray-700 dark:text-[#F5F5F5] px-4 py-2 rounded-lg font-medium"
+                  variants={buttonHoverVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                >
+                  Cancel
                 </motion.button>
-              </motion.div>
-              
-              <motion.div 
-                className="p-6 space-y-4"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <p className="text-gray-700 dark:text-gray-300">
-                  Are you sure you want to delete this budget? This action cannot be undone.
-                </p>
-                
-                <motion.div 
-                  className="flex items-center justify-end space-x-4 pt-4"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
+                <motion.button 
+                  onClick={() => handleConfirmDeleteBudget(showDeleteConfirm)}
+                  className="flex-1 bg-[#DC3545] text-white px-4 py-2 rounded-lg font-medium"
+                  variants={buttonHoverVariants}
+                  whileHover="hover"
+                  whileTap="tap"
                 >
-                  <motion.button
-                    onClick={() => setShowDeleteConfirm(null)}
-                    className="px-4 py-2 text-gray-600 dark:text-[#888888] hover:text-gray-900 dark:hover:text-[#F5F5F5] transition-colors"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    Cancel
-                  </motion.button>
-                  <motion.button
-                    onClick={() => handleConfirmDeleteBudget(showDeleteConfirm)}
-                    className="bg-red-500 text-white px-6 py-2 rounded-lg font-medium hover:bg-red-600 transition-all duration-200"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    Delete Budget
-                  </motion.button>
-                </motion.div>
-              </motion.div>
+                  Delete
+                </motion.button>
+              </div>
             </motion.div>
           </motion.div>
         )}

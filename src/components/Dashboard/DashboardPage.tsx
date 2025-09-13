@@ -4,7 +4,7 @@ import { DollarSign, TrendingUp, TrendingDown, Edit3, Save, X, Download } from '
 import MetricCard from './MetricCard';
 import SpendingChart from './SpendingChart';
 import RecentTransactions from './RecentTransactions';
-import { Transaction, Account, Budget } from '../../types/types';
+import { Transaction, Account, Budget, TotalBudget } from '../../types/types';
 import IncomeVsExpenseChart from './IncomeVsExpenseChart';
 import BudgetSummary from './BudgetSummary';
 import AccountBalances from './AccountBalances';
@@ -16,6 +16,7 @@ import SubscriptionTracker from './SubscriptionTracker';
 import LifestyleCreepIndicator from './LifestyleCreepIndicator';
 import InsightsEngine from './InsightsEngine';
 import Achievements from './Achievements';
+import TotalBudgetWidget from './TotalBudgetWidget';
 import './Dashboard.css';
 import { motion } from 'framer-motion';
 import { fadeInVariants, staggerContainer, buttonHoverVariants } from '../../components/Common/AnimationVariants';
@@ -24,6 +25,7 @@ interface DashboardPageProps {
   transactions: Transaction[];
   accounts: Account[];
   budgets: Budget[];
+  totalBudget: TotalBudget | null;
   onViewAllTransactions: () => void;
   currency: string;
   onExportDashboard?: () => void; // Add export function prop
@@ -43,7 +45,8 @@ const DEFAULT_COMPONENT_ORDER = [
   'LifestyleCreepIndicator',
   'InsightsEngine',
   'SubscriptionTracker',
-  'Achievements'
+  'Achievements',
+  'TotalBudgetWidget'
 ];
 
 const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, budgets, onViewAllTransactions, currency, onExportDashboard }) => {
@@ -161,6 +164,8 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, b
     };
 
     switch (componentName) {
+      case 'TotalBudgetWidget':
+        return <div {...commonProps} key="TotalBudgetWidget"><TotalBudgetWidget totalBudget={totalBudget} transactions={transactions} currency={currency} /></div>;
       case 'SpendingChart':
         return <div {...commonProps} key="SpendingChart"><SpendingChart transactions={filteredTransactions} currency={currency} timeRange={timeRange} setTimeRange={setTimeRange} /></div>;
       case 'RecentTransactions':

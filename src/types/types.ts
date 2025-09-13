@@ -41,3 +41,10 @@ export interface CreditCard {
   limit: number;
   isMock?: boolean;
 }
+
+export interface TotalBudget {
+  id: string;
+  limit: number;
+  month: string; // Format: YYYY-MM
+  isMock?: boolean;
+}
