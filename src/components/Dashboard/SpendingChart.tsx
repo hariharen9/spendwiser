@@ -27,15 +27,41 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, currency, t
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [animationKey, setAnimationKey] = useState(0);
 
-  const categoryColors: { [key: string]: string } = {
-    'Groceries': '#007BFF',
-    'Food & Dining': '#00C9A7',
-    'Transportation': '#28A745',
-    'Entertainment': '#FFC107',
-    'Shopping': '#DC3545',
-    'Utilities': '#17A2B8',
-    'Health': '#6F42C1',
-    'Other': '#FD7E14',
+  // Extended color palette with 50+ distinct colors for better category differentiation
+  const extendedColorPalette = [
+    '#007BFF', '#00C9A7', '#28A745', '#FFC107', '#DC3545', '#17A2B8', '#6F42C1', '#FD7E14',
+    '#20C997', '#6610F2', '#E83E8C', '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFBE0B', '#FB5607',
+    '#FF006E', '#8338EC', '#3A86FF', '#38B000', '#9EF01A', '#FF9E00', '#FF5400', '#7209B7',
+    '#0DCAF0', '#ADB5BD', '#6C757D', '#FF6B35', '#F72585', '#7209B7', '#3A0CA3', '#4361EE',
+    '#4CC9F0', '#560BAD', '#4895EF', '#4361EE', '#3F37C9', '#480CA8', '#560BAD', '#7209B7',
+    '#F72585', '#B5179E', '#7209B7', '#560BAD', '#480CA8', '#3A0CA3', '#3F37C9', '#4361EE',
+    '#4895EF', '#4CC9F0', '#606C38', '#283618', '#BC6C25', '#DDA15E', '#2A9D8F', '#E9C46A',
+    '#F4A261', '#E76F51', '#264653', '#2A9D8F', '#E9C46A', '#F4A261', '#E76F51', '#1D3557',
+    '#457B9D', '#A8DADC', '#F1FAEE', '#E63946', '#A8DADC', '#457B9D', '#1D3557', '#F25F5C',
+    '#FFE066', '#247BA0', '#70C1B3', '#B2DBBF', '#F3FFBD', '#FF165D', '#3DAE8B', '#114B5F'
+  ];
+
+  // Function to get a random color from the palette
+  const getRandomColor = () => {
+    const randomIndex = Math.floor(Math.random() * extendedColorPalette.length);
+    return extendedColorPalette[randomIndex];
+  };
+
+  // Function to get color for a category (uses predefined colors for known categories, random for others)
+  const getCategoryColor = (categoryName: string) => {
+    const predefinedColors: { [key: string]: string } = {
+      'Groceries': '#007BFF',
+      'Food & Dining': '#00C9A7',
+      'Transportation': '#28A745',
+      'Entertainment': '#FFC107',
+      'Shopping': '#DC3545',
+      'Utilities': '#17A2B8',
+      'Health': '#6F42C1',
+      'Other': '#FD7E14',
+    };
+
+    // Return predefined color if exists, otherwise return a random color
+    return predefinedColors[categoryName] || getRandomColor();
   };
 
   const data: ChartData[] = (() => {
@@ -48,7 +74,7 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, currency, t
         acc.push({
           name: t.category,
           value: amount,
-          color: categoryColors[t.category] || '#6C757D',
+          color: getCategoryColor(t.category),
         });
       }
       return acc;
