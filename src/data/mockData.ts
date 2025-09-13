@@ -1,4 +1,4 @@
-import { Transaction, Budget, User, Account, CreditCard } from '../types/types';
+import { Transaction, Budget, User, Account, CreditCard, Loan } from '../types/types';
 
 export const mockUser: User = {
   name: 'Sarah Johnson',
@@ -6,6 +6,29 @@ export const mockUser: User = {
   avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&dpr=2',
   currency: '₹'
 };
+
+export const mockLoans: Loan[] = [
+  {
+    id: 'loan1',
+    name: 'Home Loan',
+    loanAmount: 3000000,
+    interestRate: 8,
+    tenure: 20,
+    emi: 23566,
+    startDate: '2023-01-15',
+    isMock: true,
+  },
+  {
+    id: 'loan2',
+    name: 'Car Loan',
+    loanAmount: 800000,
+    interestRate: 9.5,
+    tenure: 7,
+    emi: 12937,
+    startDate: '2022-06-20',
+    isMock: true,
+  },
+];
 
 export const currencies = [
     { code: 'INR', name: 'Indian Rupee', symbol: '₹' },

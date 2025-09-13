@@ -67,6 +67,48 @@ const helpContent: { [key: string]: { title: string; content: React.ReactNode; q
     ),
     quote: "I have a goal to be a millionaire. Not because I want the money, but because I want to see the look on my bank's face.",
   },
+  loans: {
+    title: 'Mastering Your Loans: Pay Less, Pay Faster',
+    content: (
+      <div className="space-y-4">
+        <p>Welcome to your personal loan command center! This section helps you track your loans and provides powerful strategies to pay them off faster, saving you a significant amount in interest.</p>
+        <h4 className="font-semibold text-gray-900 dark:text-white">Understanding Your Loan Details:</h4>
+        <ul className="list-disc list-inside space-y-2">
+          <li><strong>Loan Amount:</strong> The initial principal borrowed.</li>
+          <li><strong>Interest Rate:</strong> The annual interest rate on your loan.</li>
+          <li><strong>Tenure:</strong> The original duration of your loan in years.</li>
+          <li><strong>EMI:</strong> Your Equated Monthly Installment, the fixed amount you pay each month.</li>
+          <li><strong>Start Date:</strong> The date your loan commenced.</li>
+        </ul>
+        <h4 className="font-semibold text-gray-900 dark:text-white">Accelerate Your Repayment with Smart Strategies:</h4>
+        <p>Our simulator allows you to see the impact of two powerful prepayment strategies:</p>
+        <ul className="list-disc list-inside space-y-2">
+          <li><strong>Pay 1 Extra EMI Every Year:</strong> By making just one additional EMI payment annually towards your principal, you can significantly reduce your loan tenure and total interest paid. This extra payment directly reduces your principal, meaning less interest accrues over time.</li>
+          <li><strong>Increase Your EMI by a Fixed Percentage Annually:</strong> As your income grows, consider increasing your monthly EMI by a small percentage (e.g., 7.5%) each year. This consistent increase accelerates principal reduction, drastically cutting down your loan tenure and overall interest burden.</li>
+          <li><strong>Combine Both Approaches:</strong> For maximum impact, apply both strategies simultaneously. This aggressive approach can help you become debt-free in a fraction of the original time.</li>
+        </ul>
+        <h4 className="font-semibold text-gray-900 dark:text-white">How the Simulator Works:</h4>
+        <p>Simply select a loan, then toggle the "Pay 1 Extra EMI Every Year" checkbox and/or enter a percentage for "Annual EMI Increase." The simulator will instantly show you:</p>
+        <ul className="list-disc list-inside space-y-2">
+          <li><strong>New Plan End Date:</strong> Your projected loan end date with the applied strategies.</li>
+          <li><strong>New Plan Total Interest:</strong> The total interest you'll pay under the new plan.</li>
+          <li><strong>Interest Saved:</strong> The significant amount of interest you'll save compared to your original plan.</li>
+          <li><strong>Debt-Free Earlier:</strong> How many years and months sooner you'll be free from debt!</li>
+        </ul>
+        <h4 className="font-semibold text-gray-900 dark:text-white">Pro Tips for Success:</h4>
+        <ul className="list-disc list-inside space-y-2">
+          <li>Even small extra payments toward principal make a BIG difference over time.</li>
+          <li>Increasing EMI yearly is most effective if your salary/income goes up regularly.</li>
+          <li>Combining strategies means you become debt-free fastest—plan for this if you expect regular hikes and lump sum windfalls.</li>
+          <li>Check your loan statement for principal balance and EMI details.</li>
+          <li>Plan for extra payments: Aim to make one extra EMI as a lump sum yearly. Time it with bonuses, incentives, or tax refunds.</li>
+          <li>Set annual EMI increases: If your income rises, bump up the monthly EMI by 5-10% yearly. Notify your bank to adjust the standing instruction.</li>
+          <li>Track progress annually: After each year, use an online loan calculator to check new tenure and total interest saved.</li>
+        </ul>
+      </div>
+    ),
+    quote: "The best way to get out of debt is to stop digging.",
+  },
 };
 
 const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose, page }) => {

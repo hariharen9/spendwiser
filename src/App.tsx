@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Screen, Transaction, Account, Budget, TotalBudget, Goal } from './types/types';
+import { Screen, Transaction, Account, Budget, TotalBudget, Goal, Loan } from './types/types';
 import { User, deleteUser, GoogleAuthProvider, reauthenticateWithPopup } from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
 import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, writeBatch, getDocs } from 'firebase/firestore';
-import { categories, getDefaultCategories, mockTransactions, mockAccounts, mockBudgets, mockCreditCards, mockGoals } from './data/mockData';
+import { categories, getDefaultCategories, mockTransactions, mockAccounts, mockBudgets, mockCreditCards, mockGoals, mockLoans } from './data/mockData';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
@@ -22,6 +22,7 @@ import CreditCardsPage from './components/CreditCards/CreditCardsPage';
 import BudgetsPage from './components/Budgets/BudgetsPage';
 import GoalsPage from './components/Goals/GoalsPage';
 import SettingsPage from './components/Settings/SettingsPage';
+import LoansPage from './components/Loans/LoansPage';
 
 // Modals
 import AddTransactionModal from './components/Modals/AddTransactionModal';
@@ -31,6 +32,7 @@ import AddFundsModal from './components/Modals/AddFundsModal';
 import HelpModal from './components/Modals/HelpModal';
 import ImportCSVModal from './components/Modals/ImportCSVModal';
 import ExportModal from './components/Modals/ExportModal';
+import LoanModal from './components/Modals/LoanModal';
 
 // Icons
 import { LogOut, DollarSign, X } from 'lucide-react';
@@ -50,11 +52,13 @@ function App() {
   const [accountsLoaded, setAccountsLoaded] = useState(false);
   const [budgetsLoaded, setBudgetsLoaded] = useState(false);
   const [goalsLoaded, setGoalsLoaded] = useState(false);
+  const [loansLoaded, setLoansLoaded] = useState(false);
   const [currentScreen, setCurrentScreen] = useState<Screen>('dashboard');
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
+  const [loans, setLoans] = useState<Loan[]>([]);
   const [totalBudget, setTotalBudget] = useState<TotalBudget | null>(null);
   const [isAddTransactionModalOpen, setIsAddTransactionModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | undefined>();
@@ -62,6 +66,8 @@ function App() {
   const [editingBudget, setEditingBudget] = useState<any>();
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | undefined>();
+  const [isLoanModalOpen, setIsLoanModalOpen] = useState(false);
+  const [editingLoan, setEditingLoan] = useState<Loan | undefined>();
   const [isAddFundsModalOpen, setIsAddFundsModalOpen] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
@@ -115,7 +121,7 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const allDataLoaded = transactionsLoaded && accountsLoaded && budgetsLoaded && categoriesLoaded && goalsLoaded;
+    const allDataLoaded = transactionsLoaded && accountsLoaded && budgetsLoaded && categoriesLoaded && goalsLoaded && loansLoaded;
     if (authChecked) {
       if (user && allDataLoaded) {
         setLoading(false);
@@ -124,7 +130,7 @@ function App() {
         setLoading(false);
       }
     }
-  }, [user, authChecked, transactionsLoaded, accountsLoaded, budgetsLoaded, categoriesLoaded, goalsLoaded]);
+  }, [user, authChecked, transactionsLoaded, accountsLoaded, budgetsLoaded, categoriesLoaded, goalsLoaded, loansLoaded]);
 
   useEffect(() => {
     if (user) {
@@ -221,6 +227,18 @@ function App() {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (user) {
+      const loansRef = collection(db, 'spenders', user.uid, 'loans');
+      const unsubscribe = onSnapshot(loansRef, snapshot => {
+        const loansData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Loan[];
+        setLoans(loansData);
+        setLoansLoaded(true);
+      });
+      return () => unsubscribe();
+    }
+  }, [user]);
+
   // Total budget listener
   useEffect(() => {
     if (user) {
@@ -263,10 +281,10 @@ function App() {
 
   // Effect to load mock data if user has no data
   useEffect(() => {
-    const allDataLoaded = transactionsLoaded && accountsLoaded && budgetsLoaded && categoriesLoaded && goalsLoaded;
+    const allDataLoaded = transactionsLoaded && accountsLoaded && budgetsLoaded && categoriesLoaded && goalsLoaded && loansLoaded;
 
     if (user && !loading && allDataLoaded && !hasLoadedMockData &&
-        transactions.length === 0 && accounts.length === 0 && budgets.length === 0 && goals.length === 0) {
+        transactions.length === 0 && accounts.length === 0 && budgets.length === 0 && goals.length === 0 && loans.length === 0) {
       
       const loadMockData = async () => {
         await handleLoadMockData();
@@ -279,7 +297,7 @@ function App() {
 
       loadMockData();
     }
-  }, [user, loading, hasLoadedMockData, transactionsLoaded, accountsLoaded, budgetsLoaded, categoriesLoaded, goalsLoaded, transactions, accounts, budgets, goals]);
+  }, [user, loading, hasLoadedMockData, transactionsLoaded, accountsLoaded, budgetsLoaded, categoriesLoaded, goalsLoaded, loansLoaded, transactions, accounts, budgets, goals, loans]);
 
 
   useEffect(() => {
@@ -726,6 +744,43 @@ function App() {
     }
   };
 
+  const handleAddLoan = async (loanData: Omit<Loan, 'id'>) => {
+    if (!user) return;
+    try {
+      const loansRef = collection(db, 'spenders', user.uid, 'loans');
+      await addDoc(loansRef, loanData);
+      showToast('Loan added successfully!', 'success');
+    } catch (error) {
+      console.error("Error adding loan: ", error);
+      showToast('Error adding loan', 'error');
+    }
+  };
+
+  const handleEditLoan = async (loan: Loan) => {
+    if (!user) return;
+    try {
+      const loanDoc = doc(db, 'spenders', user.uid, 'loans', loan.id);
+      const { id, ...loanData } = loan;
+      await updateDoc(loanDoc, loanData);
+      showToast('Loan updated successfully!', 'success');
+    } catch (error) {
+      console.error("Error updating loan: ", error);
+      showToast('Error updating loan', 'error');
+    }
+  };
+
+  const handleDeleteLoan = async (id: string) => {
+    if (!user) return;
+    try {
+      const loanDoc = doc(db, 'spenders', user.uid, 'loans', id);
+      await deleteDoc(loanDoc);
+      showToast('Loan deleted successfully!', 'success');
+    } catch (error) {
+      console.error("Error deleting loan: ", error);
+      showToast('Error deleting loan', 'error');
+    }
+  };
+
   const handleExportCSV = () => {
     const csvContent = [
       ['Date', 'Name', 'Category', 'Amount', 'Type'],
@@ -820,6 +875,15 @@ function App() {
         goalBatch.set(newGoalRef, goal);
       });
       await goalBatch.commit();
+
+      // Add mock loans
+      const loansRef = collection(db, 'spenders', user.uid, 'loans');
+      const loanBatch = writeBatch(db);
+      mockLoans.forEach(loan => {
+        const newLoanRef = doc(loansRef);
+        loanBatch.set(newLoanRef, loan);
+      });
+      await loanBatch.commit();
       
       // Add mock total budget
       const totalBudgetRef = doc(db, 'spenders', user.uid, 'totalBudget', 'current');
@@ -846,6 +910,7 @@ function App() {
       const accountsRef = collection(db, 'spenders', user.uid, 'accounts');
       const budgetsRef = collection(db, 'spenders', user.uid, 'budgets');
       const goalsRef = collection(db, 'spenders', user.uid, 'goals');
+      const loansRef = collection(db, 'spenders', user.uid, 'loans');
       const totalBudgetRef = doc(db, 'spenders', user.uid, 'totalBudget', 'current');
       
       // Get all documents in each collection
@@ -853,6 +918,7 @@ function App() {
       const accountsSnapshot = await getDocs(accountsRef);
       const budgetsSnapshot = await getDocs(budgetsRef);
       const goalsSnapshot = await getDocs(goalsRef);
+      const loansSnapshot = await getDocs(loansRef);
       const totalBudgetSnapshot = await getDoc(totalBudgetRef);
       
       // Delete only mock transactions
@@ -890,6 +956,15 @@ function App() {
         }
       });
       await goalBatch.commit();
+
+      // Delete only mock loans
+      const loanBatch = writeBatch(db);
+      loansSnapshot.docs.forEach(doc => {
+        if (doc.data().isMock === true) {
+          loanBatch.delete(doc.ref);
+        }
+      });
+      await loanBatch.commit();
       
       // Delete mock total budget if it exists
       if (totalBudgetSnapshot.exists() && totalBudgetSnapshot.data().isMock === true) {
@@ -947,6 +1022,7 @@ function App() {
       case 'credit-cards': return 'Credit Cards';
       case 'budgets': return 'Budgets';
       case 'goals': return 'Goals';
+      case 'loans': return 'Loans';
       case 'settings': return 'Settings';
       default: return 'Dashboard';
     }
@@ -1088,6 +1164,27 @@ function App() {
                 setSelectedGoal(goal);
                 setIsAddFundsModalOpen(true);
               }}
+              currency={currency}
+            />
+          </motion.div>
+        );
+      case 'loans':
+        return (
+          <motion.div
+            key="loans"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+          >
+            <LoansPage 
+              loans={loans}
+              onAddLoan={() => setIsLoanModalOpen(true)}
+              onEditLoan={(loan) => {
+                setEditingLoan(loan);
+                setIsLoanModalOpen(true);
+              }}
+              onDeleteLoan={handleDeleteLoan}
               currency={currency}
             />
           </motion.div>
@@ -1525,6 +1622,22 @@ function App() {
           }
         }}
         editingGoal={editingGoal}
+      />
+
+      <LoanModal
+        isOpen={isLoanModalOpen}
+        onClose={() => {
+          setIsLoanModalOpen(false);
+          setEditingLoan(undefined);
+        }}
+        onSave={(loanData) => {
+          if (editingLoan) {
+            handleEditLoan({ ...editingLoan, ...loanData });
+          } else {
+            handleAddLoan(loanData);
+          }
+        }}
+        editingLoan={editingLoan}
       />
 
       <AddFundsModal

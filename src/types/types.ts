@@ -1,4 +1,4 @@
-export type Screen = 'dashboard' | 'transactions' | 'credit-cards' | 'budgets' | 'settings' | 'goals';
+export type Screen = 'dashboard' | 'transactions' | 'credit-cards' | 'budgets' | 'settings' | 'goals' | 'loans';
 
 export interface Transaction {
   id: string;
@@ -58,5 +58,16 @@ export interface Goal {
   currentAmount: number;
   targetDate: string;
   emoji: string;
+  isMock?: boolean;
+}
+
+export interface Loan {
+  id: string;
+  name: string;
+  loanAmount: number;
+  interestRate: number;
+  tenure: number; // in years
+  emi: number;
+  startDate: string;
   isMock?: boolean;
 }
