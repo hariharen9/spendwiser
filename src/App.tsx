@@ -88,48 +88,53 @@ function App() {
   };
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+    const authUnsubscribe = auth.onAuthStateChanged((user) => {
       setUser(user);
-      if (user) {
-        const userDocRef = doc(db, 'spenders', user.uid);
-        try {
-          const userDocSnap = await getDoc(userDocRef);
-          if (userDocSnap.exists()) {
-            const userData = userDocSnap.data();
-            if (userData.defaultAccountId) {
-              setDefaultAccountId(userData.defaultAccountId);
-            }
-            if (userData.currency) {
-              setCurrency(userData.currency);
-            }
-            if (userData.themePreference) {
-              setDarkMode(userData.themePreference === 'dark');
-            }
-            // Load user categories if they exist, otherwise use default categories
-            if (userData.categories) {
-              setUserCategories(userData.categories);
-            } else {
-              setUserCategories(getDefaultCategories());
-            }
-          } else {
-            // If the user document doesn't exist, create it with default categories
-            const defaultCategories = getDefaultCategories();
-            await setDoc(userDocRef, {
-              email: user.email,
-              name: user.displayName,
-              categories: defaultCategories,
-            });
-            setUserCategories(defaultCategories);
-          }
-          setCategoriesLoaded(true);
-        } catch (error) {
-          console.error("Error fetching user settings: ", error);
-        }
-      }
       setLoading(false);
     });
-    return () => unsubscribe();
+
+    return () => authUnsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      const userDocRef = doc(db, 'spenders', user.uid);
+      const unsubscribe = onSnapshot(userDocRef, async (userDocSnap) => {
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+          if (userData.defaultAccountId) {
+            setDefaultAccountId(userData.defaultAccountId);
+          }
+          if (userData.currency) {
+            setCurrency(userData.currency);
+          }
+          if (userData.themePreference) {
+            setDarkMode(userData.themePreference === 'dark');
+          }
+          // Load user categories if they exist, otherwise use default categories
+          if (userData.categories) {
+            setUserCategories(userData.categories);
+          } else {
+            setUserCategories(getDefaultCategories());
+          }
+        } else {
+          // If the user document doesn't exist, create it with default categories
+          const defaultCategories = getDefaultCategories();
+          await setDoc(userDocRef, {
+            email: user.email,
+            name: user.displayName,
+            categories: defaultCategories,
+          });
+          setUserCategories(defaultCategories);
+        }
+        setCategoriesLoaded(true);
+      }, (error) => {
+        console.error("Error fetching user settings: ", error);
+      });
+
+      return () => unsubscribe();
+    }
+  }, [user]);
 
   useEffect(() => {
     if (user) {
