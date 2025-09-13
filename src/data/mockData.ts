@@ -361,28 +361,15 @@ export const mockTransactions: Transaction[] = [
   }
 ];
 
-export const mockCreditCards: CreditCard[] = [
-  {
-    id: 'cc1',
-    name: 'Axis Bank My Zone',
-    totalSpend: 12500,
-    limit: 50000,
-    isMock: true
-  },
-  {
-    id: 'cc2',
-    name: 'HDFC Bank MoneyBack',
-    totalSpend: 8900,
-    limit: 30000,
-    isMock: true
-  },
-  {
-    id: 'cc3',
-    name: 'SBI SimplyCLICK',
-    totalSpend: 4500,
-    limit: 25000,
-    isMock: true
-  }
+export const mockCreditCards = [
+  { id: 'cc1', name: 'Visa Platinum', totalSpend: 12500, limit: 75000, isMock: true },
+  { id: 'cc2', name: 'Amex Gold', totalSpend: 8200, limit: 150000, isMock: true },
+];
+
+export const mockGoals = [
+  { id: 'goal1', name: 'Vacation to Japan', targetAmount: 300000, currentAmount: 75000, targetDate: '2026-12-31', emoji: '✈️', isMock: true },
+  { id: 'goal2', name: 'New MacBook Pro', targetAmount: 250000, currentAmount: 180000, targetDate: '2026-06-30', emoji: '💻', isMock: true },
+  { id: 'goal3', name: 'Emergency Fund', targetAmount: 500000, currentAmount: 450000, targetDate: '2025-12-31', emoji: '🚨', isMock: true },
 ];
 
 export const mockBudgets: Budget[] = [

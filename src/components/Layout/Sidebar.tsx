@@ -6,7 +6,8 @@ import {
   PieChart, 
   Settings, 
   LogOut,
-  DollarSign
+  DollarSign,
+  Target
 } from 'lucide-react';
 import { Screen } from '../../types/types';
 import { User } from 'firebase/auth';
@@ -26,6 +27,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onScreenChange, user, 
     { id: 'transactions' as Screen, label: 'Transactions', icon: Receipt },
     { id: 'credit-cards' as Screen, label: 'Credit Cards', icon: CreditCard },
     { id: 'budgets' as Screen, label: 'Budgets', icon: PieChart },
+    { id: 'goals' as Screen, label: 'Goals', icon: Target },
     { id: 'settings' as Screen, label: 'Settings', icon: Settings },
   ];
 

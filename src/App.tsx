@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Screen, Transaction, Account, Budget, TotalBudget } from './types/types';
+import { Screen, Transaction, Account, Budget, TotalBudget, Goal } from './types/types';
 import { User, deleteUser, GoogleAuthProvider, reauthenticateWithPopup } from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
 import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, writeBatch, getDocs } from 'firebase/firestore';
-import { categories, getDefaultCategories, mockTransactions, mockAccounts, mockBudgets, mockCreditCards } from './data/mockData';
+import { categories, getDefaultCategories, mockTransactions, mockAccounts, mockBudgets, mockCreditCards, mockGoals } from './data/mockData';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
@@ -19,11 +19,14 @@ import DashboardPage from './components/Dashboard/DashboardPage';
 import TransactionsPage from './components/Transactions/TransactionsPage';
 import CreditCardsPage from './components/CreditCards/CreditCardsPage';
 import BudgetsPage from './components/Budgets/BudgetsPage';
+import GoalsPage from './components/Goals/GoalsPage';
 import SettingsPage from './components/Settings/SettingsPage';
 
 // Modals
 import AddTransactionModal from './components/Modals/AddTransactionModal';
 import BudgetModal from './components/Modals/BudgetModal';
+import GoalModal from './components/Modals/GoalModal';
+import AddFundsModal from './components/Modals/AddFundsModal';
 import ImportCSVModal from './components/Modals/ImportCSVModal';
 import ExportModal from './components/Modals/ExportModal';
 
@@ -44,15 +47,21 @@ function App() {
   const [transactionsLoaded, setTransactionsLoaded] = useState(false);
   const [accountsLoaded, setAccountsLoaded] = useState(false);
   const [budgetsLoaded, setBudgetsLoaded] = useState(false);
+  const [goalsLoaded, setGoalsLoaded] = useState(false);
   const [currentScreen, setCurrentScreen] = useState<Screen>('dashboard');
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
+  const [goals, setGoals] = useState<Goal[]>([]);
   const [totalBudget, setTotalBudget] = useState<TotalBudget | null>(null);
   const [isAddTransactionModalOpen, setIsAddTransactionModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | undefined>();
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState<any>();
+  const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
+  const [editingGoal, setEditingGoal] = useState<Goal | undefined>();
+  const [isAddFundsModalOpen, setIsAddFundsModalOpen] = useState(false);
+  const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [darkMode, setDarkMode] = useState(true); // Default to dark mode
   const [defaultAccountId, setDefaultAccountId] = useState<string | null>(null);
   const [currency, setCurrency] = useState<string>('₹'); // Default currency
@@ -102,7 +111,7 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const allDataLoaded = transactionsLoaded && accountsLoaded && budgetsLoaded && categoriesLoaded;
+    const allDataLoaded = transactionsLoaded && accountsLoaded && budgetsLoaded && categoriesLoaded && goalsLoaded;
     if (authChecked) {
       if (user && allDataLoaded) {
         setLoading(false);
@@ -111,7 +120,7 @@ function App() {
         setLoading(false);
       }
     }
-  }, [user, authChecked, transactionsLoaded, accountsLoaded, budgetsLoaded, categoriesLoaded]);
+  }, [user, authChecked, transactionsLoaded, accountsLoaded, budgetsLoaded, categoriesLoaded, goalsLoaded]);
 
   useEffect(() => {
     if (user) {
@@ -189,6 +198,18 @@ function App() {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (user) {
+      const goalsRef = collection(db, 'spenders', user.uid, 'goals');
+      const unsubscribe = onSnapshot(goalsRef, snapshot => {
+        const goalsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Goal[];
+        setGoals(goalsData);
+        setGoalsLoaded(true);
+      });
+      return () => unsubscribe();
+    }
+  }, [user]);
+
   // Total budget listener
   useEffect(() => {
     if (user) {
@@ -231,10 +252,10 @@ function App() {
 
   // Effect to load mock data if user has no data
   useEffect(() => {
-    const allDataLoaded = transactionsLoaded && accountsLoaded && budgetsLoaded && categoriesLoaded;
+    const allDataLoaded = transactionsLoaded && accountsLoaded && budgetsLoaded && categoriesLoaded && goalsLoaded;
 
     if (user && !loading && allDataLoaded && !hasLoadedMockData &&
-        transactions.length === 0 && accounts.length === 0 && budgets.length === 0) {
+        transactions.length === 0 && accounts.length === 0 && budgets.length === 0 && goals.length === 0) {
       
       const loadMockData = async () => {
         await handleLoadMockData();
@@ -247,7 +268,7 @@ function App() {
 
       loadMockData();
     }
-  }, [user, loading, hasLoadedMockData, transactionsLoaded, accountsLoaded, budgetsLoaded, categoriesLoaded, transactions, accounts, budgets]);
+  }, [user, loading, hasLoadedMockData, transactionsLoaded, accountsLoaded, budgetsLoaded, categoriesLoaded, goalsLoaded, transactions, accounts, budgets, goals]);
 
 
   useEffect(() => {
@@ -633,6 +654,66 @@ function App() {
     }
   };
 
+  const handleAddGoal = async (goalData: Omit<Goal, 'id'>) => {
+    if (!user) return;
+    try {
+      const goalsRef = collection(db, 'spenders', user.uid, 'goals');
+      await addDoc(goalsRef, goalData);
+      showToast('Goal added successfully!', 'success');
+    } catch (error) {
+      console.error("Error adding goal: ", error);
+      showToast('Error adding goal', 'error');
+    }
+  };
+
+  const handleEditGoal = async (goal: Goal) => {
+    if (!user) return;
+    try {
+      const goalDoc = doc(db, 'spenders', user.uid, 'goals', goal.id);
+      const { id, ...goalData } = goal;
+      await updateDoc(goalDoc, goalData);
+      showToast('Goal updated successfully!', 'success');
+    } catch (error) {
+      console.error("Error updating goal: ", error);
+      showToast('Error updating goal', 'error');
+    }
+  };
+
+  const handleDeleteGoal = async (id: string) => {
+    if (!user) return;
+    try {
+      const goalDoc = doc(db, 'spenders', user.uid, 'goals', id);
+      await deleteDoc(goalDoc);
+      showToast('Goal deleted successfully!', 'success');
+    } catch (error) {
+      console.error("Error deleting goal: ", error);
+      showToast('Error deleting goal', 'error');
+    }
+  };
+
+  const handleAddFundsToGoal = async (goal: Goal, amount: number, accountId: string) => {
+    if (!user) return;
+    try {
+      const updatedGoal = { ...goal, currentAmount: goal.currentAmount + amount };
+      await handleEditGoal(updatedGoal);
+
+      const transactionData = {
+        name: `Contribution to ${goal.name}`,
+        amount: -amount, // Expense
+        date: new Date().toISOString().split('T')[0],
+        category: 'Goal Contribution',
+        type: 'expense' as const,
+        accountId: accountId,
+      };
+      await handleAddTransaction(transactionData);
+
+      showToast(`Successfully added funds to ${goal.name}!`, 'success');
+    } catch (error) {
+      console.error('Error adding funds to goal: ', error);
+      showToast('Error adding funds to goal', 'error');
+    }
+  };
+
   const handleExportCSV = () => {
     const csvContent = [
       ['Date', 'Name', 'Category', 'Amount', 'Type'],
@@ -719,6 +800,15 @@ function App() {
       });
       await budgetBatch.commit();
       
+      // Add mock goals
+      const goalsRef = collection(db, 'spenders', user.uid, 'goals');
+      const goalBatch = writeBatch(db);
+      mockGoals.forEach(goal => {
+        const newGoalRef = doc(goalsRef);
+        goalBatch.set(newGoalRef, goal);
+      });
+      await goalBatch.commit();
+      
       // Add mock total budget
       const totalBudgetRef = doc(db, 'spenders', user.uid, 'totalBudget', 'current');
       const mockTotalBudget: Omit<TotalBudget, 'id'> = {
@@ -743,12 +833,14 @@ function App() {
       const transactionsRef = collection(db, 'spenders', user.uid, 'transactions');
       const accountsRef = collection(db, 'spenders', user.uid, 'accounts');
       const budgetsRef = collection(db, 'spenders', user.uid, 'budgets');
+      const goalsRef = collection(db, 'spenders', user.uid, 'goals');
       const totalBudgetRef = doc(db, 'spenders', user.uid, 'totalBudget', 'current');
       
       // Get all documents in each collection
       const transactionsSnapshot = await getDocs(transactionsRef);
       const accountsSnapshot = await getDocs(accountsRef);
       const budgetsSnapshot = await getDocs(budgetsRef);
+      const goalsSnapshot = await getDocs(goalsRef);
       const totalBudgetSnapshot = await getDoc(totalBudgetRef);
       
       // Delete only mock transactions
@@ -777,6 +869,15 @@ function App() {
         }
       });
       await budgetBatch.commit();
+      
+      // Delete only mock goals
+      const goalBatch = writeBatch(db);
+      goalsSnapshot.docs.forEach(doc => {
+        if (doc.data().isMock === true) {
+          goalBatch.delete(doc.ref);
+        }
+      });
+      await goalBatch.commit();
       
       // Delete mock total budget if it exists
       if (totalBudgetSnapshot.exists() && totalBudgetSnapshot.data().isMock === true) {
@@ -833,6 +934,7 @@ function App() {
       case 'transactions': return 'Transactions';
       case 'credit-cards': return 'Credit Cards';
       case 'budgets': return 'Budgets';
+      case 'goals': return 'Goals';
       case 'settings': return 'Settings';
       default: return 'Dashboard';
     }
@@ -949,6 +1051,31 @@ function App() {
               onDeleteBudget={handleDeleteBudget}
               onSaveTotalBudget={handleSaveTotalBudget}
               onDeleteTotalBudget={handleDeleteTotalBudget}
+              currency={currency}
+            />
+          </motion.div>
+        );
+      case 'goals':
+        return (
+          <motion.div
+            key="goals"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+          >
+            <GoalsPage
+              goals={goals}
+              onAddGoal={() => setIsGoalModalOpen(true)}
+              onEditGoal={(goal) => {
+                setEditingGoal(goal);
+                setIsGoalModalOpen(true);
+              }}
+              onDeleteGoal={handleDeleteGoal}
+              onAddFunds={(goal) => {
+                setSelectedGoal(goal);
+                setIsAddFundsModalOpen(true);
+              }}
               currency={currency}
             />
           </motion.div>
@@ -1365,6 +1492,30 @@ function App() {
         onSave={handleAddBudget}
         editingBudget={editingBudget}
         categories={userCategories}
+      />
+
+      <GoalModal
+        isOpen={isGoalModalOpen}
+        onClose={() => {
+          setIsGoalModalOpen(false);
+          setEditingGoal(undefined);
+        }}
+        onSave={(goalData) => {
+          if (editingGoal) {
+            handleEditGoal({ ...editingGoal, ...goalData });
+          } else {
+            handleAddGoal(goalData);
+          }
+        }}
+        editingGoal={editingGoal}
+      />
+
+      <AddFundsModal
+        isOpen={isAddFundsModalOpen}
+        onClose={() => setIsAddFundsModalOpen(false)}
+        onAddFunds={handleAddFundsToGoal}
+        goal={selectedGoal}
+        accounts={regularAccounts}
       />
 
       {/* Export Modal */}
