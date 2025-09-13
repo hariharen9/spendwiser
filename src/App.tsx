@@ -545,7 +545,7 @@ function App() {
       });
       await transactionBatch.commit();
       
-      // Add mock accounts
+      // Add mock accounts (including credit cards)
       const accountsRef = collection(db, 'spenders', user.uid, 'accounts');
       const accountBatch = writeBatch(db);
       mockAccounts.forEach(account => {
@@ -562,15 +562,6 @@ function App() {
         budgetBatch.set(newBudgetRef, budget);
       });
       await budgetBatch.commit();
-      
-      // Add mock credit cards
-      const creditCardsRef = collection(db, 'spenders', user.uid, 'accounts'); // Credit cards are stored in accounts collection
-      const creditCardBatch = writeBatch(db);
-      mockCreditCards.forEach(card => {
-        const newCreditCardRef = doc(creditCardsRef);
-        creditCardBatch.set(newCreditCardRef, { ...card, type: 'Credit Card' }); // Ensure type is set
-      });
-      await creditCardBatch.commit();
       
       showToast('Mock data loaded successfully!', 'success');
     } catch (error) {
@@ -619,16 +610,6 @@ function App() {
         }
       });
       await budgetBatch.commit();
-      
-      // Delete only mock credit cards
-      const creditCardsSnapshot = await getDocs(accountsRef); // Credit cards are part of accounts
-      const creditCardBatch = writeBatch(db);
-      creditCardsSnapshot.docs.forEach(doc => {
-        if (doc.data().isMock === true && doc.data().type === 'Credit Card') {
-          creditCardBatch.delete(doc.ref);
-        }
-      });
-      await creditCardBatch.commit();
       
       showToast('Mock data cleared successfully!', 'success');
     } catch (error) {

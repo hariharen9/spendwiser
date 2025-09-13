@@ -286,6 +286,78 @@ export const mockTransactions: Transaction[] = [
     type: 'expense',
     accountId: 'acc1',
     isMock: true
+  },
+  
+  // Mock Credit Card Transactions
+  {
+    id: '26',
+    name: 'Online Shopping',
+    amount: -4200,
+    date: dateRecent1,
+    category: 'Shopping',
+    type: 'expense',
+    accountId: 'cc1',
+    isMock: true
+  },
+  {
+    id: '27',
+    name: 'Dinner at Restaurant',
+    amount: -1850,
+    date: dateRecent1,
+    category: 'Food & Dining',
+    type: 'expense',
+    accountId: 'cc1',
+    isMock: true
+  },
+  {
+    id: '28',
+    name: 'Gas Station',
+    amount: -2100,
+    date: dateRecent2,
+    category: 'Transportation',
+    type: 'expense',
+    accountId: 'cc1',
+    isMock: true
+  },
+  {
+    id: '29',
+    name: 'Grocery Shopping',
+    amount: -3200,
+    date: dateRecent2,
+    category: 'Groceries',
+    type: 'expense',
+    accountId: 'cc2',
+    isMock: true
+  },
+  {
+    id: '30',
+    name: 'Movie Streaming',
+    amount: -1299,
+    date: dateRecent3,
+    category: 'Entertainment',
+    type: 'expense',
+    accountId: 'cc2',
+    isMock: true
+  },
+  {
+    id: '31',
+    name: 'Online Course',
+    amount: -2999,
+    date: dateTwoMonthsAgo1,
+    category: 'Education',
+    type: 'expense',
+    accountId: 'cc3',
+    isMock: true
+  },
+  {
+    id: '32',
+    name: 'Clothing Store',
+    amount: -5500,
+    date: dateTwoMonthsAgo2,
+    category: 'Shopping',
+    type: 'expense',
+    accountId: 'cc3',
+    isMock: true
   }
 ];
 
@@ -398,6 +470,10 @@ export const mockAccounts: Account[] = [
     { id: 'acc2', name: 'Savings Account', type: 'Savings', balance: 85000, isMock: true },
     { id: 'acc3', name: 'Investment Portfolio', type: 'Investment', balance: 250000, isMock: true },
     { id: 'acc4', name: 'Emergency Fund', type: 'Savings', balance: 50000, isMock: true },
+    // Credit cards are stored as accounts with type "Credit Card"
+    { id: 'cc1', name: 'Axis Bank My Zone', type: 'Credit Card', balance: 0, limit: 50000, isMock: true },
+    { id: 'cc2', name: 'HDFC Bank MoneyBack', type: 'Credit Card', balance: 0, limit: 30000, isMock: true },
+    { id: 'cc3', name: 'SBI SimplyCLICK', type: 'Credit Card', balance: 0, limit: 25000, isMock: true }
 ];
 
 export const categories = [
