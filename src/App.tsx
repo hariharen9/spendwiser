@@ -1569,7 +1569,7 @@ function App() {
       <FAB onClick={() => setIsAddTransactionModalOpen(true)} />
 
       {/* Help FAB - Visible on specific screens */}
-      {['transactions', 'credit-cards', 'budgets', 'goals'].includes(currentScreen) && (
+      {['transactions', 'credit-cards', 'budgets', 'goals', 'loans'].includes(currentScreen) && (
         <HelpFAB onClick={() => setIsHelpModalOpen(true)} />
       )}
 

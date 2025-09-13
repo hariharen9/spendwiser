@@ -95,16 +95,7 @@ const helpContent: { [key: string]: { title: string; content: React.ReactNode; q
           <li><strong>Interest Saved:</strong> The significant amount of interest you'll save compared to your original plan.</li>
           <li><strong>Debt-Free Earlier:</strong> How many years and months sooner you'll be free from debt!</li>
         </ul>
-        <h4 className="font-semibold text-gray-900 dark:text-white">Pro Tips for Success:</h4>
-        <ul className="list-disc list-inside space-y-2">
-          <li>Even small extra payments toward principal make a BIG difference over time.</li>
-          <li>Increasing EMI yearly is most effective if your salary/income goes up regularly.</li>
-          <li>Combining strategies means you become debt-free fastest—plan for this if you expect regular hikes and lump sum windfalls.</li>
-          <li>Check your loan statement for principal balance and EMI details.</li>
-          <li>Plan for extra payments: Aim to make one extra EMI as a lump sum yearly. Time it with bonuses, incentives, or tax refunds.</li>
-          <li>Set annual EMI increases: If your income rises, bump up the monthly EMI by 5-10% yearly. Notify your bank to adjust the standing instruction.</li>
-          <li>Track progress annually: After each year, use an online loan calculator to check new tenure and total interest saved.</li>
-        </ul>
+
       </div>
     ),
     quote: "The best way to get out of debt is to stop digging.",
@@ -125,7 +116,7 @@ const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose, page }) => {
           onClick={onClose}
         >
           <motion.div
-            className="bg-white dark:bg-[#242424] rounded-lg border border-gray-200 dark:border-gray-700 w-full max-w-lg"
+            className="bg-white dark:bg-[#242424] rounded-lg border border-gray-200 dark:border-gray-700 w-full max-w-lg max-h-[80vh] flex flex-col"
             variants={modalVariants}
             initial="initial"
             animate="animate"
@@ -138,10 +129,10 @@ const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose, page }) => {
                 <X className="h-6 w-6" />
               </button>
             </div>
-            <div className="p-6 text-gray-700 dark:text-gray-300">
+            <div className="p-6 text-gray-700 dark:text-gray-300 overflow-y-auto flex-grow">
               {content}
             </div>
-            <div className="p-6 border-t border-gray-200 dark:border-gray-700 text-center">
+            <div className="p-6 border-t border-gray-200 dark:border-gray-700 text-center flex-shrink-0">
               <p className="text-sm italic text-gray-500 dark:text-gray-400">"{quote}"</p>
               <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">- Hariharen</p>
             </div>
