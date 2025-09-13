@@ -40,6 +40,9 @@ import { useToast } from './hooks/useToast';
 function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true); // Add loading state here
+  const [transactionsLoaded, setTransactionsLoaded] = useState(false);
+  const [accountsLoaded, setAccountsLoaded] = useState(false);
+  const [budgetsLoaded, setBudgetsLoaded] = useState(false);
   const [currentScreen, setCurrentScreen] = useState<Screen>('dashboard');
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -90,11 +93,20 @@ function App() {
   useEffect(() => {
     const authUnsubscribe = auth.onAuthStateChanged((user) => {
       setUser(user);
-      setLoading(false);
     });
 
     return () => authUnsubscribe();
   }, []);
+
+  useEffect(() => {
+    const allDataLoaded = transactionsLoaded && accountsLoaded && budgetsLoaded && categoriesLoaded;
+    if (user && allDataLoaded) {
+      setLoading(false);
+    }
+    if (!user) { // If user logs out, or is not logged in
+      setLoading(false);
+    }
+  }, [user, transactionsLoaded, accountsLoaded, budgetsLoaded, categoriesLoaded]);
 
   useEffect(() => {
     if (user) {
@@ -142,6 +154,7 @@ function App() {
       const unsubscribe = onSnapshot(transactionsRef, snapshot => {
         const transactionsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Transaction[];
         setTransactions(transactionsData);
+        setTransactionsLoaded(true);
       });
       return () => unsubscribe();
     }
@@ -153,6 +166,7 @@ function App() {
       const unsubscribe = onSnapshot(accountsRef, snapshot => {
         const accountsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Account[];
         setAccounts(accountsData);
+        setAccountsLoaded(true);
       });
       return () => unsubscribe();
     }
@@ -164,6 +178,7 @@ function App() {
       const unsubscribe = onSnapshot(budgetsRef, snapshot => {
         const budgetsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Budget[];
         setBudgets(budgetsData);
+        setBudgetsLoaded(true);
       });
       return () => unsubscribe();
     }
@@ -211,35 +226,23 @@ function App() {
 
   // Effect to load mock data if user has no data
   useEffect(() => {
-    let isMounted = true; // To prevent state updates if component unmounts
-    
-    const loadMockDataIfEmpty = async () => {
-      // Only proceed if:
-      // 1. User is authenticated
-      // 2. App is not in loading state
-      // 3. Mock data hasn't been loaded yet
-      // 4. All data arrays are empty
-      // 5. Component is still mounted
-      if (user && !loading && !hasLoadedMockData && isMounted &&
-          transactions.length === 0 && accounts.length === 0 && budgets.length === 0) {
+    const allDataLoaded = transactionsLoaded && accountsLoaded && budgetsLoaded && categoriesLoaded;
+
+    if (user && !loading && allDataLoaded && !hasLoadedMockData &&
+        transactions.length === 0 && accounts.length === 0 && budgets.length === 0) {
+      
+      const loadMockData = async () => {
         await handleLoadMockData();
-        if (isMounted) {
-          setHasLoadedMockData(true);
-          showToast(
-            'Welcome! We\'ve loaded some mock data to get you started. You can clear it from Settings.',
-            'info'
-          );
-        }
-      }
-    };
-    
-    loadMockDataIfEmpty();
-    
-    // Cleanup function to prevent state updates if component unmounts
-    return () => {
-      isMounted = false;
-    };
-  }, [user, loading, hasLoadedMockData]); // Simplified dependencies - only check when these core values change
+        setHasLoadedMockData(true);
+        showToast(
+          'Welcome! We\'ve loaded some mock data to get you started. You can clear it from Settings.',
+          'info'
+        );
+      };
+
+      loadMockData();
+    }
+  }, [user, loading, hasLoadedMockData, transactionsLoaded, accountsLoaded, budgetsLoaded, categoriesLoaded, transactions, accounts, budgets]);
 
 
   useEffect(() => {
