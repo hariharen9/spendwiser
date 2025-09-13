@@ -646,7 +646,7 @@ function App() {
     try {
       setDefaultAccountId(accountId);
       const userDocRef = doc(db, 'spenders', user.uid);
-      await updateDoc(userDocRef, { defaultAccountId: accountId });
+      await setDoc(userDocRef, { defaultAccountId: accountId }, { merge: true });
     } catch (error) {
       console.error("Error setting default account: ", error);
     }
