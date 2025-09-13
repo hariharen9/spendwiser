@@ -12,6 +12,7 @@ import LoginPage from './components/Login/LoginPage';
 import Sidebar from './components/Layout/Sidebar';
 import Header from './components/Layout/Header';
 import FAB from './components/Common/FAB';
+import HelpFAB from './components/Common/HelpFAB';
 import AnimatedToast from './components/Common/AnimatedToast';
 
 // Pages
@@ -27,6 +28,7 @@ import AddTransactionModal from './components/Modals/AddTransactionModal';
 import BudgetModal from './components/Modals/BudgetModal';
 import GoalModal from './components/Modals/GoalModal';
 import AddFundsModal from './components/Modals/AddFundsModal';
+import HelpModal from './components/Modals/HelpModal';
 import ImportCSVModal from './components/Modals/ImportCSVModal';
 import ExportModal from './components/Modals/ExportModal';
 
@@ -62,6 +64,7 @@ function App() {
   const [editingGoal, setEditingGoal] = useState<Goal | undefined>();
   const [isAddFundsModalOpen, setIsAddFundsModalOpen] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(true); // Default to dark mode
   const [defaultAccountId, setDefaultAccountId] = useState<string | null>(null);
   const [currency, setCurrency] = useState<string>('₹'); // Default currency
@@ -1459,6 +1462,11 @@ function App() {
       {/* Floating Action Button - Visible on all screens, positioned appropriately for each */}
       <FAB onClick={() => setIsAddTransactionModalOpen(true)} />
 
+      {/* Help FAB - Visible on specific screens */}
+      {['transactions', 'credit-cards', 'budgets', 'goals'].includes(currentScreen) && (
+        <HelpFAB onClick={() => setIsHelpModalOpen(true)} />
+      )}
+
       {/* Add Transaction Modal */}
       <AddTransactionModal
         isOpen={isAddTransactionModalOpen}
@@ -1516,6 +1524,12 @@ function App() {
         onAddFunds={handleAddFundsToGoal}
         goal={selectedGoal}
         accounts={regularAccounts}
+      />
+
+      <HelpModal
+        isOpen={isHelpModalOpen}
+        onClose={() => setIsHelpModalOpen(false)}
+        page={currentScreen}
       />
 
       {/* Export Modal */}
