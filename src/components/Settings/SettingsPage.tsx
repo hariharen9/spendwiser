@@ -26,6 +26,8 @@ interface SettingsPageProps {
   onLoadMockData?: () => void;
   onClearMockData?: () => void; // Add clear mock data prop
   onDeleteUserAccount?: () => void;
+  onBackupData?: () => void;
+  onRestoreData?: (data: any) => void;
 }
 
 const SettingsPage: React.FC<SettingsPageProps> = ({ 
@@ -48,7 +50,9 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   onUpdateCategories,
   onLoadMockData,
   onClearMockData, // Add clear mock data prop
-  onDeleteUserAccount
+  onDeleteUserAccount,
+  onBackupData,
+  onRestoreData
 }) => {
   const [showAddAccountModal, setShowAddAccountModal] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
@@ -490,6 +494,79 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
         </motion.div>
       </motion.div>
 
+      {/* Data Management */}
+      <motion.div
+        className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700"
+        variants={fadeInVariants}
+        initial="initial"
+        animate="animate"
+        transition={{ delay: 0.5 }}
+      >
+        <motion.h3
+          className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-6 flex items-center space-x-2"
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <Settings className="h-5 w-5" />
+          <span>Data Management</span>
+        </motion.h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="relative group">
+            <motion.button
+              onClick={onBackupData}
+              className="flex items-center justify-center space-x-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-3 py-2 rounded-lg font-medium text-sm w-full"
+              variants={buttonHoverVariants}
+              whileHover="hover"
+              whileTap="tap"
+            >
+              <span>Backup Data</span>
+            </motion.button>
+            <div className="absolute bottom-full mb-2 w-full flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <span className="bg-black text-white text-xs rounded py-1 px-2">Download all your data as a JSON file.</span>
+            </div>
+          </div>
+          <div className="relative group">
+            <motion.button
+              onClick={() => document.getElementById('restore-input')?.click()}
+              className="flex items-center justify-center space-x-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-3 py-2 rounded-lg font-medium text-sm w-full"
+              variants={buttonHoverVariants}
+              whileHover="hover"
+              whileTap="tap"
+            >
+              <span>Restore Data</span>
+            </motion.button>
+            <input
+              type="file"
+              id="restore-input"
+              className="hidden"
+              accept=".json"
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  const reader = new FileReader();
+                  reader.onload = (event) => {
+                    if (event.target?.result) {
+                      try {
+                        const data = JSON.parse(event.target.result as string);
+                        if (onRestoreData) {
+                          onRestoreData(data);
+                        }
+                      } catch (error) {
+                        console.error("Error parsing JSON file:", error);
+                      }
+                    }
+                  };
+                  reader.readAsText(e.target.files[0]);
+                }
+              }}
+            />
+            <div className="absolute bottom-full mb-2 w-full flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <span className="bg-black text-white text-xs rounded py-1 px-2">Restore your data from a JSON backup file.</span>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
       {/* Category and Mock Data Buttons */}
       <motion.div 
         className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700"
@@ -499,66 +576,71 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
         transition={{ delay: 0.3 }}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="grid grid-cols-1 gap-4">
-            <div className="relative group">
-              <motion.button 
-                onClick={handleOpenCategoryEditor}
-                className="flex items-center justify-center space-x-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-3 py-2 rounded-lg font-medium text-sm w-full"
-                variants={buttonHoverVariants}
-                whileHover="hover"
-                whileTap="tap"
-              >
-                <Settings className="h-4 w-4" />
-                <span>Edit Categories</span>
-              </motion.button>
-              <div className="absolute bottom-full mb-2 w-full flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <span className="bg-black text-white text-xs rounded py-1 px-2">Manage your transaction categories</span>
+          <div className="bg-gray-50 dark:bg-[#1A1A1A] rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+            <h4 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-4">Mock Data</h4>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="relative group">
+                <motion.button 
+                  onClick={onLoadMockData}
+                  className="flex items-center justify-center space-x-1 bg-[#007BFF] text-white px-3 py-2 rounded-lg font-medium text-sm w-full"
+                  variants={buttonHoverVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                >
+                  <span>Load MockData</span>
+                </motion.button>
+                <div className="absolute bottom-full mb-2 w-full flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <span className="bg-black text-white text-xs rounded py-1 px-2">Load demo data</span>
+                </div>
               </div>
-            </div>
-            <div className="relative group">
-              <motion.button
-                onClick={() => setShowDeleteAccountWarningModal(true)}
-                className="flex items-center justify-center space-x-1 bg-red-500 text-white px-3 py-2 rounded-lg font-medium text-sm w-full"
-                variants={buttonHoverVariants}
-                whileHover="hover"
-                whileTap="tap"
-              >
-                <Trash2 className="h-4 w-4" />
-                <span>Delete Account</span>
-              </motion.button>
-              <div className="absolute bottom-full mb-2 w-full flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <span className="bg-black text-white text-xs rounded py-1 px-2">Permanently delete your account and all data</span>
+              <div className="relative group">
+                <motion.button 
+                  onClick={onClearMockData}
+                  className="flex items-center justify-center space-x-1 bg-red-500 text-white px-3 py-2 rounded-lg font-medium text-sm w-full"
+                  variants={buttonHoverVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                >
+                  <span>Clear MockData</span>
+                </motion.button>
+                <div className="absolute bottom-full mb-2 w-full flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <span className="bg-black text-white text-xs rounded py-1 px-2">Clear demo data</span>
+                </div>
               </div>
             </div>
           </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div className="relative group">
-              <motion.button 
-                onClick={onLoadMockData}
-                className="flex items-center justify-center space-x-1 bg-[#007BFF] text-white px-3 py-2 rounded-lg font-medium text-sm w-full"
-                variants={buttonHoverVariants}
-                whileHover="hover"
-                whileTap="tap"
-              >
-                <span>Load MockData</span>
-              </motion.button>
-              <div className="absolute bottom-full mb-2 w-full flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <span className="bg-black text-white text-xs rounded py-1 px-2">Load demo data</span>
+          <div className="bg-gray-50 dark:bg-[#1A1A1A] rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+            <h4 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-4">Advanced Settings</h4>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="relative group">
+                <motion.button 
+                  onClick={handleOpenCategoryEditor}
+                  className="flex items-center justify-center space-x-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-3 py-2 rounded-lg font-medium text-sm w-full"
+                  variants={buttonHoverVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                >
+                  <Settings className="h-4 w-4" />
+                  <span>Edit Categories</span>
+                </motion.button>
+                <div className="absolute bottom-full mb-2 w-full flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <span className="bg-black text-white text-xs rounded py-1 px-2">Manage your transaction categories</span>
+                </div>
               </div>
-            </div>
-            <div className="relative group">
-              <motion.button 
-                onClick={onClearMockData}
-                className="flex items-center justify-center space-x-1 bg-red-500 text-white px-3 py-2 rounded-lg font-medium text-sm w-full"
-                variants={buttonHoverVariants}
-                whileHover="hover"
-                whileTap="tap"
-              >
-                <span>Clear MockData</span>
-              </motion.button>
-              <div className="absolute bottom-full mb-2 w-full flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <span className="bg-black text-white text-xs rounded py-1 px-2">Clear demo data</span>
+              <div className="relative group">
+                <motion.button
+                  onClick={() => setShowDeleteAccountWarningModal(true)}
+                  className="flex items-center justify-center space-x-1 bg-red-500 text-white px-3 py-2 rounded-lg font-medium text-sm w-full"
+                  variants={buttonHoverVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span>Delete Account</span>
+                </motion.button>
+                <div className="absolute bottom-full mb-2 w-full flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <span className="bg-black text-white text-xs rounded py-1 px-2">Permanently delete your account and all data</span>
+                </div>
               </div>
             </div>
           </div>

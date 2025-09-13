@@ -806,6 +806,8 @@ function App() {
               onLoadMockData={handleLoadMockData}
               onClearMockData={handleClearMockData}
               onDeleteUserAccount={handleDeleteUserAccount}
+              onBackupData={handleBackupData}
+              onRestoreData={handleRestoreData}
             />
           </motion.div>
         );
@@ -821,6 +823,106 @@ function App() {
             <DashboardPage transactions={transactions} accounts={regularAccounts} budgets={budgets} onViewAllTransactions={() => setCurrentScreen('transactions')} currency={currency} />
           </motion.div>
         );
+    }
+  };
+
+  const handleBackupData = () => {
+    if (!user) return;
+
+    const backupData = {
+      transactions,
+      accounts,
+      budgets,
+      userCategories,
+      settings: {
+        darkMode,
+        currency,
+        defaultAccountId,
+      },
+      metadata: {
+        backupDate: new Date().toISOString(),
+        version: '1.0.0', // You can get this from package.json
+      },
+    };
+
+    const jsonString = JSON.stringify(backupData, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `spendwiser-backup-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Data backup successful!', 'success');
+  };
+
+  const handleRestoreData = async (data: any) => {
+    if (!user) return;
+
+    try {
+      // 1. Clear existing data
+      const transactionsRef = collection(db, 'spenders', user.uid, 'transactions');
+      const accountsRef = collection(db, 'spenders', user.uid, 'accounts');
+      const budgetsRef = collection(db, 'spenders', user.uid, 'budgets');
+
+      const transactionsSnapshot = await getDocs(transactionsRef);
+      const accountsSnapshot = await getDocs(accountsRef);
+      const budgetsSnapshot = await getDocs(budgetsRef);
+
+      const batch = writeBatch(db);
+
+      transactionsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+      accountsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+      budgetsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+
+      await batch.commit();
+
+      // 2. Restore new data
+      const restoreBatch = writeBatch(db);
+
+      data.transactions.forEach((transaction: Transaction) => {
+        const { id, ...transactionData } = transaction;
+        const newTransactionRef = doc(transactionsRef, id);
+        restoreBatch.set(newTransactionRef, transactionData);
+      });
+
+      data.accounts.forEach((account: Account) => {
+        const { id, ...accountData } = account;
+        const newAccountRef = doc(accountsRef, id);
+        restoreBatch.set(newAccountRef, accountData);
+      });
+
+      data.budgets.forEach((budget: Budget) => {
+        const { id, ...budgetData } = budget;
+        const newBudgetRef = doc(budgetsRef, id);
+        restoreBatch.set(newBudgetRef, budgetData);
+      });
+
+      await restoreBatch.commit();
+
+      // 3. Restore settings
+      if (data.settings) {
+        setDarkMode(data.settings.darkMode);
+        setCurrency(data.settings.currency);
+        setDefaultAccountId(data.settings.defaultAccountId);
+        const userDocRef = doc(db, 'spenders', user.uid);
+        await setDoc(userDocRef, { 
+          themePreference: data.settings.darkMode ? 'dark' : 'light',
+          currency: data.settings.currency,
+          defaultAccountId: data.settings.defaultAccountId
+        }, { merge: true });
+      }
+
+      if (data.userCategories) {
+        setUserCategories(data.userCategories);
+        const userDocRef = doc(db, 'spenders', user.uid);
+        await setDoc(userDocRef, { categories: data.userCategories }, { merge: true });
+      }
+
+      showToast('Data restored successfully!', 'success');
+    } catch (error) {
+      console.error("Error restoring data: ", error);
+      showToast('Error restoring data', 'error');
     }
   };
 
