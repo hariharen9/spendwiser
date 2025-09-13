@@ -28,6 +28,17 @@ export const mockLoans: Loan[] = [
     startDate: '2022-06-20',
     isMock: true,
   },
+  {
+    id: 'loan3',
+    name: 'Personal Loan',
+    loanAmount: 200000,
+    interestRate: 12,
+    tenure: 0,
+    tenureInMonths: 18,
+    emi: 12200,
+    startDate: '2023-03-10',
+    isMock: true,
+  },
 ];
 
 export const currencies = [

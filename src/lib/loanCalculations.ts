@@ -14,17 +14,32 @@ export interface LoanSummary {
   amortizationSchedule: AmortizationEntry[];
 }
 
+// Helper function to get total months from tenure (years) or tenureInMonths
+const getTotalMonths = (loan: Loan): number => {
+  if (loan.tenureInMonths !== undefined && loan.tenureInMonths > 0) {
+    return loan.tenureInMonths;
+  }
+  return loan.tenure * 12;
+};
+
 export const calculateLoanSummary = (loan: Loan): LoanSummary => {
   const { loanAmount, interestRate, emi, startDate } = loan;
+  const totalMonths = getTotalMonths(loan);
   const monthlyInterestRate = interestRate / 12 / 100;
   let remainingBalance = loanAmount;
   let totalInterestPaid = 0;
   const amortizationSchedule: AmortizationEntry[] = [];
   let month = 1;
 
-  while (remainingBalance > 0) {
+  while (remainingBalance > 0 && month <= totalMonths) {
     const interestPaid = remainingBalance * monthlyInterestRate;
-    const principalPaid = emi - interestPaid;
+    let principalPaid = emi - interestPaid;
+    
+    // If this is the last month, adjust principal to clear remaining balance
+    if (month === totalMonths) {
+      principalPaid = remainingBalance;
+    }
+    
     remainingBalance -= principalPaid;
     totalInterestPaid += interestPaid;
 
@@ -40,7 +55,7 @@ export const calculateLoanSummary = (loan: Loan): LoanSummary => {
   }
 
   const loanEndDate = new Date(startDate);
-  loanEndDate.setMonth(loanEndDate.getMonth() + month - 1);
+  loanEndDate.setMonth(loanEndDate.getMonth() + totalMonths);
 
   return { totalInterestPaid, loanEndDate, amortizationSchedule };
 };
@@ -51,6 +66,7 @@ export const applyPrepaymentStrategy = (
   annualEmiIncreasePercentage: number
 ): LoanSummary => {
   const { loanAmount, interestRate, emi, startDate } = loan;
+  const totalMonths = getTotalMonths(loan);
   const monthlyInterestRate = interestRate / 12 / 100;
   let remainingBalance = loanAmount;
   let totalInterestPaid = 0;
@@ -58,7 +74,7 @@ export const applyPrepaymentStrategy = (
   let month = 1;
   let currentEmi = emi;
 
-  while (remainingBalance > 0) {
+  while (remainingBalance > 0 && month <= totalMonths) {
     if (month > 1 && (month - 1) % 12 === 0) {
       currentEmi *= (1 + annualEmiIncreasePercentage / 100);
     }
@@ -69,7 +85,13 @@ export const applyPrepaymentStrategy = (
     }
 
     const interestPaid = remainingBalance * monthlyInterestRate;
-    const principalPaid = currentEmi - interestPaid + prepayment;
+    let principalPaid = currentEmi - interestPaid + prepayment;
+    
+    // If this is the last month, adjust principal to clear remaining balance
+    if (month === totalMonths) {
+      principalPaid = remainingBalance + prepayment;
+    }
+    
     remainingBalance -= principalPaid;
     totalInterestPaid += interestPaid;
 
@@ -85,7 +107,7 @@ export const applyPrepaymentStrategy = (
   }
 
   const loanEndDate = new Date(startDate);
-  loanEndDate.setMonth(loanEndDate.getMonth() + month - 2);
+  loanEndDate.setMonth(loanEndDate.getMonth() + totalMonths);
 
   return { totalInterestPaid, loanEndDate, amortizationSchedule };
 };

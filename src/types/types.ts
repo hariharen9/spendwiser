@@ -70,4 +70,5 @@ export interface Loan {
   emi: number;
   startDate: string;
   isMock?: boolean;
+  tenureInMonths?: number; // New field to support months for small items
 }
