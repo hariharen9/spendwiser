@@ -1279,6 +1279,7 @@ function App() {
         }}
         onSave={handleAddBudget}
         editingBudget={editingBudget}
+        categories={userCategories}
       />
 
       {/* Export Modal */}

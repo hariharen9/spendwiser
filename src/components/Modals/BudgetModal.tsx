@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Target } from 'lucide-react';
 import { Budget } from '../../types/types';
-import { categories } from '../../data/mockData';
 import { motion, AnimatePresence } from 'framer-motion';
 import { modalVariants } from '../Common/AnimationVariants';
 
@@ -10,13 +9,15 @@ interface BudgetModalProps {
   onClose: () => void;
   onSave: (budget: Omit<Budget, 'id'>) => void;
   editingBudget?: Budget;
+  categories?: string[];
 }
 
 const BudgetModal: React.FC<BudgetModalProps> = ({
   isOpen,
   onClose,
   onSave,
-  editingBudget
+  editingBudget,
+  categories = ['Salary', 'Freelance', 'Investment', 'Groceries', 'Food & Dining', 'Transportation', 'Entertainment', 'Shopping', 'Utilities', 'Healthcare', 'Education', 'Housing', 'Health', 'Travel', 'Other']
 }) => {
   const [formData, setFormData] = useState({
     category: categories[0],
@@ -38,7 +39,7 @@ const BudgetModal: React.FC<BudgetModalProps> = ({
         spent: '0'
       });
     }
-  }, [editingBudget, isOpen]);
+  }, [editingBudget, isOpen, categories]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
