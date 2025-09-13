@@ -40,6 +40,7 @@ import { useToast } from './hooks/useToast';
 function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true); // Add loading state here
+  const [authChecked, setAuthChecked] = useState(false);
   const [transactionsLoaded, setTransactionsLoaded] = useState(false);
   const [accountsLoaded, setAccountsLoaded] = useState(false);
   const [budgetsLoaded, setBudgetsLoaded] = useState(false);
@@ -93,6 +94,7 @@ function App() {
   useEffect(() => {
     const authUnsubscribe = auth.onAuthStateChanged((user) => {
       setUser(user);
+      setAuthChecked(true);
     });
 
     return () => authUnsubscribe();
@@ -100,13 +102,15 @@ function App() {
 
   useEffect(() => {
     const allDataLoaded = transactionsLoaded && accountsLoaded && budgetsLoaded && categoriesLoaded;
-    if (user && allDataLoaded) {
-      setLoading(false);
+    if (authChecked) {
+      if (user && allDataLoaded) {
+        setLoading(false);
+      }
+      if (!user) {
+        setLoading(false);
+      }
     }
-    if (!user) { // If user logs out, or is not logged in
-      setLoading(false);
-    }
-  }, [user, transactionsLoaded, accountsLoaded, budgetsLoaded, categoriesLoaded]);
+  }, [user, authChecked, transactionsLoaded, accountsLoaded, budgetsLoaded, categoriesLoaded]);
 
   useEffect(() => {
     if (user) {
