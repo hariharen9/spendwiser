@@ -770,7 +770,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                     whileTap="tap"
                   >
                     <RotateCcw className="h-4 w-4" />
-                    <span>Reset</span>
+                    <span>Add/Reset to Default Categories</span>
                   </motion.button>
                   <motion.button
                     onClick={handleCloseCategoryEditor}
