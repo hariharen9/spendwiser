@@ -3,7 +3,7 @@ import { Screen, Transaction, Account, Budget, TotalBudget } from './types/types
 import { User, deleteUser, GoogleAuthProvider, reauthenticateWithPopup } from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
 import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, writeBatch, getDocs } from 'firebase/firestore';
-import { categories, getDefaultCategories, mockTransactions, mockAccounts, mockBudgets, mockCreditCards } from './data/mockData'; // Updated import
+import { categories, getDefaultCategories, mockTransactions, mockAccounts, mockBudgets, mockCreditCards } from './data/mockData';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
@@ -106,12 +106,8 @@ function App() {
               setDarkMode(userData.themePreference === 'dark');
             }
             // Load user categories if they exist, otherwise use default categories and update Firestore
-            if (userData.categories !== null && userData.categories !== undefined) {
+            if (userData.categories) {
               setUserCategories(userData.categories);
-            } else {
-              const defaultCategories = getDefaultCategories();
-              setUserCategories(defaultCategories);
-              await updateDoc(userDocRef, { categories: defaultCategories });
             }
           } else {
             // If the user document doesn't exist, create it with default categories
