@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import FilterBar from './FilterBar';
 import TransactionTable from './TransactionTable';
 import MobileTransactionList from './MobileTransactionList';
+import TransactionSummary from './TransactionSummary';
 import { Transaction } from '../../types/types';
 import { motion } from 'framer-motion';
 import { fadeInVariants, staggerContainer } from '../../components/Common/AnimationVariants';
@@ -70,6 +71,56 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
       return matchesSearch && matchesType && matchesCategory && matchesDate;
     });
   }, [transactions, searchTerm, transactionType, selectedCategory, startDate, endDate]);
+
+  const summary = useMemo(() => {
+    const incomeTransactions = filteredTransactions.filter(t => t.type === 'income');
+    const expenseTransactions = filteredTransactions.filter(t => t.type === 'expense');
+
+    const totalIncome = incomeTransactions.reduce((sum, t) => sum + t.amount, 0);
+    const totalExpenses = expenseTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+    const netTotal = totalIncome - totalExpenses;
+
+    const incomeCount = incomeTransactions.length;
+    const expenseCount = expenseTransactions.length;
+
+    const avgIncome = incomeCount > 0 ? totalIncome / incomeCount : 0;
+    const avgExpense = expenseCount > 0 ? totalExpenses / expenseCount : 0;
+
+    const largestIncome = incomeTransactions.length > 0 ? Math.max(...incomeTransactions.map(t => t.amount)) : 0;
+    const largestExpense = expenseTransactions.length > 0 ? Math.max(...expenseTransactions.map(t => Math.abs(t.amount))) : 0;
+
+    const categoryExpenses: { [key: string]: number } = {};
+    expenseTransactions.forEach(t => {
+      categoryExpenses[t.category] = (categoryExpenses[t.category] || 0) + Math.abs(t.amount);
+    });
+
+    const topCategory = Object.keys(categoryExpenses).length > 0 ? Object.entries(categoryExpenses).sort((a, b) => b[1] - a[1])[0][0] : 'N/A';
+
+    let dailyAverage = 0;
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      const diffTime = Math.abs(end.getTime() - start.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 to include both start and end days
+      if (diffDays > 0) {
+        dailyAverage = totalExpenses / diffDays;
+      }
+    }
+
+    return {
+      totalIncome,
+      totalExpenses,
+      netTotal,
+      incomeCount,
+      expenseCount,
+      avgIncome,
+      avgExpense,
+      largestIncome,
+      largestExpense,
+      topCategory,
+      dailyAverage
+    };
+  }, [filteredTransactions, startDate, endDate]);
 
   return (
     <motion.div 
@@ -146,6 +197,20 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
           currency={currency}
         />
       </motion.div>
+
+      <TransactionSummary
+        totalExpenses={summary.totalExpenses}
+        netTotal={summary.netTotal}
+        incomeCount={summary.incomeCount}
+        expenseCount={summary.expenseCount}
+        avgIncome={summary.avgIncome}
+        avgExpense={summary.avgExpense}
+        largestIncome={summary.largestIncome}
+        largestExpense={summary.largestExpense}
+        topCategory={summary.topCategory}
+        dailyAverage={summary.dailyAverage}
+        currency={currency}
+      />
     </motion.div>
   );
 };
