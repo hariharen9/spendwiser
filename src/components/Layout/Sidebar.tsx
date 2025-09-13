@@ -29,7 +29,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onScreenChange, user, 
     { id: 'credit-cards' as Screen, label: 'Credit Cards', icon: CreditCard },
     { id: 'budgets' as Screen, label: 'Budgets', icon: PieChart },
     { id: 'goals' as Screen, label: 'Goals', icon: Target },
-    { id: 'loans' as Screen, label: 'Loans', icon: Landmark },
+    { id: 'loans' as Screen, label: 'EMIs', icon: Landmark },
     { id: 'settings' as Screen, label: 'Settings', icon: Settings },
   ];
 
