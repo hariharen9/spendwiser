@@ -125,7 +125,7 @@ const LoansPage: React.FC<LoansPageProps> = ({ loans, onAddLoan, onEditLoan, onD
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-2">
-              <div className="bg-white dark:bg-[#242424] rounded-lg p-4 shadow border border-blue-100 dark:border-blue-800/30 transition-all duration-300 hover:shadow-md flex flex-col justify-between">
+              <div className="bg-white dark:bg-[#242424] rounded-lg p-4 shadow border border-blue-100 dark:border-blue-800/30 transition-all duration-300 hover:shadow-md flex flex-col justify-center">
                 <div className="flex items-start space-x-3">
                   <div className="mt-1 bg-blue-100 dark:bg-blue-900/50 p-1.5 rounded-full flex-shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -177,7 +177,7 @@ const LoansPage: React.FC<LoansPageProps> = ({ loans, onAddLoan, onEditLoan, onD
                 </div>
               </div>
               
-              <div className="bg-white dark:bg-[#242424] rounded-lg p-4 shadow border border-blue-100 dark:border-blue-800/30 transition-all duration-300 hover:shadow-md flex flex-col justify-between">
+              <div className="bg-white dark:bg-[#242424] rounded-lg p-4 shadow border border-blue-100 dark:border-blue-800/30 transition-all duration-300 hover:shadow-md flex flex-col justify-center">
                 <div className="flex items-start space-x-3">
                   <div className="mt-1 bg-blue-100 dark:bg-blue-900/50 p-1.5 rounded-full flex-shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -188,25 +188,22 @@ const LoansPage: React.FC<LoansPageProps> = ({ loans, onAddLoan, onEditLoan, onD
                     <label htmlFor="emi-increase" className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
                       Annual EMI Increase
                     </label>
-                    <div className="flex items-center mb-2">
-                      <div className="flex items-center mr-3">
-                        <motion.div 
-                          className="relative"
-                          whileHover={{ scale: 1.02 }}
-                          whileFocus={{ scale: 1.02 }}
-                        >
-                          <input 
-                            type="number" 
-                            id="emi-increase" 
-                            value={annualEmiIncrease} 
-                            onChange={(e) => setAnnualEmiIncrease(parseFloat(e.target.value) || 0)} 
-                            className="w-20 px-3 py-2 text-xs border border-gray-300 rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:outline-none" 
-                            min="0" 
-                            max="100"
-                          />
-                        </motion.div>
+                    <div className="mb-2">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs text-gray-900 dark:text-white">0%</span>
+                        <span className="text-sm font-semibold text-gray-900 dark:text-white">{annualEmiIncrease}%</span>
+                        <span className="text-xs text-gray-900 dark:text-white">30%</span>
                       </div>
-                      <span className="text-xs text-gray-900 dark:text-white">% per year</span>
+                      <input 
+                        type="range" 
+                        id="emi-increase" 
+                        value={annualEmiIncrease} 
+                        onChange={(e) => setAnnualEmiIncrease(parseFloat(e.target.value))} 
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-blue-500"
+                        min="0" 
+                        max="30"
+                        step="0.5"
+                      />
                     </div>
                     <p className="text-gray-600 dark:text-gray-400 text-xs leading-relaxed">
                       Gradually increase your EMI as your income grows to pay off the loan faster.
@@ -251,11 +248,11 @@ const LoansPage: React.FC<LoansPageProps> = ({ loans, onAddLoan, onEditLoan, onD
               </div>
             </div>
             
-            <div className="flex items-center justify-center md:justify-start md:items-center">
+            <div className="flex items-center justify-center">
               <div className="md:hidden w-full flex justify-center py-2">
                 <ChevronsDown className="h-6 w-6 text-gray-400" />
               </div>
-              <div className="hidden md:flex items-center justify-center">
+              <div className="hidden md:flex items-center justify-center h-full">
                 <ChevronsRight className="h-8 w-8 text-gray-400" />
               </div>
             </div>
