@@ -105,9 +105,11 @@ function App() {
             if (userData.themePreference) {
               setDarkMode(userData.themePreference === 'dark');
             }
-            // Load user categories if they exist, otherwise use default categories and update Firestore
+            // Load user categories if they exist, otherwise use default categories
             if (userData.categories) {
               setUserCategories(userData.categories);
+            } else {
+              setUserCategories(getDefaultCategories());
             }
           } else {
             // If the user document doesn't exist, create it with default categories
