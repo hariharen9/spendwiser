@@ -49,7 +49,7 @@ const DEFAULT_COMPONENT_ORDER = [
   'TotalBudgetWidget'
 ];
 
-const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, budgets, onViewAllTransactions, currency, onExportDashboard }) => {
+const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, budgets, totalBudget, onViewAllTransactions, currency, onExportDashboard }) => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [timeRange, setTimeRange] = useState<'month' | 'quarter' | 'year'>('month');
   const [componentOrder, setComponentOrder] = useState<string[]>(() => {
@@ -175,7 +175,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, b
       case 'TopSpendingCategories':
         return <div {...commonProps} key="TopSpendingCategories"><TopSpendingCategories transactions={transactions} currency={currency} /></div>;
       case 'BudgetSummary':
-        return <div {...commonProps} key="BudgetSummary"><BudgetSummary budgets={budgets} transactions={transactions} currency={currency} /></div>;
+        return <div {...commonProps} key="BudgetSummary"><BudgetSummary budgets={budgets} transactions={transactions} totalBudget={totalBudget} currency={currency} /></div>;
       case 'AccountBalances':
         return <div {...commonProps} key="AccountBalances"><AccountBalances accounts={accounts} currency={currency} /></div>;
       case 'DaysOfBuffer':

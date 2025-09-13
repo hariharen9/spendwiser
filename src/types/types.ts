@@ -1,3 +1,5 @@
+export type Screen = 'dashboard' | 'transactions' | 'credit-cards' | 'budgets' | 'settings';
+
 export interface Transaction {
   id: string;
   name: string;

@@ -915,7 +915,14 @@ function App() {
             animate="animate"
             exit="exit"
           >
-            <DashboardPage transactions={transactions} accounts={regularAccounts} budgets={budgets} onViewAllTransactions={() => setCurrentScreen('transactions')} currency={currency} />
+            <DashboardPage 
+              transactions={transactions} 
+              accounts={regularAccounts} 
+              budgets={budgets} 
+              totalBudget={totalBudget}
+              onViewAllTransactions={() => setCurrentScreen('transactions')} 
+              currency={currency} 
+            />
           </motion.div>
         );
     }
