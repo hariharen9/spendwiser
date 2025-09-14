@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { modalVariants } from '../../components/Common/AnimationVariants';
-import { X } from 'lucide-react';
+import { X, HelpCircle } from 'lucide-react';
 
 interface HelpModalProps {
   isOpen: boolean;
@@ -116,7 +116,7 @@ const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose, page }) => {
           onClick={onClose}
         >
           <motion.div
-            className="bg-white dark:bg-[#242424] rounded-lg border border-gray-200 dark:border-gray-700 w-full max-w-lg max-h-[80vh] flex flex-col"
+            className="bg-white dark:bg-[#242424] rounded-xl border border-gray-200 dark:border-gray-700 w-full max-w-lg max-h-[80vh] flex flex-col shadow-2xl"
             variants={modalVariants}
             initial="initial"
             animate="animate"
@@ -124,8 +124,14 @@ const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose, page }) => {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-[#F5F5F5]">{title}</h2>
-              <button onClick={onClose} className="text-gray-500 dark:text-[#888888] hover:text-gray-800 dark:hover:text-[#F5F5F5]">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-[#F5F5F5] flex items-center">
+                <HelpCircle className="mr-2 h-6 w-6 text-blue-500" />
+                {title}
+              </h2>
+              <button 
+                onClick={onClose} 
+                className="text-gray-500 dark:text-[#888888] hover:text-gray-800 dark:hover:text-[#F5F5F5] p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
                 <X className="h-6 w-6" />
               </button>
             </div>

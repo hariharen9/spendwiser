@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Target } from 'lucide-react';
+import { X, Target, DollarSign, Tag } from 'lucide-react';
 import { Budget } from '../../types/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { modalVariants } from '../Common/AnimationVariants';
@@ -65,7 +65,7 @@ const BudgetModal: React.FC<BudgetModalProps> = ({
           onClick={onClose}
         >
           <motion.div
-            className="bg-white dark:bg-[#242424] rounded-lg border border-gray-200 dark:border-gray-700 w-full max-w-md"
+            className="bg-white dark:bg-[#242424] rounded-xl border border-gray-200 dark:border-gray-700 w-full max-w-md shadow-2xl"
             variants={modalVariants}
             initial="initial"
             animate="animate"
@@ -83,13 +83,13 @@ const BudgetModal: React.FC<BudgetModalProps> = ({
                 <div className="p-2 bg-[#007BFF] rounded-lg">
                   <Target className="h-5 w-5 text-white" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-[#F5F5F5]">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-[#F5F5F5]">
                   {editingBudget ? 'Edit Budget' : 'Add Budget'}
                 </h2>
               </motion.div>
               <motion.button
                 onClick={onClose}
-                className="text-gray-500 dark:text-[#888888] hover:text-gray-800 dark:hover:text-[#F5F5F5] transition-colors"
+                className="text-gray-500 dark:text-[#888888] hover:text-gray-800 dark:hover:text-[#F5F5F5] p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
@@ -116,19 +116,22 @@ const BudgetModal: React.FC<BudgetModalProps> = ({
                 exit={{ opacity: 0, y: 10 }}
                 transition={{ delay: 0.3 }}
               >
-                <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center">
+                  <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2">
+                    <Tag className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  </span>
                   Category *
                 </label>
                 <motion.select
                   required
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF] appearance-none"
+                  className="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-[#1A1A1A] dark:border-gray-600 dark:text-white py-3 px-4 transition-all appearance-none"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
                   {categories.map(category => (
-                    <option key={category} value={category}>{category}</option>
+                    <option key={category} value={category} className="dark:bg-[#1A1A1A] dark:text-white">{category}</option>
                   ))}
                 </motion.select>
               </motion.div>
@@ -140,7 +143,10 @@ const BudgetModal: React.FC<BudgetModalProps> = ({
                 exit={{ opacity: 0, y: 10 }}
                 transition={{ delay: 0.4 }}
               >
-                <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center">
+                  <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2">
+                    <DollarSign className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  </span>
                   Budget Limit *
                 </label>
                 <div className="relative">
@@ -152,7 +158,7 @@ const BudgetModal: React.FC<BudgetModalProps> = ({
                     min="0"
                     value={formData.limit}
                     onChange={(e) => setFormData({ ...formData, limit: e.target.value })}
-                    className="w-full pl-8 pr-4 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] placeholder-gray-400 dark:placeholder-[#888888] focus:outline-none focus:border-[#007BFF]"
+                    className="w-full pl-8 pr-4 py-3 rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-[#1A1A1A] dark:border-gray-600 dark:text-white placeholder-gray-400 dark:placeholder-[#888888] focus:outline-none transition-all"
                     placeholder="0.00"
                   />
                 </div>
@@ -169,7 +175,7 @@ const BudgetModal: React.FC<BudgetModalProps> = ({
                 <motion.button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 text-gray-600 dark:text-[#888888] hover:text-gray-900 dark:hover:text-[#F5F5F5] transition-colors"
+                  className="px-5 py-2.5 text-gray-600 dark:text-[#888888] hover:text-gray-900 dark:hover:text-[#F5F5F5] rounded-lg font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -177,7 +183,7 @@ const BudgetModal: React.FC<BudgetModalProps> = ({
                 </motion.button>
                 <motion.button
                   type="submit"
-                  className="bg-[#007BFF] text-white px-6 py-2 rounded-lg font-medium hover:bg-[#0056b3] transition-all duration-200"
+                  className="px-5 py-2.5 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors flex items-center shadow-md hover:shadow-lg"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
