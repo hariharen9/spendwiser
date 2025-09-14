@@ -331,93 +331,94 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
           </motion.div>
         </motion.div>
 
-        {/* Theme Settings */}
-        <motion.div 
-          className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700"
-          variants={fadeInVariants}
-          initial="initial"
-          animate="animate"
-          transition={{ delay: 0.2 }}
-        >
-          <motion.h3 
-            className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-6 flex items-center space-x-2"
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <Moon className="h-5 w-5" />
-            <span>Appearance</span>
-          </motion.h3>
-          
+        {/* Theme and Font Settings */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <motion.div 
-            className="flex items-center justify-between"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            <div>
-              <p className="font-medium text-gray-900 dark:text-[#F5F5F5]">Dark Mode</p>
-              <p className="text-sm text-gray-500 dark:text-[#888888]">Use dark theme across the application</p>
-            </div>
-            <motion.button
-              onClick={onToggleDarkMode}
-              className={`relative w-12 h-6 rounded-full transition-all duration-200 ${darkMode ? 'bg-[#007BFF]' : 'bg-gray-300'}`}
-              whileTap={{ scale: 0.9 }}
-            >
-              <motion.div 
-                className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-200 ${darkMode ? 'left-7' : 'left-1'}`} 
-                layout
-                transition={{ type: "spring", stiffness: 500, damping: 30 }}
-              />
-            </motion.button>
-          </motion.div>
-        </motion.div>
-
-        {/* Font Settings */}
-        <motion.div 
-          className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700"
-          variants={fadeInVariants}
-          initial="initial"
-          animate="animate"
-          transition={{ delay: 0.6 }}
-        >
-          <motion.h3 
-            className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-6 flex items-center space-x-2"
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
+            className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700"
+            variants={fadeInVariants}
+            initial="initial"
+            animate="animate"
             transition={{ delay: 0.2 }}
           >
-            <Type className="h-5 w-5" />
-            <span>Font Settings</span>
-          </motion.h3>
-          
-          <motion.div 
-            className="max-w-md"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <label className="block text-sm font-medium text-gray-600 dark:text-[#888888] mb-2">
-              Select Font
-            </label>
-            <motion.select
-              value={selectedFont}
-              onChange={(e) => onUpdateFont(e.target.value)}
-              className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF] appearance-none"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+            <motion.h3 
+              className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-6 flex items-center space-x-2"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
             >
-              <option value="Montserrat">Montserrat</option>
-              <option value="Roboto">Roboto</option>
-              <option value="Poppins">Poppins</option>
-              <option value="Open Sans">Open Sans</option>
-              <option value="Lato">Lato</option>
-            </motion.select>
-            <p className="mt-2 text-sm text-gray-500 dark:text-[#888888]">
-              Current font: <span style={{ fontFamily: `'${selectedFont}', sans-serif` }}>{selectedFont}</span>
-            </p>
+              <Moon className="h-5 w-5" />
+              <span>Appearance</span>
+            </motion.h3>
+            
+            <motion.div 
+              className="flex items-center justify-between"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <div>
+                <p className="font-medium text-gray-900 dark:text-[#F5F5F5]">Dark Mode</p>
+                <p className="text-sm text-gray-500 dark:text-[#888888]">Use dark theme across the application</p>
+              </div>
+              <motion.button
+                onClick={onToggleDarkMode}
+                className={`relative w-12 h-6 rounded-full transition-all duration-200 ${darkMode ? 'bg-[#007BFF]' : 'bg-gray-300'}`}
+                whileTap={{ scale: 0.9 }}
+              >
+                <motion.div 
+                  className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-200 ${darkMode ? 'left-7' : 'left-1'}`} 
+                  layout
+                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                />
+              </motion.button>
+            </motion.div>
           </motion.div>
-        </motion.div>
+
+          <motion.div 
+            className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700"
+            variants={fadeInVariants}
+            initial="initial"
+            animate="animate"
+            transition={{ delay: 0.6 }}
+          >
+            <motion.h3 
+              className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-6 flex items-center space-x-2"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <Type className="h-5 w-5" />
+              <span>Font Settings</span>
+            </motion.h3>
+            
+            <motion.div 
+              className="max-w-md"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <label className="block text-sm font-medium text-gray-600 dark:text-[#888888] mb-2">
+                Select Font
+              </label>
+              <motion.select
+                value={selectedFont}
+                onChange={(e) => onUpdateFont(e.target.value)}
+                className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF] appearance-none"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <option value="Montserrat">Montserrat</option>
+                <option value="Roboto">Roboto</option>
+                <option value="Poppins">Poppins</option>
+                <option value="Open Sans">Open Sans</option>
+                <option value="Lato">Lato</option>
+              </motion.select>
+              <p className="mt-2 text-sm text-gray-500 dark:text-[#888888]">
+                Current font: <span style={{ fontFamily: `'${selectedFont}', sans-serif` }}>{selectedFont}</span>
+              </p>
+            </motion.div>
+          </motion.div>
+        </div>
 
         {/* Default Account Settings */}
         {accounts.length > 1 && (
