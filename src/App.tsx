@@ -80,6 +80,7 @@ function App() {
   const [userCategories, setUserCategories] = useState<string[]>([]); // Add user categories state
   const [showReauthModal, setShowReauthModal] = useState(false);
   const [categoriesLoaded, setCategoriesLoaded] = useState(false);
+  const [selectedFont, setSelectedFont] = useState<string>('Montserrat'); // Default font
   
   // Toast system
   const { toasts, showToast, removeToast } = useToast();
@@ -150,6 +151,11 @@ function App() {
             // If themePreference doesn't exist, set it to dark mode by default for existing users
             setDarkMode(true);
           }
+          if (userData.fontPreference) {
+            setSelectedFont(userData.fontPreference);
+          } else {
+            setSelectedFont('Montserrat'); // Default font for existing users
+          }
           setThemeLoaded(true);
           // Load user categories if they exist, otherwise use default categories
           if (userData.categories) {
@@ -165,6 +171,7 @@ function App() {
             name: user.displayName,
             categories: defaultCategories,
             themePreference: 'dark', // Set dark theme for new users
+            fontPreference: 'Montserrat', // Set default font for new users
           });
           setUserCategories(defaultCategories);
           setDarkMode(true);
@@ -202,6 +209,43 @@ function App() {
       return () => unsubscribe();
     }
   }, [user]);
+
+  // Apply font preference to the document body
+  useEffect(() => {
+    document.body.style.fontFamily = `'${selectedFont}', sans-serif`;
+  }, [selectedFont]);
+
+  const onUpdateFont = async (font: string) => {
+    if (user) {
+      const userDocRef = doc(db, 'spenders', user.uid);
+      await updateDoc(userDocRef, {
+        fontPreference: font,
+      });
+      setSelectedFont(font);
+      showToast('Font preference updated!', 'success');
+    }
+  };
+
+  const onToggleDarkMode = async () => {
+    if (user) {
+      const userDocRef = doc(db, 'spenders', user.uid);
+      await updateDoc(userDocRef, {
+        themePreference: !darkMode ? 'dark' : 'light',
+      });
+      setDarkMode(!darkMode);
+      showToast('Theme preference updated!', 'success');
+    }
+  };
+
+  const onAddAccount = async (account: Omit<Account, 'id'>) => {
+    if (user) {
+      await addDoc(collection(db, 'spenders', user.uid, 'accounts'), {
+        ...account,
+        userId: user.uid,
+      });
+      showToast('Account added successfully!', 'success');
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -1201,8 +1245,8 @@ function App() {
             <SettingsPage
               user={user}
               darkMode={darkMode}
-              onToggleDarkMode={() => setDarkMode(!darkMode)}
-              accounts={regularAccounts}
+              onToggleDarkMode={onToggleDarkMode}
+              accounts={accounts}
               onAddAccount={handleAddAccount}
               onEditAccount={handleEditAccount}
               onDeleteAccount={handleDeleteAccount}
@@ -1221,6 +1265,8 @@ function App() {
               onDeleteUserAccount={handleDeleteUserAccount}
               onBackupData={handleBackupData}
               onRestoreData={handleRestoreData}
+              selectedFont={selectedFont}
+              onUpdateFont={onUpdateFont}
             />
           </motion.div>
         );
