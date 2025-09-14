@@ -791,8 +791,13 @@ function App() {
   const handleAddLoan = async (loanData: Omit<Loan, 'id'>) => {
     if (!user) return;
     try {
+      // Filter out undefined values to prevent Firebase errors
+      const filteredLoanData = Object.fromEntries(
+        Object.entries(loanData).filter(([_, value]) => value !== undefined)
+      );
+      
       const loansRef = collection(db, 'spenders', user.uid, 'loans');
-      await addDoc(loansRef, loanData);
+      await addDoc(loansRef, filteredLoanData);
       showToast('Loan added successfully!', 'success');
     } catch (error) {
       console.error("Error adding loan: ", error);
