@@ -35,6 +35,15 @@ export const calculateLoanSummary = (loan: Loan): LoanSummary => {
     const interestPaid = remainingBalance * monthlyInterestRate;
     let principalPaid = emi - interestPaid;
     
+    // For 0% interest loans, all payment goes to principal
+    if (interestRate === 0) {
+      principalPaid = emi;
+      // Adjust for the last payment to exactly match remaining balance
+      if (principalPaid > remainingBalance) {
+        principalPaid = remainingBalance;
+      }
+    }
+    
     // If this is the last month, adjust principal to clear remaining balance
     if (remainingBalance - principalPaid <= 0) {
       principalPaid = remainingBalance;
@@ -96,6 +105,15 @@ export const applyPrepaymentStrategy = (
 
     const interestPaid = remainingBalance * monthlyInterestRate;
     let principalPaid = currentEmi - interestPaid + prepayment;
+    
+    // For 0% interest loans, all payment goes to principal
+    if (interestRate === 0) {
+      principalPaid = currentEmi + prepayment;
+      // Adjust for the last payment to exactly match remaining balance
+      if (principalPaid > remainingBalance) {
+        principalPaid = remainingBalance;
+      }
+    }
     
     // If payment exceeds remaining balance, adjust to clear remaining balance
     if (remainingBalance - principalPaid <= 0) {

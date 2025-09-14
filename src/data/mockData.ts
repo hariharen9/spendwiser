@@ -39,6 +39,16 @@ export const mockLoans: Loan[] = [
     startDate: '2025-03-10',
     isMock: true,
   },
+  {
+    id: 'loan4',
+    name: 'Zero Interest Loan',
+    loanAmount: 100000,
+    interestRate: 0, // 0% interest loan
+    tenure: 2,
+    emi: 4167, // EMI for ₹1,00,000 at 0% for 2 years (100000/24)
+    startDate: '2024-04-01',
+    isMock: true,
+  },
 ];
 
 export const currencies = [

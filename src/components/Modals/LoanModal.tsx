@@ -29,12 +29,12 @@ const LoanModal: React.FC<LoanModalProps> = ({ isOpen, onClose, onSave, editingL
     const totalMonths = isInMonths ? months : (years * 12);
     if (totalMonths <= 0) return 0;
     
-    const monthlyRate = rate / 12 / 100;
-    
-    if (monthlyRate === 0) {
+    // For 0% interest loans, EMI is simply principal divided by number of months
+    if (rate === 0) {
       return amount / totalMonths;
     }
     
+    const monthlyRate = rate / 12 / 100;
     const emi = amount * monthlyRate * Math.pow(1 + monthlyRate, totalMonths) / (Math.pow(1 + monthlyRate, totalMonths) - 1);
     return parseFloat(emi.toFixed(2));
   };
@@ -175,6 +175,11 @@ const LoanModal: React.FC<LoanModalProps> = ({ isOpen, onClose, onSave, editingL
                       step="0.01"
                       required 
                     />
+                    {interestRate === 0 && (
+                      <p className="mt-1 text-xs text-green-600 dark:text-green-400">
+                        No interest loan - EMI will be principal divided by tenure
+                      </p>
+                    )}
                   </div>
                 </div>
                 

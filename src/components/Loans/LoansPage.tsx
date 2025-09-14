@@ -86,7 +86,7 @@ const LoansPage: React.FC<LoansPageProps> = ({ loans, onAddLoan, onEditLoan, onD
                 </div>
                 <div className="flex justify-between text-sm font-medium text-gray-900 dark:text-white">
                   <span>Interest Rate</span>
-                  <span>{loan.interestRate}%</span>
+                  <span>{loan.interestRate === 0 ? '0% (No Interest)' : `${loan.interestRate}%`}</span>
                 </div>
                 <div className="flex justify-between text-sm font-medium text-gray-900 dark:text-white">
                   <span>Tenure</span>
