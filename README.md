@@ -1,3 +1,4 @@
+
 <div align="center">
 
   <h1>💸 SpendWiser</h1>
@@ -8,18 +9,17 @@
   </p>
   
   <p>
-    <!-- Placeholder for Live Demo Badge -->
     <a href="#">
       <img src="https://img.shields.io/badge/🚀%20Live-Visit%20Now-success?style=for-the-badge" alt="Live Demo">
     </a>
-    <a href="https://github.com/hariharen9/spendwise/stargazers">
-      <img src="https://img.shields.io/github/stars/hariharen9/spendwise?style=for-the-badge&logo=github" alt="GitHub Stars">
+    <a href="https://github.com/hariharen9/spendwiser/stargazers">
+      <img src="https://img.shields.io/github/stars/hariharen9/spendwiser?style=for-the-badge&logo=github" alt="GitHub Stars">
     </a>
-    <a href="https://github.com/hariharen9/spendwise/blob/main/LICENSE">
-      <img src="https://img.shields.io/github/license/hariharen9/spendwise?style=for-the-badge" alt="License">
+    <a href="https://github.com/hariharen9/spendwiser/blob/main/LICENSE">
+      <img src="https://img.shields.io/github/license/hariharen9/spendwiser?style=for-the-badge" alt="License">
     </a>
     <br>
-    <img src="https://img.shields.io/github/repo-size/hariharen9/spendwise?style=for-the-badge" alt="Repo Size">
+    <img src="https://img.shields.io/github/repo-size/hariharen9/spendwiser?style=for-the-badge" alt="Repo Size">
     <a href="eslint.config.js">
         <img src="https://img.shields.io/badge/code%20style-eslint-4B32C3?style=for-the-badge&logo=eslint" alt="Code Style: ESLint">
     </a>
@@ -41,14 +41,6 @@
 
 ---
 
-### 💡 The Problem It Solves
-
--   **From Ambiguity to Insight:** Replaces confusing bank statements and mental math with a beautiful, data-rich dashboard.
--   **From Reactive Spending to Proactive Planning:** A full suite of budgeting and forecasting tools helps you plan for the future, not just react to the past.
--   **From Data Overload to Actionable Clarity:** Powerful analytics distill your financial data into simple, actionable insights.
-
----
-
 ## 🏆 Core Features
 
 <div align="center">
@@ -56,20 +48,24 @@
 <tr>
 <td width="45%">
 
-### 💰 **Comprehensive Tracking**
-**Your Entire Financial World in One Place**
-- Full transaction management (income/expense)
-- Multi-account support (checking, savings, credit cards)
-- CSV import/export for easy data migration
+### 💰 **Effortless Tracking & Goals**
+**Automate, Track, and Achieve**
+- **Effortless Expense Tracking:** Log every transaction with ease and intuitiveness. Categorize, tag, and add descriptions for a complete picture of your spending.
+- **Automate Your Finances:** Set up **Recurring Transactions** for bills and subscriptions and never manually enter them again.
+- **Turn Dreams into Reality:** Create **Financial Goals** and track your progress towards your next big purchase, vacation, or investment.
+- **All Accounts in One Place:** Manage checking, savings, and credit card accounts seamlessly.
+- **Easy Data Migration:** Full CSV import/export and secure JSON backup/restore.
 
 </td>
 <td width="45%">
 
-### 📊 **Powerful Analytics**
-**Data-Driven Financial Insights**
-- Customizable drag-and-drop dashboard
-- Interactive charts for spending, income vs. expense, and category breakdowns
-- Future balance and cash flow projections
+### 🚀 **Financial Strategy & Analytics**
+**Become Debt-Free Faster & Plan for the Future**
+- **Loan Repayment Simulator:** Our interactive EMI calculator is a strategic tool to conquer debt. Model prepayments and extra EMIs to see exactly how much interest you'll save and how much sooner you can be debt-free.
+- **At-a-Glance Command Center:** A fully customizable dashboard gives you a complete overview of your financial health.
+- **Predict the Future:** See your projected cash flow and account balances to make smarter decisions.
+- **Insightful Analytics:** Dive deep into your spending patterns with interactive charts and graphs.
+- **Customizable Reports:** Generate detailed reports tailored to your needs.
 
 </td>
 </tr>
@@ -78,62 +74,113 @@
 
 ### 🎯 **Intelligent Budgeting**
 **Plan and Monitor with Precision**
-- Category-based budget creation
-- Visual progress bars and spending alerts
-- Real-time tracking of spending against limits
+- **Take Full Control:** Set category-based budgets or an overall monthly limit.
+- **Stay on Track:** Visual progress bars and spending alerts notify you before you overspend.
+- **Real-Time Clarity:** See your spending update instantly as you add transactions.
+- **Smart Categorization:** Automatically categorize transactions with AI-powered suggestions.
+
 
 </td>
 <td width="45%">
 
-### ✨ **Modern UI/UX**
-**An Experience You'll Love to Use**
-- Fully responsive for desktop, tablet, and mobile
-- Automatic Dark/Light mode
-- Smooth, fluid animations with Framer Motion
+### ✨ **A Modern UI You'll Love**
+**An Experience Designed for Clarity & Speed**
+- **Beautifully Responsive:** A seamless experience on desktop, tablet, and mobile.
+- **Deeply Customizable:** Automatic Dark/Light mode and multiple font choices to fit your style.
+- **Fluid & Fast:** Smooth animations and custom-built components make managing finances a pleasure, not a chore.
+- **Intuitive Navigation:** A clean, user-friendly interface with easy-to-understand controls.
 
 </td>
 </tr>
 </table>
 </div>
 
-<br/>
-<details>
-<summary><h3>🖼️ Click to expand Screenshots</h3></summary>
-<br>
 
-### Dashboard
-![Dashboard](./docs/dashboard.png)
-*Fully customizable dashboard with drag-and-drop widgets*
 
-### Transactions
-![Transactions](./docs/transactions.png)
-*Powerful transaction management with filtering and sorting*
+## 📸 Feature Screenshots
 
-### Mobile View
-<p float="left">
-  <img src="./docs/mobile-dashboard.png" width="30%" />
-  <img src="./docs/mobile-transactions.png" width="30%" /> 
-  <img src="./docs/mobile-filters.png" width="30%" />
-</p>
-*Mobile-optimized interface with collapsible components*
+<table width="100%">
+  <tr>
+    <td width="33%" align="center">
+      <b>Unified Dashboard</b><br><br>
+      <img src="./docs/dashboard.png" alt="SpendWiser Dashboard" width="90%">
+    </td>
+    <td width="33%" align="center">
+      <b>Loan Repayment Simulator</b><br><br>
+      <img src="https://via.placeholder.com/450x300.png?text=Loan+Repayment+Simulator" alt="Loan Repayment Simulator" width="90%">
+    </td>
+    <td width="33%" align="center">
+      <b>Transaction Management</b><br><br>
+      <img src="./docs/transactions.png" alt="Transactions Page" width="90%">
+    </td>
+  </tr>
+  <tr>
+    <td width="33%" align="center">
+      <b>Intelligent Budgeting</b><br><br>
+      <img src="./docs/budgets.png" alt="Budgets Page" width="90%">
+    </td>
+    <td width="33%" align="center">
+      <b>Financial Goals</b><br><br>
+      <img src="https://via.placeholder.com/450x300.png?text=Financial+Goals+Page" alt="Financial Goals Page" width="90%">
+    </td>
+    <td width="33%" align="center">
+      <b>Deep Customization</b><br><br>
+      <img src="https://via.placeholder.com/450x300.png?text=Settings+Page+(Themes+&+Fonts)" alt="Settings Page" width="90%">
+    </td>
+  </tr>
+</table>
 
-### Budgets
-![Budgets](./docs/budgets.png)
-*Category-based budget tracking with visual progress indicators*
+## 📱 Mobile First Experience
 
-</details>
+SpendWiser is designed from the ground up to be a pleasure to use on any device. The mobile interface is clean, fast, and provides access to all the powerful features of the desktop app.
+
+<table width="100%">
+  <tr>
+    <td width="33%" align="center">
+      <b>Mobile Dashboard</b><br><br>
+      <img src="./docs/mobile-dashboard.png" alt="Mobile Dashboard" width="90%">
+    </td>
+    <td width="33%" align="center">
+      <b>Mobile Transactions</b><br><br>
+      <img src="https://via.placeholder.com/250x500.png?text=Mobile+Transactions" alt="Mobile Transactions" width="90%">
+    </td>
+    <td width="33%" align="center">
+      <b>Filter & Sort</b><br><br>
+      <img src="https://via.placeholder.com/250x500.png?text=Mobile+Filters" alt="Mobile Filters" width="90%">
+    </td>
+  </tr>
+  <tr>
+    <td width="33%" align="center">
+      <b>Add Transaction</b><br><br>
+      <img src="https://via.placeholder.com/250x500.png?text=Add+Transaction+Modal" alt="Add Transaction Modal" width="90%">
+    </td>
+    <td width="33%" align="center">
+      <b>Budgets on Mobile</b><br><br>
+      <img src="https://via.placeholder.com/250x500.png?text=Mobile+Budgets" alt="Mobile Budgets" width="90%">
+    </td>
+    <td width="33%" align="center">
+      <b>Goals on Mobile</b><br><br>
+      <img src="https://via.placeholder.com/250x500.png?text=Mobile+Goals" alt="Mobile Goals" width="90%">
+    </td>
+  </tr>
+</table>
 
 ---
+
+
 
 ## 📈 Competitive Advantage
 
 | Feature                  | SpendWiser                               | Spreadsheets       | Other Trackers   |
-| :----------------------- | :------------------------------------ | :----------------- | :--------------- |
-| **Dashboard**            | ✅ Fully Customizable & Interactive   | ❌ Manual setup     | ❓ Static         |
-| **Analytics & Forecasts**| ✅ Integrated & Automated             | ❌ Complex formulas | ⛔️ Basic stats    |
-| **Budgeting**            | ✅ Real-time & Visual                 | ❌ Manual tracking  | ✅ Basic lists     |
-| **UI/UX**                | ✅ Modern, Responsive, Animated       | ❌ Utilitarian      | 🚫 Dated/Clunky   |
-| **Mobile Experience**    | ✅ PWA & Mobile-First                 | ❌ Desktop only     | 🚫 Poor mobile    |
+| :----------------------- | :--------------------------------------- | :----------------- | :--------------- |
+| **Dashboard**            | ✅ Fully Customizable & Interactive      | ❌ Manual setup     | ❓ Static         |
+| **Loan Tracker/Adviser**      | ✅ Integrated & Powerful                 | ❌ Extremely complex | ⛔️ Not available  |
+| **Analytics & Forecasts**| ✅ Integrated & Automated                | ❌ Complex formulas | ⛔️ Basic stats    |
+| **Goal Setting**            | ✅ Integrated & Automated                | ❌ Complex formulas | ⛔️ Basic or not available    |
+| **Credit Card Management** | ✅ Integrated & Automated                | ❌ Complex formulas | 🚫 Not available    |
+| **Budgeting**            | ✅ Real-time & Visual                    | ❌ Manual tracking  | ✅ Basic lists     |
+| **UI/UX**                | ✅ Modern, Responsive, Animated          | ❌ Utilitarian      | 🚫 Dated/Clunky   |
+| **Mobile Experience**    | ✅ PWA & Mobile-First                    | ❌ Desktop only     | 🚫 Poor mobile    |
 
 ---
 
@@ -147,11 +194,11 @@ If you find SpendWiser useful, please consider giving it a star! It's a simple w
 <div align="center">
 
 <p>
-  <a href="https://github.com/hariharen9/spendwise/issues">
-    <img src="https://img.shields.io/github/issues/hariharen9/spendwise?style=for-the-badge&logo=github" alt="Issues">
+  <a href="https://github.com/hariharen9/spendwiser/issues">
+    <img src="https://img.shields.io/github/issues/hariharen9/spendwiser?style=for-the-badge&logo=github" alt="Issues">
   </a>
-  <a href="https://github.com/hariharen9/spendwise/pulls">
-    <img src="https://img.shields.io/github/issues-pr/hariharen9/spendwise?style=for-the-badge&logo=github" alt="Pull Requests">
+  <a href="https://github.com/hariharen9/spendwiser/pulls">
+    <img src="https://img.shields.io/github/issues-pr/hariharen9/spendwiser?style=for-the-badge&logo=github" alt="Pull Requests">
   </a>
 </p>
 
@@ -182,7 +229,7 @@ SpendWiser is built with a focus on performance, real-time data synchronization,
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/hariharen9/spendwise.git
+    git clone https://github.com/hariharen9/spendwiser.git
     cd spendwise/new-spendwise
     ```
 
