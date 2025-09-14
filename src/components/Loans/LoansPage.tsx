@@ -341,6 +341,10 @@ const LoansPage: React.FC<LoansPageProps> = ({ loans, onAddLoan, onEditLoan, onD
             </div>
           </div>
 
+           <p className="text-xs text-blue-800 dark:text-blue-200 justify-center items-center">
+                  ✅ This calculator is mostly accurate because it uses the <span className="font-bold">True Amortization Flow</span> rather than an approximation.                
+           </p>
+
           {/* Amortization Schedule */}
           <div className="bg-white dark:bg-[#242424] rounded-lg shadow p-6">
             <h4 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Amortization Schedule</h4>
