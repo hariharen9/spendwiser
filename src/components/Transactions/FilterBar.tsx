@@ -97,10 +97,12 @@ const FilterBar: React.FC<FilterBarProps> = ({
                 onChange={(e) => onSortChange(e.target.value)}
                 className="w-full pl-3 pr-8 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF] appearance-none"
               >
-                <option value="date">Date</option>
-                <option value="highest">Highest Amount</option>
-                <option value="lowest">Lowest Amount</option>
-                <option value="category">Category</option>
+                <option value="date-desc">Date (Newest First)</option>
+                <option value="date-asc">Date (Oldest First)</option>
+                <option value="highest-income">Highest Income</option>
+                <option value="lowest-income">Lowest Income</option>
+                <option value="highest-expense">Highest Expense</option>
+                <option value="lowest-expense">Lowest Expense</option>
               </select>
             </div>
             

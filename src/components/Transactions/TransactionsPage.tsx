@@ -96,6 +96,70 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
     };
   }, [transactions, startDate, endDate]);
 
+  const sortedAndFilteredTransactions = useMemo(() => {
+    let filtered = transactions.filter(transaction => {
+      const matchesSearch = searchTerm === '' || transaction.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesType = transactionType === 'all' || transaction.type === transactionType;
+      const matchesCategory = selectedCategory === '' || transaction.category === selectedCategory;
+
+      const transactionDate = new Date(transaction.date);
+      const start = startDate ? new Date(startDate) : null;
+      const end = endDate ? new Date(endDate) : null;
+
+      const matchesDate = (!start || transactionDate >= start) && (!end || transactionDate <= end);
+
+      return matchesSearch && matchesType && matchesCategory && matchesDate;
+    });
+
+
+    switch (sortOption) {
+      case 'date-desc':
+        filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        break;
+      case 'date-asc':
+        filtered.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        break;
+      case 'highest-income':
+        filtered.sort((a, b) => {
+          if (a.type === 'income' && b.type === 'income') return b.amount - a.amount;
+          if (a.type === 'income') return -1;
+          if (b.type === 'income') return 1;
+          return 0;
+        });
+        break;
+      case 'lowest-income':
+        filtered.sort((a, b) => {
+          if (a.type === 'income' && b.type === 'income') return a.amount - b.amount;
+          if (a.type === 'income') return -1;
+          if (b.type === 'income') return 1;
+          return 0;
+        });
+        break;
+      case 'highest-expense':
+        filtered.sort((a, b) => {
+          if (a.type === 'expense' && b.type === 'expense') return Math.abs(b.amount) - Math.abs(a.amount);
+          if (a.type === 'expense') return -1;
+          if (b.type === 'expense') return 1;
+          return 0;
+        });
+        break;
+      case 'lowest-expense':
+        filtered.sort((a, b) => {
+          if (a.type === 'expense' && b.type === 'expense') return Math.abs(a.amount) - Math.abs(b.amount);
+          if (a.type === 'expense') return -1;
+          if (b.type === 'expense') return 1;
+          return 0;
+        });
+        break;
+      default:
+        // Default sort by date descending
+        filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        break;
+    }
+
+    return filtered;
+  }, [transactions, searchTerm, transactionType, selectedCategory, startDate, endDate, sortOption]);
+
   return (
     <motion.div 
       className="space-y-6"
@@ -167,7 +231,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
         transition={{ delay: 0.3 }}
       >
         <MobileTransactionList
-          transactions={transactions}
+          transactions={sortedAndFilteredTransactions}
           onEditTransaction={onEditTransaction}
           onDeleteTransaction={onDeleteTransaction}
           currency={currency}
