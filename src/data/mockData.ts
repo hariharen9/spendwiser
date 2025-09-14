@@ -14,8 +14,8 @@ export const mockLoans: Loan[] = [
     loanAmount: 3000000,
     interestRate: 8,
     tenure: 20,
-    emi: 23566,
-    startDate: '2023-01-15',
+    emi: 25097, // Corrected EMI for ₹30,00,000 at 8% for 20 years
+    startDate: '2024-01-15',
     isMock: true,
   },
   {
@@ -24,8 +24,8 @@ export const mockLoans: Loan[] = [
     loanAmount: 800000,
     interestRate: 9.5,
     tenure: 7,
-    emi: 12937,
-    startDate: '2022-06-20',
+    emi: 13003, // Corrected EMI for ₹8,00,000 at 9.5% for 7 years
+    startDate: '2024-06-20',
     isMock: true,
   },
   {
@@ -35,8 +35,8 @@ export const mockLoans: Loan[] = [
     interestRate: 12,
     tenure: 0,
     tenureInMonths: 18,
-    emi: 12200,
-    startDate: '2023-03-10',
+    emi: 12200, // Verified EMI for ₹2,00,000 at 12% for 18 months
+    startDate: '2025-03-10',
     isMock: true,
   },
 ];

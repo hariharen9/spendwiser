@@ -17,6 +17,8 @@ const LoansPage: React.FC<LoansPageProps> = ({ loans, onAddLoan, onEditLoan, onD
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
   const [extraEmiPerYear, setExtraEmiPerYear] = useState(false);
   const [annualEmiIncrease, setAnnualEmiIncrease] = useState(0);
+  const [lumpSumAmount, setLumpSumAmount] = useState(0);
+  const [lumpSumTiming, setLumpSumTiming] = useState(12);
 
   const originalLoanSummary = useMemo(() => {
     if (!selectedLoan) return null;
@@ -25,8 +27,8 @@ const LoansPage: React.FC<LoansPageProps> = ({ loans, onAddLoan, onEditLoan, onD
 
   const newLoanSummary = useMemo(() => {
     if (!selectedLoan) return null;
-    return applyPrepaymentStrategy(selectedLoan, extraEmiPerYear, annualEmiIncrease);
-  }, [selectedLoan, extraEmiPerYear, annualEmiIncrease]);
+    return applyPrepaymentStrategy(selectedLoan, extraEmiPerYear, annualEmiIncrease, lumpSumAmount, lumpSumTiming);
+  }, [selectedLoan, extraEmiPerYear, annualEmiIncrease, lumpSumAmount, lumpSumTiming]);
 
   const interestSaved = useMemo(() => {
     if (!originalLoanSummary || !newLoanSummary) return 0;
@@ -128,7 +130,7 @@ const LoansPage: React.FC<LoansPageProps> = ({ loans, onAddLoan, onEditLoan, onD
               </div>
             </div>
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-2">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-2">
               <div className="bg-white dark:bg-[#242424] rounded-lg p-4 shadow border border-blue-100 dark:border-blue-800/30 transition-all duration-300 hover:shadow-md flex flex-col justify-center">
                 <div className="flex items-start space-x-3">
                   <div className="mt-1 bg-blue-100 dark:bg-blue-900/50 p-1.5 rounded-full flex-shrink-0">
@@ -215,6 +217,45 @@ const LoansPage: React.FC<LoansPageProps> = ({ loans, onAddLoan, onEditLoan, onD
                   </div>
                 </div>
               </div>
+              
+              <div className="bg-white dark:bg-[#242424] rounded-lg p-4 shadow border border-blue-100 dark:border-blue-800/30 transition-all duration-300 hover:shadow-md flex flex-col justify-center">
+                <div className="flex items-start space-x-3">
+                  <div className="mt-1 bg-blue-100 dark:bg-blue-900/50 p-1.5 rounded-full flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <label htmlFor="lump-sum" className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                      Lump Sum Payment
+                    </label>
+                    <div className="flex items-center space-x-2 mb-2">
+                      <input 
+                        type="number" 
+                        id="lump-sum" 
+                        value={lumpSumAmount} 
+                        onChange={(e) => setLumpSumAmount(parseFloat(e.target.value) || 0)} 
+                        className="w-24 px-3 py-2 text-xs border border-gray-300 rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:outline-none" 
+                        placeholder="Amount"
+                        min="0"
+                      />
+                      <select 
+                        value={lumpSumTiming} 
+                        onChange={(e) => setLumpSumTiming(parseInt(e.target.value))} 
+                        className="w-full px-3 py-2 text-xs border border-gray-300 rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                      >
+                        <option value={6}>After 6 months</option>
+                        <option value={12}>After 1 year</option>
+                        <option value={24}>After 2 years</option>
+                        <option value={36}>After 3 years</option>
+                      </select>
+                    </div>
+                    <p className="text-gray-600 dark:text-gray-400 text-xs leading-relaxed">
+                      Make a one-time extra payment to reduce principal and save on interest. ( It can be a bonus, Insurance, anything! )
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
             
             <div className="bg-blue-50 dark:bg-blue-900/10 rounded-lg p-4 border border-blue-200 dark:border-blue-800/30">
@@ -223,7 +264,7 @@ const LoansPage: React.FC<LoansPageProps> = ({ loans, onAddLoan, onEditLoan, onD
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <p className="text-xs text-blue-800 dark:text-blue-200">
-                  <span className="font-semibold">Tip:</span> Combining both strategies can help you become debt-free years earlier while saving thousands in interest.
+                  <span className="font-semibold">Tip:</span> Combining all three strategies can help you become debt-free years earlier while saving tens of thousands in interest.
                 </p>
               </div>
             </div>
