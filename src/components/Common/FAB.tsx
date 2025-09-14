@@ -11,7 +11,7 @@ const FAB: React.FC<FABProps> = ({ onClick }) => {
   return (
     <motion.button
       onClick={onClick}
-      className="fixed md:bottom-6 md:right-6 bottom-28 right-6 bg-[#00C9A7] text-white p-4 rounded-full shadow-xl z-50"
+      className="fixed md:bottom-6 md:right-6 bottom-24 right-6 bg-[#00C9A7] text-white p-4 rounded-full shadow-xl z-50"
       variants={buttonHoverVariants}
       initial="initial"
       whileHover="hover"

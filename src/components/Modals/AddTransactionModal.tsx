@@ -17,8 +17,8 @@ interface AddTransactionModalProps {
 
 // Category keywords mapping for auto-categorization
 const CATEGORY_KEYWORDS: Record<string, string[]> = {
-  'Groceries': ['grocery', 'market', 'supermarket', 'food', 'vegetables', 'fruits', 'meat', 'dairy'],
-  'Food & Dining': ['restaurant', 'cafe', 'coffee', 'lunch', 'dinner', 'meal', 'dining', 'burger', 'pizza', 'mcdonalds', 'starbucks'],
+  'Groceries': ['grocery', 'market', 'supermarket', 'food', 'vegetables', 'fruits', 'meat', 'dairy', 'zepto', 'instamart', 'blinkit'],
+  'Food & Dining': ['restaurant', 'cafe', 'coffee', 'lunch', 'dinner', 'meal', 'dining', 'burger', 'pizza', 'mcdonalds', 'starbucks', 'swiggy', 'zomato'],
   'Transportation': ['gas', 'fuel', 'petrol', 'diesel', 'uber', 'taxi', 'bus', 'train', 'flight', 'airline', 'parking', 'toll'],
   'Utilities': ['electricity', 'water', 'gas', 'internet', 'wifi', 'phone', 'mobile', 'subscription', 'netflix', 'spotify'],
   'Entertainment': ['movie', 'cinema', 'theater', 'concert', 'ticket', 'game', 'playstation', 'xbox', 'streaming'],
