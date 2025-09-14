@@ -337,7 +337,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, b
       </motion.div>
 
       <motion.div 
-        className="grid grid-cols-3 gap-3 md:gap-6 mb-8"
+        className="grid grid-cols-3 gap-2 md:gap-4 mb-4 md:mb-6"
         variants={staggerContainer}
         initial="initial"
         animate="animate"
@@ -369,6 +369,9 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, b
           />
         </motion.div>
       </motion.div>
+
+      {/* Separator line between metrics and widgets */}
+      <div className="border-t border-gray-200 dark:border-gray-700 mb-4 md:mb-6"></div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}

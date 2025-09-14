@@ -271,13 +271,19 @@ const DashboardContainer: React.FC<DashboardContainerProps> = ({
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className={`grid gap-6 ${
+      <div className={`grid gap-3 md:gap-4 ${
         columnCount === 1 ? 'grid-cols-1' :
         columnCount === 2 ? 'grid-cols-1 md:grid-cols-2' :
         'grid-cols-1 md:grid-cols-3'
       }`}>
         {columns.map((columnWidgets, columnIndex) => (
-          <div key={columnIndex} className="space-y-4 relative">
+          <React.Fragment key={columnIndex}>
+            {/* Mobile column separator - only show on mobile and not for first column */}
+            {columnIndex > 0 && (
+              <div className="md:hidden border-t border-gray-200 dark:border-gray-700 my-3 -mx-2"></div>
+            )}
+            
+            <div className="space-y-0 sm:space-y-0.5 relative">
             {/* Column Label for debugging */}
             {isEditMode && (
               <div className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-2 text-center">
@@ -324,6 +330,7 @@ const DashboardContainer: React.FC<DashboardContainerProps> = ({
               ))}
             </SortableContext>
           </div>
+          </React.Fragment>
         ))}
       </div>
 
