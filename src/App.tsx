@@ -1423,11 +1423,16 @@ function App() {
       transactions,
       accounts,
       budgets,
+      goals,
+      loans,
+      recurringTransactions,
+      totalBudget,
       userCategories,
       settings: {
         darkMode,
         currency,
         defaultAccountId,
+        fontPreference: selectedFont,
       },
       metadata: {
         backupDate: new Date().toISOString(),
@@ -1454,39 +1459,80 @@ function App() {
       const transactionsRef = collection(db, 'spenders', user.uid, 'transactions');
       const accountsRef = collection(db, 'spenders', user.uid, 'accounts');
       const budgetsRef = collection(db, 'spenders', user.uid, 'budgets');
+      const goalsRef = collection(db, 'spenders', user.uid, 'goals');
+      const loansRef = collection(db, 'spenders', user.uid, 'loans');
+      const recurringTransactionsRef = collection(db, 'spenders', user.uid, 'recurring_transactions');
+      const totalBudgetRef = doc(db, 'spenders', user.uid, 'totalBudget', 'current');
 
       const transactionsSnapshot = await getDocs(transactionsRef);
       const accountsSnapshot = await getDocs(accountsRef);
       const budgetsSnapshot = await getDocs(budgetsRef);
+      const goalsSnapshot = await getDocs(goalsRef);
+      const loansSnapshot = await getDocs(loansRef);
+      const recurringTransactionsSnapshot = await getDocs(recurringTransactionsRef);
 
       const batch = writeBatch(db);
 
       transactionsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
       accountsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
       budgetsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+      goalsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+      loansSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+      recurringTransactionsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+      
+      // Delete total budget if it exists
+      batch.delete(totalBudgetRef);
 
       await batch.commit();
 
       // 2. Restore new data
       const restoreBatch = writeBatch(db);
 
-      data.transactions.forEach((transaction: Transaction) => {
+      data.transactions?.forEach((transaction: Transaction) => {
         const { id, ...transactionData } = transaction;
         const newTransactionRef = doc(transactionsRef, id);
         restoreBatch.set(newTransactionRef, transactionData);
       });
 
-      data.accounts.forEach((account: Account) => {
+      data.accounts?.forEach((account: Account) => {
         const { id, ...accountData } = account;
         const newAccountRef = doc(accountsRef, id);
         restoreBatch.set(newAccountRef, accountData);
       });
 
-      data.budgets.forEach((budget: Budget) => {
+      data.budgets?.forEach((budget: Budget) => {
         const { id, ...budgetData } = budget;
         const newBudgetRef = doc(budgetsRef, id);
         restoreBatch.set(newBudgetRef, budgetData);
       });
+
+      data.goals?.forEach((goal: Goal) => {
+        const { id, ...goalData } = goal;
+        const newGoalRef = doc(goalsRef, id);
+        restoreBatch.set(newGoalRef, goalData);
+      });
+
+      data.loans?.forEach((loan: Loan) => {
+        const { id, ...loanData } = loan;
+        // Filter out undefined values to prevent Firebase errors
+        const filteredLoanData = Object.fromEntries(
+          Object.entries(loanData).filter(([_, value]) => value !== undefined)
+        );
+        const newLoanRef = doc(loansRef, id);
+        restoreBatch.set(newLoanRef, filteredLoanData);
+      });
+
+      data.recurringTransactions?.forEach((recurringTransaction: RecurringTransaction) => {
+        const { id, ...recurringTransactionData } = recurringTransaction;
+        const newRecurringTransactionRef = doc(recurringTransactionsRef, id);
+        restoreBatch.set(newRecurringTransactionRef, recurringTransactionData);
+      });
+
+      // Restore total budget if it exists
+      if (data.totalBudget) {
+        const { id, ...totalBudgetData } = data.totalBudget;
+        restoreBatch.set(totalBudgetRef, totalBudgetData);
+      }
 
       await restoreBatch.commit();
 
@@ -1495,11 +1541,13 @@ function App() {
         setDarkMode(data.settings.darkMode);
         setCurrency(data.settings.currency);
         setDefaultAccountId(data.settings.defaultAccountId);
+        setSelectedFont(data.settings.fontPreference || 'Montserrat');
         const userDocRef = doc(db, 'spenders', user.uid);
         await setDoc(userDocRef, { 
           themePreference: data.settings.darkMode ? 'dark' : 'light',
           currency: data.settings.currency,
-          defaultAccountId: data.settings.defaultAccountId
+          defaultAccountId: data.settings.defaultAccountId,
+          fontPreference: data.settings.fontPreference || 'Montserrat'
         }, { merge: true });
       }
 
@@ -1508,6 +1556,12 @@ function App() {
         const userDocRef = doc(db, 'spenders', user.uid);
         await setDoc(userDocRef, { categories: data.userCategories }, { merge: true });
       }
+
+      // Update state variables
+      if (data.goals) setGoals(data.goals);
+      if (data.loans) setLoans(data.loans);
+      if (data.recurringTransactions) setRecurringTransactions(data.recurringTransactions);
+      if (data.totalBudget) setTotalBudget(data.totalBudget);
 
       showToast('Data restored successfully!', 'success');
     } catch (error) {

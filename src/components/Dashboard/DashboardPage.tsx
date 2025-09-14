@@ -3,7 +3,7 @@ import { DollarSign, TrendingUp, TrendingDown, Edit3, Save, X, Download, Grid3X3
 import MetricCard from './MetricCard';
 import SpendingChart from './SpendingChart';
 import RecentTransactions from './RecentTransactions';
-import { Transaction, Account, Budget, TotalBudget } from '../../types/types';
+import { Transaction, RecurringTransaction, Account, Budget, TotalBudget } from '../../types/types';
 import IncomeVsExpenseChart from './IncomeVsExpenseChart';
 import BudgetSummary from './BudgetSummary';
 import AccountBalances from './AccountBalances';
@@ -24,7 +24,7 @@ import { fadeInVariants, staggerContainer, buttonHoverVariants } from '../../com
 
 interface DashboardPageProps {
   transactions: Transaction[];
-  recurringTransactions: Transaction[];
+  recurringTransactions: RecurringTransaction[];
   accounts: Account[];
   budgets: Budget[];
   totalBudget: TotalBudget | null;
