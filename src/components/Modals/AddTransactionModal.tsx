@@ -17,17 +17,19 @@ interface AddTransactionModalProps {
 
 // Category keywords mapping for auto-categorization
 const CATEGORY_KEYWORDS: Record<string, string[]> = {
-  'Groceries': ['grocery', 'market', 'supermarket', 'food', 'vegetables', 'fruits', 'meat', 'dairy', 'zepto', 'instamart', 'blinkit'],
-  'Food & Dining': ['restaurant', 'cafe', 'coffee', 'lunch', 'dinner', 'meal', 'dining', 'burger', 'pizza', 'mcdonalds', 'starbucks', 'swiggy', 'zomato'],
-  'Transportation': ['gas', 'fuel', 'petrol', 'diesel', 'uber', 'taxi', 'bus', 'train', 'flight', 'airline', 'parking', 'toll'],
-  'Utilities': ['electricity', 'water', 'gas', 'internet', 'wifi', 'phone', 'mobile', 'subscription', 'netflix', 'spotify'],
+  'Groceries': ['grocery', 'market', 'supermarket', 'vegetables', 'fruits', 'meat', 'dairy', 'zepto', 'instamart', 'blinkit', 'bigbasket', 'grofers', 'reliance fresh', 'dmart'],
+  'Food & Dining': ['restaurant', 'cafe', 'food', 'breakfast', 'lunch', 'dinner', 'meal', 'dining', 'burger', 'pizza', 'mcdonalds', 'starbucks', 'swiggy', 'zomato', 'haldirams', 'bikaner', 'faasos', 'behrouz', 'ovenstory'],
+  'Transportation': [ 'uber', 'taxi', 'bus', 'train', 'flight', 'airline', 'parking', 'toll', 'auto', 'cab', 'ola', 'rapido', 'metro', 'local train'],
+  'Utilities': ['electricity', 'water', 'gas', 'internet', 'wifi', 'phone', 'mobile', 'subscription', 'netflix', 'spotify', 'airtel', 'jio', 'vodafone', 'idea', 'bsnl', 'act', 'hathway', 'prime video', 'hotstar', 'zee5', 'sonyliv'],
   'Entertainment': ['movie', 'cinema', 'theater', 'concert', 'ticket', 'game', 'playstation', 'xbox', 'streaming'],
-  'Shopping': ['clothing', 'shoes', 'mall', 'store', 'retail', 'purchase', 'buy', 'amazon', 'flipkart'],
-  'Healthcare': ['doctor', 'hospital', 'medicine', 'pharmacy', 'drug', 'medical', 'clinic', 'dentist'],
+  'Shopping': ['clothing', 'shoes', 'mall', 'store', 'retail', 'purchase', 'buy', 'amazon', 'flipkart', 'myntra', 'ajio', 'nykaa', 'meesho', 'croma', 'reliance digital'],
+  'Healthcare': ['doctor', 'hospital', 'medicine', 'pharmacy', 'drug', 'medical', 'clinic', 'dentist', 'apollo', 'fortis', 'max', 'lal pathlabs', '1mg', 'netmeds', 'pharmeasy'],
   'Education': ['school', 'college', 'university', 'tuition', 'books', 'course', 'training', 'education'],
   'Salary': ['salary', 'wage', 'payroll', 'income', 'deposit', 'paycheck'],
   'Freelance': ['freelance', 'consulting', 'contract', 'project', 'client'],
-  'Investment': ['investment', 'stock', 'mutual fund', 'sip', 'fd', 'fixed deposit', 'shares'],
+  'Investment': ['investment', 'stock', 'mutual fund', 'sip', 'fd', 'fixed deposit', 'shares', 'zerodha', 'upstox', 'groww', 'paytm money'],
+  'Recharge & Bills': ['recharge', 'bill', 'paytm', 'gpay', 'phonepe', 'google pay'],
+  'Fuel': ['gas', 'fuel', 'petrol', 'diesel',],
 };
 
 const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
@@ -38,7 +40,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   accounts,
   creditCards = [],
   defaultAccountId,
-  categories = ['Salary', 'Freelance', 'Investment', 'Groceries', 'Food & Dining', 'Transportation', 'Entertainment', 'Shopping', 'Utilities', 'Healthcare', 'Education', 'Other']
+  categories = ['Salary', 'Freelance', 'Investment', 'Groceries', 'Food & Dining', 'Transportation', 'Entertainment', 'Shopping', 'Utilities', 'Healthcare', 'Education', 'Recharge & Bills', 'Other']
 }) => {
   const [formData, setFormData] = useState({
     name: '',
