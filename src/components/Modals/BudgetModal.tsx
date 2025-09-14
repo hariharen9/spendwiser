@@ -3,6 +3,7 @@ import { X, Target, DollarSign, Tag } from 'lucide-react';
 import { Budget } from '../../types/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { modalVariants } from '../Common/AnimationVariants';
+import AnimatedDropdown from '../Common/AnimatedDropdown';
 
 interface BudgetModalProps {
   isOpen: boolean;
@@ -122,18 +123,11 @@ const BudgetModal: React.FC<BudgetModalProps> = ({
                   </span>
                   Category *
                 </label>
-                <motion.select
-                  required
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-[#1A1A1A] dark:border-gray-600 dark:text-white py-3 px-4 transition-all appearance-none"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  {categories.map(category => (
-                    <option key={category} value={category} className="dark:bg-[#1A1A1A] dark:text-white">{category}</option>
-                  ))}
-                </motion.select>
+                <AnimatedDropdown
+                  selectedValue={formData.category}
+                  options={categories}
+                  onChange={(value) => setFormData({ ...formData, category: value })}
+                />
               </motion.div>
 
               {/* Budget Limit */}
