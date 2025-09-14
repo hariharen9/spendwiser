@@ -97,7 +97,7 @@ const LoanModal: React.FC<LoanModalProps> = ({ isOpen, onClose, onSave, editingL
           onClick={onClose}
         >
           <motion.div
-            className="bg-white dark:bg-[#242424] rounded-xl border border-gray-200 dark:border-gray-700 w-full max-w-md shadow-2xl"
+            className="bg-white dark:bg-[#242424] rounded-xl border border-gray-200 dark:border-gray-700 w-full max-w-md shadow-2xl z-50"
             variants={modalVariants}
             initial="initial"
             animate="animate"

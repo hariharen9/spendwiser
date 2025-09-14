@@ -46,7 +46,7 @@ const LoansPage: React.FC<LoansPageProps> = ({ loans, onAddLoan, onEditLoan, onD
         className="flex items-center justify-between"
         variants={fadeInVariants}
       >
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-[#F5F5F5]">EMIs & Loans Tracker</h2>
+        <h2 className="text-1xl md:text-2xl font-bold text-gray-900 dark:text-[#F5F5F5]">EMIs & Loans Tracker</h2>
         <motion.button 
           onClick={onAddLoan}
           className="bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
