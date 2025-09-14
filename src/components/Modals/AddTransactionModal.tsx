@@ -291,7 +291,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                       min="0"
                       value={formData.amount}
                       onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                      className={`w-full rounded-lg border shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-[#1A1A1A] py-2 md:py-3 px-3 md:px-4 transition-all placeholder-gray-400 dark:placeholder-[#888888] ${
+                      className={`w-full rounded-lg border shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-[#1A1A1A] dark:text-white py-2 md:py-3 px-3 md:px-4 transition-all placeholder-gray-400 dark:placeholder-[#888888] ${
                         isLargeAmount 
                           ? 'border-red-500 focus:ring-red-200 dark:border-red-500 dark:focus:ring-red-900/50' 
                           : 'border-gray-300 dark:border-gray-600'
