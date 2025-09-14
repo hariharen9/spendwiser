@@ -17,10 +17,10 @@ export const useToast = () => {
     
     setToasts(prev => [...prev, newToast]);
     
-    // Auto remove toast after 3 seconds
+    // Auto remove toast after 6 seconds
     setTimeout(() => {
       setToasts(prev => prev.filter(toast => toast.id !== id));
-    }, 3000);
+    }, 6000);
   }, []);
 
   const removeToast = useCallback((id: string) => {

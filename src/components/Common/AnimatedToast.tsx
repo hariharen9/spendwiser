@@ -71,7 +71,7 @@ const AnimatedToast: React.FC<AnimatedToastProps> = ({ message, type, onClose })
         className="absolute bottom-0 left-0 h-1 bg-white/30"
         initial={{ width: "100%" }}
         animate={{ width: "0%" }}
-        transition={{ duration: 3, ease: "linear" }}
+        transition={{ duration: 6, ease: "linear" }} // toast duration
         onAnimationComplete={onClose}
       />
     </motion.div>
