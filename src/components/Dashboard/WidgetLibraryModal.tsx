@@ -59,16 +59,24 @@ interface WidgetLibraryModalProps {
   hiddenWidgets: string[];
   onToggleWidget: (widgetId: string) => void;
   onReorderWidgets: (reorderedIds: string[]) => void;
+  widgetLayout: { id: string; column: number; order: number }[];
+  onUpdateLayout: (newLayout: { id: string; column: number; order: number }[]) => void;
 }
 
-// Sortable Widget Item Component
-interface SortableWidgetItemProps {
+// Compact Sortable Widget Item Component for column layout
+interface CompactSortableWidgetItemProps {
   widget: WidgetConfig;
   isVisible: boolean;
   onToggle: (widgetId: string) => void;
+  columnIndex: number;
 }
 
-const SortableWidgetItem: React.FC<SortableWidgetItemProps> = ({ widget, isVisible, onToggle }) => {
+const CompactSortableWidgetItem: React.FC<CompactSortableWidgetItemProps> = ({ 
+  widget, 
+  isVisible, 
+  onToggle, 
+  columnIndex 
+}) => {
   const {
     attributes,
     listeners,
@@ -87,39 +95,36 @@ const SortableWidgetItem: React.FC<SortableWidgetItemProps> = ({ widget, isVisib
     <div
       ref={setNodeRef}
       style={style}
-      className={`p-4 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-[#1A1A1A] transition-all hover:scale-[1.02] ${
+      className={`p-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-[#1A1A1A] transition-all hover:scale-[1.02] text-xs ${
         isDragging ? 'opacity-50 z-50' : ''
       } ${
         !isVisible ? 'border-dashed opacity-75' : ''
       }`}
     >
-      <div className="flex items-start justify-between">
-        <div className="flex items-start gap-3 flex-1">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-start gap-2 flex-1 min-w-0">
           {/* Drag Handle */}
           {isVisible && (
             <div
               {...attributes}
               {...listeners}
-              className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 cursor-grab active:cursor-grabbing mt-1"
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 cursor-grab active:cursor-grabbing mt-0.5 flex-shrink-0"
             >
-              <GripVertical size={16} />
+              <GripVertical size={12} />
             </div>
           )}
           
-          <div className={`p-2 rounded-lg ${widget.color} text-white ${!isVisible ? 'opacity-60' : ''}`}>
-            {widget.icon}
+          <div className={`p-1.5 rounded ${widget.color} text-white flex-shrink-0 ${!isVisible ? 'opacity-60' : ''}`}>
+            {React.cloneElement(widget.icon as React.ReactElement, { size: 12 })}
           </div>
           
-          <div className="flex-1">
-            <h4 className={`font-medium ${
+          <div className="flex-1 min-w-0">
+            <h4 className={`font-medium text-xs truncate ${
               isVisible ? 'text-gray-900 dark:text-[#F5F5F5]' : 'text-gray-700 dark:text-gray-300'
             }`}>
               {widget.name}
             </h4>
-            <p className="text-sm text-gray-500 dark:text-[#888888] mt-1">
-              {widget.description}
-            </p>
-            <span className={`inline-block mt-2 px-2 py-1 text-xs rounded ${
+            <span className={`inline-block mt-1 px-1.5 py-0.5 text-[10px] rounded truncate ${
               isVisible 
                 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
                 : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
@@ -131,7 +136,7 @@ const SortableWidgetItem: React.FC<SortableWidgetItemProps> = ({ widget, isVisib
         
         <motion.button
           onClick={() => onToggle(widget.id)}
-          className={`p-2 rounded-lg transition-colors ${
+          className={`p-1 rounded transition-colors flex-shrink-0 ${
             isVisible
               ? 'text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20'
               : 'text-gray-500 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20'
@@ -140,7 +145,7 @@ const SortableWidgetItem: React.FC<SortableWidgetItemProps> = ({ widget, isVisib
           whileHover="hover"
           whileTap="tap"
         >
-          {isVisible ? <Eye size={16} /> : <EyeOff size={16} />}
+          {isVisible ? <Eye size={12} /> : <EyeOff size={12} />}
         </motion.button>
       </div>
     </div>
@@ -268,7 +273,9 @@ const WidgetLibraryModal: React.FC<WidgetLibraryModalProps> = ({
   visibleWidgets,
   hiddenWidgets,
   onToggleWidget,
-  onReorderWidgets
+  onReorderWidgets,
+  widgetLayout,
+  onUpdateLayout
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -294,12 +301,32 @@ const WidgetLibraryModal: React.FC<WidgetLibraryModalProps> = ({
     return matchesSearch && matchesCategory;
   });
 
-  // Sort visible widgets according to the current order
-  const visibleFilteredWidgets = visibleWidgets
-    .map(id => WIDGET_CONFIGS.find(w => w.id === id))
-    .filter((widget): widget is WidgetConfig => {
-      return widget !== undefined && filteredWidgets.some(fw => fw.id === widget.id);
+  // Organize widgets by column based on layout
+  const getWidgetsByColumn = () => {
+    const columns: { [key: number]: WidgetConfig[] } = { 0: [], 1: [], 2: [] };
+    
+    visibleWidgets.forEach(widgetId => {
+      const widget = WIDGET_CONFIGS.find(w => w.id === widgetId);
+      const layout = widgetLayout.find(l => l.id === widgetId);
+      
+      if (widget && layout && filteredWidgets.some(fw => fw.id === widget.id)) {
+        if (!columns[layout.column]) columns[layout.column] = [];
+        columns[layout.column].push(widget);
+      }
     });
+    
+    // Sort by order within each column
+    Object.keys(columns).forEach(col => {
+      const columnNum = parseInt(col);
+      columns[columnNum].sort((a, b) => {
+        const layoutA = widgetLayout.find(l => l.id === a.id);
+        const layoutB = widgetLayout.find(l => l.id === b.id);
+        return (layoutA?.order || 0) - (layoutB?.order || 0);
+      });
+    });
+    
+    return columns;
+  };
 
   const hiddenFilteredWidgets = filteredWidgets.filter(widget => 
     hiddenWidgets.includes(widget.id)
@@ -317,16 +344,75 @@ const WidgetLibraryModal: React.FC<WidgetLibraryModalProps> = ({
       return;
     }
 
-    const oldIndex = visibleWidgets.indexOf(active.id as string);
-    const newIndex = visibleWidgets.indexOf(over.id as string);
-
-    if (oldIndex !== -1 && newIndex !== -1) {
-      const reorderedIds = arrayMove(visibleWidgets, oldIndex, newIndex);
-      onReorderWidgets(reorderedIds);
+    const activeId = active.id as string;
+    const overId = over.id as string;
+    
+    // Handle dropping on column drop zone
+    if (overId.startsWith('column-dropzone-')) {
+      const targetColumn = parseInt(overId.split('-')[2]);
+      const activeLayout = widgetLayout.find(l => l.id === activeId);
+      
+      if (activeLayout && activeLayout.column !== targetColumn) {
+        const newLayout = widgetLayout.map(layout => {
+          if (layout.id === activeId) {
+            return { ...layout, column: targetColumn, order: 0 };
+          }
+          // Adjust orders in target column
+          if (layout.column === targetColumn) {
+            return { ...layout, order: layout.order + 1 };
+          }
+          return layout;
+        });
+        
+        onUpdateLayout(newLayout);
+      }
+      return;
+    }
+    
+    // Handle reordering within same column
+    const activeLayout = widgetLayout.find(l => l.id === activeId);
+    const overLayout = widgetLayout.find(l => l.id === overId);
+    
+    if (activeLayout && overLayout) {
+      if (activeLayout.column === overLayout.column) {
+        // Same column reordering
+        const columnWidgets = widgetLayout
+          .filter(l => l.column === activeLayout.column && visibleWidgets.includes(l.id))
+          .sort((a, b) => a.order - b.order);
+          
+        const oldIndex = columnWidgets.findIndex(l => l.id === activeId);
+        const newIndex = columnWidgets.findIndex(l => l.id === overId);
+        
+        const reorderedIds = arrayMove(columnWidgets.map(l => l.id), oldIndex, newIndex);
+        
+        const newLayout = widgetLayout.map(layout => {
+          if (layout.column === activeLayout.column && visibleWidgets.includes(layout.id)) {
+            const newOrder = reorderedIds.findIndex(id => id === layout.id);
+            return { ...layout, order: newOrder };
+          }
+          return layout;
+        });
+        
+        onUpdateLayout(newLayout);
+      } else {
+        // Cross-column move
+        const newLayout = widgetLayout.map(layout => {
+          if (layout.id === activeId) {
+            return { ...layout, column: overLayout.column, order: overLayout.order };
+          }
+          if (layout.column === overLayout.column && layout.order >= overLayout.order && layout.id !== activeId) {
+            return { ...layout, order: layout.order + 1 };
+          }
+          return layout;
+        });
+        
+        onUpdateLayout(newLayout);
+      }
     }
   };
 
   const activeWidget = activeId ? WIDGET_CONFIGS.find(w => w.id === activeId) : null;
+  const widgetsByColumn = getWidgetsByColumn();
 
   return (
     <AnimatePresence>
@@ -400,91 +486,127 @@ const WidgetLibraryModal: React.FC<WidgetLibraryModalProps> = ({
 
             {/* Content */}
             <div className="p-6 overflow-y-auto max-h-[60vh]">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Visible Widgets */}
-                <div>
-                  <motion.h3 
-                    className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-4 flex items-center gap-2"
-                    variants={fadeInVariants}
-                  >
-                    <Eye size={20} className="text-green-500" />
-                    Visible Widgets ({visibleFilteredWidgets.length})
-                  </motion.h3>
-                  
-                  <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragStart={handleDragStart}
-                    onDragEnd={handleDragEnd}
-                  >
-                    <SortableContext
-                      items={visibleFilteredWidgets.map(w => w.id)}
-                      strategy={verticalListSortingStrategy}
-                    >
-                      <div className="space-y-3">
-                        {visibleFilteredWidgets.map((widget) => (
-                          <SortableWidgetItem
-                            key={widget.id}
-                            widget={widget}
-                            isVisible={true}
-                            onToggle={onToggleWidget}
-                          />
-                        ))}
+              {/* 3-Column Dashboard Layout Mirror */}
+              <div className="mb-6">
+                <motion.h3 
+                  className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-4 flex items-center gap-2"
+                  variants={fadeInVariants}
+                >
+                  <Grid size={20} className="text-blue-500" />
+                  Dashboard Layout ({Object.values(widgetsByColumn).flat().length} visible widgets)
+                </motion.h3>
+                
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
+                >
+                  <div className="grid grid-cols-3 gap-4">
+                    {[0, 1, 2].map((columnIndex) => (
+                      <div key={columnIndex} className="space-y-2">
+                        <div className="text-center text-sm font-medium text-gray-600 dark:text-gray-400 py-2 border-b border-gray-200 dark:border-gray-600">
+                          Column {columnIndex + 1}
+                        </div>
+                        
+                        {/* Column Drop Zone */}
+                        <div 
+                          className="min-h-[60px] border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-2 text-center text-xs text-gray-500 dark:text-gray-400 hover:border-blue-400 transition-colors"
+                          onDragOver={(e) => e.preventDefault()}
+                          onDrop={() => {}} // Handled by DnD Kit
+                          data-column={columnIndex}
+                        >
+                          {widgetsByColumn[columnIndex].length === 0 ? (
+                            <div className="py-4 text-gray-400">Drop widgets here</div>
+                          ) : null}
+                        </div>
+                        
+                        <SortableContext
+                          items={widgetsByColumn[columnIndex].map(w => w.id)}
+                          strategy={verticalListSortingStrategy}
+                        >
+                          <div className="space-y-2">
+                            {widgetsByColumn[columnIndex].map((widget) => (
+                              <CompactSortableWidgetItem
+                                key={widget.id}
+                                widget={widget}
+                                isVisible={true}
+                                onToggle={onToggleWidget}
+                                columnIndex={columnIndex}
+                              />
+                            ))}
+                          </div>
+                        </SortableContext>
                       </div>
-                    </SortableContext>
-                    
-                    <DragOverlay>
-                      {activeWidget ? (
-                        <div className="p-4 border border-blue-400 rounded-lg bg-white dark:bg-[#1A1A1A] shadow-2xl opacity-90 transform scale-105">
-                          <div className="flex items-start gap-3">
-                            <div className={`p-2 rounded-lg ${activeWidget.color} text-white`}>
-                              {activeWidget.icon}
-                            </div>
-                            <div>
-                              <h4 className="font-medium text-gray-900 dark:text-[#F5F5F5]">
-                                {activeWidget.name}
-                              </h4>
-                              <p className="text-sm text-gray-500 dark:text-[#888888]">
-                                {activeWidget.description}
-                              </p>
-                            </div>
+                    ))}
+                  </div>
+                  
+                  <DragOverlay>
+                    {activeWidget ? (
+                      <div className="p-3 border border-blue-400 rounded-lg bg-white dark:bg-[#1A1A1A] shadow-2xl opacity-90 transform scale-105">
+                        <div className="flex items-start gap-2">
+                          <div className={`p-1.5 rounded ${activeWidget.color} text-white`}>
+                            {React.cloneElement(activeWidget.icon as React.ReactElement, { size: 12 })}
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-xs text-gray-900 dark:text-[#F5F5F5]">
+                              {activeWidget.name}
+                            </h4>
                           </div>
                         </div>
-                      ) : null}
-                    </DragOverlay>
-                  </DndContext>
-                  
-                  {visibleFilteredWidgets.length === 0 && (
-                    <div className="text-center py-8 text-gray-500 dark:text-[#888888]">
-                      No visible widgets match your criteria
+                      </div>
+                    ) : null}
+                  </DragOverlay>
+                </DndContext>
+              </div>
+
+              {/* Hidden Widgets Section */}
+              <div>
+                <motion.h3 
+                  className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-4 flex items-center gap-2"
+                  variants={fadeInVariants}
+                >
+                  <EyeOff size={20} className="text-gray-500" />
+                  Hidden Widgets ({hiddenFilteredWidgets.length})
+                </motion.h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {hiddenFilteredWidgets.map((widget) => (
+                    <div
+                      key={widget.id}
+                      className="p-3 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-[#1A1A1A] opacity-75 hover:scale-[1.02] hover:opacity-100 transition-all"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-start gap-2 flex-1 min-w-0">
+                          <div className={`p-1.5 rounded ${widget.color} text-white opacity-60`}>
+                            {React.cloneElement(widget.icon as React.ReactElement, { size: 12 })}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-xs text-gray-700 dark:text-gray-300 truncate">
+                              {widget.name}
+                            </h4>
+                            <span className="inline-block mt-1 px-1.5 py-0.5 text-[10px] bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded">
+                              {widget.category}
+                            </span>
+                          </div>
+                        </div>
+                        <motion.button
+                          onClick={() => onToggleWidget(widget.id)}
+                          className="p-1 text-gray-500 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors flex-shrink-0"
+                          variants={buttonHoverVariants}
+                          whileHover="hover"
+                          whileTap="tap"
+                        >
+                          <EyeOff size={12} />
+                        </motion.button>
+                      </div>
+                    </div>
+                  ))}
+                  {hiddenFilteredWidgets.length === 0 && (
+                    <div className="col-span-2 text-center py-8 text-gray-500 dark:text-[#888888]">
+                      All widgets are currently visible
                     </div>
                   )}
-                </div>
-
-                {/* Hidden Widgets */}
-                <div>
-                  <motion.h3 
-                    className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-4 flex items-center gap-2"
-                    variants={fadeInVariants}
-                  >
-                    <EyeOff size={20} className="text-gray-500" />
-                    Hidden Widgets ({hiddenFilteredWidgets.length})
-                  </motion.h3>
-                  <div className="space-y-3">
-                    {hiddenFilteredWidgets.map((widget) => (
-                      <SortableWidgetItem
-                        key={widget.id}
-                        widget={widget}
-                        isVisible={false}
-                        onToggle={onToggleWidget}
-                      />
-                    ))}
-                    {hiddenFilteredWidgets.length === 0 && (
-                      <div className="text-center py-8 text-gray-500 dark:text-[#888888]">
-                        All widgets are currently visible
-                      </div>
-                    )}
-                  </div>
                 </div>
               </div>
             </div>
@@ -493,10 +615,10 @@ const WidgetLibraryModal: React.FC<WidgetLibraryModalProps> = ({
             <div className="flex items-center justify-between p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#1A1A1A] rounded-b-xl">
               <div className="text-sm text-gray-600 dark:text-gray-400">
                 <p>💡 <strong>Tips:</strong></p>
-                <p>• Drag the grip handle to reorder visible widgets</p>
-                <p>• Click the eye icon to show/hide widgets</p>
-                <p>• Use search and filters to find specific widgets</p>
-                <p>• Widget order in dashboard matches the order here</p>
+                <p>• Drag widgets between columns to reorganize layout</p>
+                <p>• Drag within columns to reorder position</p>
+                <p>• Click eye icons to show/hide widgets</p>
+                <p>• Layout changes instantly reflect in dashboard</p>
               </div>
               <motion.button
                 onClick={onClose}

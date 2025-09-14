@@ -149,32 +149,22 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, b
     }
   };
 
-  // Reorder visible widgets
-  const handleReorderWidgets = (reorderedIds: string[]) => {
-    setVisibleWidgets(reorderedIds);
-    
-    // Update layout with new order
-    const newLayout = reorderedIds.map((id, index) => {
-      const existingLayout = widgetLayout.find(w => w.id === id);
-      return {
-        id,
-        column: existingLayout?.column || 0,
-        order: index
-      };
-    });
-    
+  // Update layout from modal
+  const handleUpdateLayout = (newLayout: WidgetLayout[]) => {
     setWidgetLayout(newLayout);
     saveToLocalStorage();
   };
 
-  // Handle widget reordering from DnD
-  const handleWidgetReorder = (newWidgets: { id: string; component: React.ReactNode; column: number }[]) => {
-    const newLayout: WidgetLayout[] = newWidgets.map((widget, index) => ({
+  // Handle widget reordering from DnD (updated to work with layout changes)
+  const handleWidgetReorder = (newWidgets: { id: string; component: React.ReactNode; column: number; order: number }[]) => {
+    // Extract layout information from reordered widgets
+    const newLayout: WidgetLayout[] = newWidgets.map(widget => ({
       id: widget.id,
       column: widget.column,
-      order: index
+      order: widget.order
     }));
     
+    // Update the widget layout
     setWidgetLayout(newLayout);
     saveToLocalStorage();
   };
@@ -215,7 +205,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, b
     }
   };
 
-  // Prepare widgets for DnD container
+  // Prepare widgets for DnD container (with order field)
   const dashboardWidgets = useMemo(() => {
     return visibleWidgets
       .map(widgetId => {
@@ -223,7 +213,8 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, b
         return {
           id: widgetId,
           component: renderComponent(widgetId),
-          column: layout.column
+          column: layout.column,
+          order: layout.order
         };
       })
       .filter(widget => widget.component !== null);
@@ -389,6 +380,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, b
           onRemoveWidget={handleToggleWidget}
           onAddWidget={() => setIsWidgetLibraryOpen(true)}
           columnCount={3}
+          widgetLayout={widgetLayout}
         />
         
         {visibleWidgets.length === 0 && (
@@ -422,7 +414,9 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, b
         visibleWidgets={visibleWidgets}
         hiddenWidgets={hiddenWidgets}
         onToggleWidget={handleToggleWidget}
-        onReorderWidgets={handleReorderWidgets}
+        onReorderWidgets={() => {}} // Not needed with new layout
+        widgetLayout={widgetLayout}
+        onUpdateLayout={handleUpdateLayout}
       />
     </motion.div>
   );

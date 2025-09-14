@@ -27,6 +27,7 @@ interface WidgetItem {
   id: string;
   component: React.ReactNode;
   column: number;
+  order: number; // Add explicit order field
 }
 
 interface DashboardContainerProps {
@@ -36,6 +37,7 @@ interface DashboardContainerProps {
   onRemoveWidget: (widgetId: string) => void;
   onAddWidget?: () => void;
   columnCount?: number;
+  widgetLayout: { id: string; column: number; order: number }[]; // Add layout prop
 }
 
 const DashboardContainer: React.FC<DashboardContainerProps> = ({
@@ -44,7 +46,8 @@ const DashboardContainer: React.FC<DashboardContainerProps> = ({
   onReorder,
   onRemoveWidget,
   onAddWidget,
-  columnCount = 3
+  columnCount = 3,
+  widgetLayout
 }) => {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
@@ -105,17 +108,33 @@ const DashboardContainer: React.FC<DashboardContainerProps> = ({
     return closestCenter(args);
   };
 
-  // Organize widgets into columns
+  // Organize widgets by column with exact same logic as modal
   const columns = useMemo(() => {
     const cols: WidgetItem[][] = Array.from({ length: columnCount }, () => []);
     
-    widgets.forEach(widget => {
+    // Create widgets with layout information
+    const widgetsWithLayout = widgets.map(widget => {
+      const layout = widgetLayout.find(l => l.id === widget.id);
+      return {
+        ...widget,
+        column: layout?.column ?? widget.column,
+        order: layout?.order ?? 0
+      };
+    });
+    
+    // Group by column
+    widgetsWithLayout.forEach(widget => {
       const targetColumn = Math.min(widget.column, columnCount - 1);
       cols[targetColumn].push(widget);
     });
     
+    // Sort each column by order (EXACT same logic as modal)
+    cols.forEach(column => {
+      column.sort((a, b) => (a.order || 0) - (b.order || 0));
+    });
+    
     return cols;
-  }, [widgets, columnCount]);
+  }, [widgets, columnCount, widgetLayout]);
 
   // Get all widget IDs for sortable context
   const widgetIds = useMemo(() => widgets.map(w => w.id), [widgets]);
@@ -169,54 +188,30 @@ const DashboardContainer: React.FC<DashboardContainerProps> = ({
       
       console.log(`Drop zone: Moving ${active.id} to column ${targetColumn}, position ${targetPosition}`);
       
-      // Create new widget with updated column
-      const updatedWidget = { ...activeWidget, column: targetColumn };
-      
-      // Remove active widget from current position
-      const widgetsWithoutActive = widgets.filter(w => w.id !== active.id);
-      
-      // Get widgets in target column, sorted by their current array position
-      const targetColumnWidgets = widgetsWithoutActive
-        .filter(w => w.column === targetColumn)
-        .map((widget, idx) => ({
-          widget,
-          arrayIndex: widgets.findIndex(w => w.id === widget.id)
-        }))
-        .sort((a, b) => a.arrayIndex - b.arrayIndex);
-      
-      console.log('Target column widgets:', targetColumnWidgets.map(item => ({ id: item.widget.id, arrayIndex: item.arrayIndex })));
-      
-      // Find insertion point
-      let insertionIndex;
-      
-      if (targetPosition === 0) {
-        // Insert at beginning of column
-        if (targetColumnWidgets.length === 0) {
-          // Empty column - add to end of array
-          insertionIndex = widgetsWithoutActive.length;
-        } else {
-          // Insert before first widget in column
-          insertionIndex = targetColumnWidgets[0].arrayIndex;
+      // Update widget layout to match new position
+      const newLayout = widgetLayout.map(layout => {
+        if (layout.id === active.id) {
+          return { ...layout, column: targetColumn, order: targetPosition };
         }
-      } else if (targetPosition >= targetColumnWidgets.length) {
-        // Insert at end of column
-        if (targetColumnWidgets.length === 0) {
-          insertionIndex = widgetsWithoutActive.length;
-        } else {
-          insertionIndex = targetColumnWidgets[targetColumnWidgets.length - 1].arrayIndex + 1;
+        // Adjust orders in target column for widgets at or after target position
+        if (layout.column === targetColumn && layout.order >= targetPosition && layout.id !== active.id) {
+          return { ...layout, order: layout.order + 1 };
         }
-      } else {
-        // Insert at specific position
-        insertionIndex = targetColumnWidgets[targetPosition].arrayIndex;
-      }
+        return layout;
+      });
       
-      console.log(`Inserting at index: ${insertionIndex}`);
+      // Create new widgets array with updated layout
+      const newWidgets = widgets.map(widget => {
+        const layout = newLayout.find(l => l.id === widget.id);
+        return {
+          ...widget,
+          column: layout?.column ?? widget.column,
+          order: layout?.order ?? 0
+        };
+      });
       
-      // Create final array
-      const newWidgets = [...widgetsWithoutActive];
-      newWidgets.splice(insertionIndex, 0, updatedWidget);
-      
-      console.log('Result:', newWidgets.map(w => `${w.id}(col:${w.column})`));
+      console.log('Updated layout:', newLayout);
+      console.log('Result widgets:', newWidgets.map(w => `${w.id}(col:${w.column},ord:${w.order})`));
       onReorder(newWidgets);
     }
     // Handle dropping on another widget (swap positions)
@@ -229,25 +224,37 @@ const DashboardContainer: React.FC<DashboardContainerProps> = ({
       
       console.log(`Widget swap: ${active.id} <-> ${overId}`);
       
-      const activeIndex = widgets.findIndex(w => w.id === active.id);
-      const targetIndex = widgets.findIndex(w => w.id === overId);
+      const activeLayout = widgetLayout.find(l => l.id === active.id);
+      const targetLayout = widgetLayout.find(l => l.id === overId);
       
-      if (activeIndex === -1 || targetIndex === -1) {
-        console.error('Widget indices not found');
+      if (!activeLayout || !targetLayout) {
+        console.error('Layout not found for widgets');
         return;
       }
       
-      // Create new array with swapped positions
-      const newWidgets = [...widgets];
+      // Swap the positions in layout
+      const newLayout = widgetLayout.map(layout => {
+        if (layout.id === active.id) {
+          return { ...layout, column: targetLayout.column, order: targetLayout.order };
+        }
+        if (layout.id === overId) {
+          return { ...layout, column: activeLayout.column, order: activeLayout.order };
+        }
+        return layout;
+      });
       
-      // Update the active widget's column to match target
-      newWidgets[activeIndex] = { ...activeWidget, column: targetWidget.column };
+      // Create new widgets array with swapped layout
+      const newWidgets = widgets.map(widget => {
+        const layout = newLayout.find(l => l.id === widget.id);
+        return {
+          ...widget,
+          column: layout?.column ?? widget.column,
+          order: layout?.order ?? 0
+        };
+      });
       
-      // Move to target position
-      const reorderedWidgets = arrayMove(newWidgets, activeIndex, targetIndex);
-      
-      console.log('Swap result:', reorderedWidgets.map(w => `${w.id}(col:${w.column})`));
-      onReorder(reorderedWidgets);
+      console.log('Swap result:', newWidgets.map(w => `${w.id}(col:${w.column},ord:${w.order})`));
+      onReorder(newWidgets);
     }
 
     setActiveId(null);
