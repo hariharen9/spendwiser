@@ -337,7 +337,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, b
       </motion.div>
 
       <motion.div 
-        className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
+        className="grid grid-cols-3 gap-3 md:gap-6 mb-8"
         variants={staggerContainer}
         initial="initial"
         animate="animate"
@@ -356,6 +356,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, b
             value={`${currency}${monthlyIncome.toLocaleString()}`}
             icon={TrendingUp}
             color="bg-[#28A745]"
+            mobileTitle="Income"
           />
         </motion.div>
         <motion.div variants={fadeInVariants} initial="initial" animate="animate" transition={{ delay: 0.3 }}>
@@ -364,6 +365,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, b
             value={`${currency}${monthlyExpenses.toLocaleString()}`}
             icon={TrendingDown}
             color="bg-[#DC3545]"
+            mobileTitle="Expenses"
           />
         </motion.div>
       </motion.div>
