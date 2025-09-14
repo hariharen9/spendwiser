@@ -37,6 +37,12 @@ const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onScreenChange, user, 
   const isMobile = !user;
 
   if (isMobile) {
+    const mobileNavItems = navItems.filter(item => item.id !== 'goals').map(item => {
+      if (item.id === 'credit-cards') {
+        return { ...item, label: 'CCs' };
+      }
+      return item;
+    });
     // Mobile bottom navigation with icons only
     return (
       <motion.div 
@@ -54,14 +60,14 @@ const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onScreenChange, user, 
           }
         }}
       >
-        {navItems.map((item) => {
+        {mobileNavItems.map((item) => {
           const Icon = item.icon;
           const isActive = currentScreen === item.id;
           return (
             <motion.button
               key={item.id}
               onClick={() => onScreenChange(item.id)}
-              className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all duration-200 w-20 ${
+              className={`flex flex-col items-center justify-center py-2 rounded-lg transition-all duration-200 ${
                 isActive
                   ? 'text-[#007BFF]'
                   : 'text-gray-500 dark:text-[#888888]'
@@ -72,7 +78,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onScreenChange, user, 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <Icon className="h-6 w-6" />
+              <Icon className="h-5 w-5" />
               <span className="text-xs mt-1">{item.label}</span>
             </motion.button>
           );
