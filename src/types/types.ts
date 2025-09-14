@@ -72,3 +72,17 @@ export interface Loan {
   isMock?: boolean;
   tenureInMonths?: number; // New field to support months for small items
 }
+
+export interface RecurringTransaction {
+  id: string;
+  name: string;
+  amount: number;
+  category: string;
+  type: 'income' | 'expense';
+  frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  startDate: string;
+  endDate?: string;
+  lastProcessedDate: string;
+  accountId?: string;
+  isMock?: boolean;
+}

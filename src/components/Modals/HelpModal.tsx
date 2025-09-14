@@ -21,6 +21,15 @@ const helpContent: { [key: string]: { title: string; content: React.ReactNode; q
           <li><strong>Sorting (Mobile):</strong> On mobile, you can sort your evidence by date, amount, or category to spot patterns.</li>
           <li><strong>Add/Edit/Delete:</strong> Plant evidence, alter testimonies, or make a transaction disappear entirely. With great power comes great responsibility.</li>
         </ul>
+
+        <h4 className="font-semibold text-gray-900 dark:text-white pt-4">Automating Your Life with Recurring Transactions</h4>
+        <p>For expenses that happen regularly (like rent or subscriptions), you can set them and forget them. Here’s how it works:</p>
+        <ol className="list-decimal list-inside space-y-2 mt-2">
+          <li><strong>Set the Rule:</strong> Use the "Manage Recurring" button to create a rule. Give it a name (e.g., "Milk"), an amount, and a frequency (like "daily").</li>
+          <li><strong>The App Checks on Startup:</strong> Every time you open the app, it checks if any recurring transactions are due.</li>
+          <li><strong>It Catches Up:</strong> If you haven't opened the app for a few days, it will automatically create all the missed transactions for you, ensuring your records are always up-to-date.</li>
+        </ol>
+
       </div>
     ),
     quote: "Trying to understand my transactions is like trying to solve a Rubik's Cube in the dark. But hey, at least the colors are pretty.",

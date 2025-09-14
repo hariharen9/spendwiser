@@ -11,6 +11,7 @@ interface TransactionsPageProps {
   transactions: Transaction[];
   onEditTransaction: (transaction: Transaction) => void;
   onDeleteTransaction: (id: string) => void;
+  onOpenRecurringModal: () => void;
   searchTerm: string;
   setSearchTerm: (value: string) => void;
   transactionType: string;
@@ -31,6 +32,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
   transactions,
   onEditTransaction,
   onDeleteTransaction,
+  onOpenRecurringModal,
   searchTerm,
   setSearchTerm,
   transactionType,
@@ -181,6 +183,15 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
         >
           {transactions.length} Transaction{transactions.length !== 1 ? 's' : ''}
         </motion.h2>
+        <motion.button
+            onClick={onOpenRecurringModal}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors flex items-center shadow-md hover:shadow-lg"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+        >
+            Manage Recurring
+        </motion.button>
       </motion.div>
 
       <motion.div

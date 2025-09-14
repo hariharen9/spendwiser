@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Screen, Transaction, Account, Budget, TotalBudget, Goal, Loan } from './types/types';
+import { Screen, Transaction, Account, Budget, TotalBudget, Goal, Loan, RecurringTransaction } from './types/types';
 import { User, deleteUser, GoogleAuthProvider, reauthenticateWithPopup } from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
 import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, writeBatch, getDocs } from 'firebase/firestore';
@@ -33,6 +33,7 @@ import HelpModal from './components/Modals/HelpModal';
 import ImportCSVModal from './components/Modals/ImportCSVModal';
 import ExportModal from './components/Modals/ExportModal';
 import LoanModal from './components/Modals/LoanModal';
+import RecurringTransactionModal from './components/Modals/RecurringTransactionModal';
 
 // Icons
 import { LogOut, DollarSign, X } from 'lucide-react';
@@ -53,12 +54,14 @@ function App() {
   const [budgetsLoaded, setBudgetsLoaded] = useState(false);
   const [goalsLoaded, setGoalsLoaded] = useState(false);
   const [loansLoaded, setLoansLoaded] = useState(false);
+  const [recurringTransactionsLoaded, setRecurringTransactionsLoaded] = useState(false);
   const [currentScreen, setCurrentScreen] = useState<Screen>('dashboard');
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loans, setLoans] = useState<Loan[]>([]);
+  const [recurringTransactions, setRecurringTransactions] = useState<RecurringTransaction[]>([]);
   const [totalBudget, setTotalBudget] = useState<TotalBudget | null>(null);
   const [isAddTransactionModalOpen, setIsAddTransactionModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | undefined>();
@@ -68,6 +71,7 @@ function App() {
   const [editingGoal, setEditingGoal] = useState<Goal | undefined>();
   const [isLoanModalOpen, setIsLoanModalOpen] = useState(false);
   const [editingLoan, setEditingLoan] = useState<Loan | undefined>();
+  const [isRecurringTransactionModalOpen, setIsRecurringTransactionModalOpen] = useState(false);
   const [isAddFundsModalOpen, setIsAddFundsModalOpen] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
@@ -122,7 +126,7 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const allDataLoaded = transactionsLoaded && accountsLoaded && budgetsLoaded && categoriesLoaded && goalsLoaded && loansLoaded;
+    const allDataLoaded = transactionsLoaded && accountsLoaded && budgetsLoaded && categoriesLoaded && goalsLoaded && loansLoaded && recurringTransactionsLoaded;
     if (authChecked) {
       if (user && allDataLoaded) {
         setLoading(false);
@@ -282,6 +286,78 @@ function App() {
       return () => unsubscribe();
     }
   }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      const recurringTransactionsRef = collection(db, 'spenders', user.uid, 'recurring_transactions');
+      const unsubscribe = onSnapshot(recurringTransactionsRef, snapshot => {
+        const recurringTransactionsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as RecurringTransaction[];
+        setRecurringTransactions(recurringTransactionsData);
+        setRecurringTransactionsLoaded(true);
+      });
+      return () => unsubscribe();
+    }
+  }, [user]);
+
+  const processRecurringTransactions = async () => {
+    if (!user || !recurringTransactionsLoaded) return;
+
+    const batch = writeBatch(db);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); 
+
+    for (const rt of recurringTransactions) {
+      let lastProcessed = new Date(rt.lastProcessedDate);
+      lastProcessed.setHours(0, 0, 0, 0);
+      
+      let nextTransactionDate = new Date(lastProcessed);
+
+      while (nextTransactionDate < today) {
+        switch (rt.frequency) {
+          case 'daily':
+            nextTransactionDate.setDate(nextTransactionDate.getDate() + 1);
+            break;
+          case 'weekly':
+            nextTransactionDate.setDate(nextTransactionDate.getDate() + 7);
+            break;
+          case 'monthly':
+            nextTransactionDate.setMonth(nextTransactionDate.getMonth() + 1);
+            break;
+          case 'yearly':
+            nextTransactionDate.setFullYear(nextTransactionDate.getFullYear() + 1);
+            break;
+        }
+
+        if (nextTransactionDate < today && (!rt.endDate || nextTransactionDate < new Date(rt.endDate))) {
+          const newTransactionData = {
+            name: rt.name,
+            amount: rt.amount,
+            date: nextTransactionDate.toISOString().split('T')[0],
+            category: rt.category,
+            type: rt.type,
+            accountId: rt.accountId,
+          };
+          const newTransactionRef = doc(collection(db, 'spenders', user.uid, 'transactions'));
+          batch.set(newTransactionRef, newTransactionData);
+        }
+      }
+
+      const recurringTransactionRef = doc(db, 'spenders', user.uid, 'recurring_transactions', rt.id);
+      batch.update(recurringTransactionRef, { lastProcessedDate: today.toISOString().split('T')[0] });
+    }
+
+    try {
+      await batch.commit();
+    } catch (error) {
+      console.error("Error processing recurring transactions: ", error);
+    }
+  };
+
+  useEffect(() => {
+    if(user && recurringTransactionsLoaded) {
+        processRecurringTransactions();
+    }
+  }, [user, recurringTransactionsLoaded]);
 
   // Total budget listener
   useEffect(() => {
@@ -830,6 +906,46 @@ function App() {
     }
   };
 
+  const handleSaveRecurringTransaction = async (recurringTransactionData: Omit<RecurringTransaction, 'id' | 'lastProcessedDate'>) => {
+    if (!user) return;
+    try {
+      const recurringTransactionsRef = collection(db, 'spenders', user.uid, 'recurring_transactions');
+      await addDoc(recurringTransactionsRef, {
+        ...recurringTransactionData,
+        lastProcessedDate: new Date().toISOString().split('T')[0],
+      });
+      showToast('Recurring transaction added successfully!', 'success');
+    } catch (error) {
+      console.error("Error adding recurring transaction: ", error);
+      showToast('Error adding recurring transaction', 'error');
+    }
+  };
+
+  const handleUpdateRecurringTransaction = async (recurringTransaction: RecurringTransaction) => {
+    if (!user) return;
+    try {
+      const recurringTransactionDoc = doc(db, 'spenders', user.uid, 'recurring_transactions', recurringTransaction.id);
+      const { id, ...recurringTransactionData } = recurringTransaction;
+      await updateDoc(recurringTransactionDoc, recurringTransactionData);
+      showToast('Recurring transaction updated successfully!', 'success');
+    } catch (error) {
+      console.error("Error updating recurring transaction: ", error);
+      showToast('Error updating recurring transaction', 'error');
+    }
+  };
+
+  const handleDeleteRecurringTransaction = async (id: string) => {
+    if (!user) return;
+    try {
+      const recurringTransactionDoc = doc(db, 'spenders', user.uid, 'recurring_transactions', id);
+      await deleteDoc(recurringTransactionDoc);
+      showToast('Recurring transaction deleted successfully!', 'success');
+    } catch (error) {
+      console.error("Error deleting recurring transaction: ", error);
+      showToast('Error deleting recurring transaction', 'error');
+    }
+  };
+
   const handleExportCSV = () => {
     const csvContent = [
       ['Date', 'Name', 'Category', 'Amount', 'Type'],
@@ -1134,6 +1250,7 @@ function App() {
               transactions={filteredTransactions}
               onEditTransaction={handleEditTransaction}
               onDeleteTransaction={handleDeleteTransaction}
+              onOpenRecurringModal={() => setIsRecurringTransactionModalOpen(true)}
               searchTerm={searchTerm}
               setSearchTerm={setSearchTerm}
               transactionType={transactionType}
@@ -1644,6 +1761,18 @@ function App() {
         isOpen={isImportCSVModalOpen}
         onClose={() => setIsImportCSVModalOpen(false)}
         onImport={handleImportCSV}
+        currency={currency}
+      />
+
+      <RecurringTransactionModal
+        isOpen={isRecurringTransactionModalOpen}
+        onClose={() => setIsRecurringTransactionModalOpen(false)}
+        onSave={handleSaveRecurringTransaction}
+        onUpdate={handleUpdateRecurringTransaction}
+        onDelete={handleDeleteRecurringTransaction}
+        accounts={regularAccounts}
+        categories={userCategories}
+        recurringTransactions={recurringTransactions}
         currency={currency}
       />
 

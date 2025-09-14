@@ -628,7 +628,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-gray-50 dark:bg-[#1A1A1A] rounded-lg p-4 border border-gray-200 dark:border-gray-600">
-              <h4 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-4">Mock Data</h4>
+              <h4 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-4">Mock Data (Demo) </h4>
               <div className="grid grid-cols-2 gap-4">
                 <div className="relative group">
                   <motion.button 
