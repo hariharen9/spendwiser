@@ -4,6 +4,7 @@ import { Account, Transaction } from '../../types/types';
 import MetricCard from '../Dashboard/MetricCard';
 import { motion, AnimatePresence } from 'framer-motion';
 import { modalVariants } from '../Common/AnimationVariants';
+import AnimatedDropdown from '../Common/AnimatedDropdown';
 
 interface CreditCardsPageProps {
   accounts: Account[];
@@ -120,15 +121,11 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({ accounts, transaction
             <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
               Select Credit Card
             </label>
-            <select
-              value={selectedCardId}
-              onChange={(e) => setSelectedCardId(e.target.value)}
-              className="w-full md:w-64 px-4 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
-            >
-              {creditCards.map(card => (
-                <option key={card.id} value={card.id}>{card.name}</option>
-              ))}
-            </select>
+            <AnimatedDropdown
+              selectedValue={selectedCardId}
+              options={creditCards.map(card => ({ value: card.id, label: card.name }))}
+              onChange={setSelectedCardId}
+            />
           </div>
           <div className="flex space-x-2">
             <button

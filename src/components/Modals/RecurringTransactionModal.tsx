@@ -3,6 +3,7 @@ import { X, DollarSign, Calendar, Repeat, Tag, Briefcase, Trash2, Edit } from 'l
 import { RecurringTransaction, Account } from '../../types/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { modalVariants } from '../Common/AnimationVariants';
+import AnimatedDropdown from '../Common/AnimatedDropdown';
 
 interface RecurringTransactionModalProps {
   isOpen: boolean;
@@ -168,10 +169,11 @@ const RecurringTransactionModal: React.FC<RecurringTransactionModalProps> = ({
                         <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2"><Tag className="h-4 w-4 text-blue-600 dark:text-blue-400" /></span>
                         Type *
                       </label>
-                      <select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value as 'income' | 'expense' })} className="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-[#1A1A1A] dark:border-gray-600 dark:text-white py-2 px-3 transition-all">
-                        <option value="expense">Expense</option>
-                        <option value="income">Income</option>
-                      </select>
+                      <AnimatedDropdown 
+                        selectedValue={formData.type}
+                        options={['expense', 'income']}
+                        onChange={(value) => setFormData({ ...formData, type: value as 'income' | 'expense' })}
+                      />
                     </div>
                   </div>
 
@@ -181,9 +183,11 @@ const RecurringTransactionModal: React.FC<RecurringTransactionModalProps> = ({
                         <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2"><Tag className="h-4 w-4 text-blue-600 dark:text-blue-400" /></span>
                         Category *
                     </label>
-                    <select required value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} className="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-[#1A1A1A] dark:border-gray-600 dark:text-white py-2 px-3 transition-all">
-                      {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                    </select>
+                    <AnimatedDropdown 
+                        selectedValue={formData.category}
+                        options={categories}
+                        onChange={(value) => setFormData({ ...formData, category: value })}
+                    />
                   </div>
 
                   {/* Account */}
@@ -192,24 +196,24 @@ const RecurringTransactionModal: React.FC<RecurringTransactionModalProps> = ({
                         <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2"><Briefcase className="h-4 w-4 text-blue-600 dark:text-blue-400" /></span>
                         Account
                     </label>
-                    <select value={formData.accountId} onChange={(e) => setFormData({ ...formData, accountId: e.target.value })} className="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-[#1A1A1A] dark:border-gray-600 dark:text-white py-2 px-3 transition-all">
-                      <option value="">Select an account</option>
-                      {accounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name}</option>)}
-                    </select>
+                    <AnimatedDropdown 
+                        selectedValue={formData.accountId}
+                        placeholder="Select an account"
+                        options={accounts.map(acc => ({ value: acc.id, label: acc.name }))}
+                        onChange={(value) => setFormData({ ...formData, accountId: value })}
+                    />
                   </div>
 
-                  {/* Frequency */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center">
                         <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2"><Repeat className="h-4 w-4 text-blue-600 dark:text-blue-400" /></span>
                         Frequency *
                     </label>
-                    <select required value={formData.frequency} onChange={(e) => setFormData({ ...formData, frequency: e.target.value as 'daily' | 'weekly' | 'monthly' | 'yearly' })} className="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-[#1A1A1A] dark:border-gray-600 dark:text-white py-2 px-3 transition-all">
-                      <option value="daily">Daily</option>
-                      <option value="weekly">Weekly</option>
-                      <option value="monthly">Monthly</option>
-                      <option value="yearly">Yearly</option>
-                    </select>
+                    <AnimatedDropdown 
+                        selectedValue={formData.frequency}
+                        options={['daily', 'weekly', 'monthly', 'yearly']}
+                        onChange={(value) => setFormData({ ...formData, frequency: value as 'daily' | 'weekly' | 'monthly' | 'yearly' })}
+                    />
                   </div>
 
                   {/* Start & End Date */}

@@ -3,6 +3,7 @@ import { Goal, Account } from '../../types/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { modalVariants } from '../../components/Common/AnimationVariants';
 import { X, PiggyBank, Wallet } from 'lucide-react';
+import AnimatedDropdown from '../Common/AnimatedDropdown';
 
 interface AddFundsModalProps {
   isOpen: boolean;
@@ -89,24 +90,12 @@ const AddFundsModal: React.FC<AddFundsModalProps> = ({ isOpen, onClose, onAddFun
                   </span>
                   From Account
                 </label>
-                <select 
-                  id="add-funds-account" 
-                  value={selectedAccount || ''} 
-                  onChange={(e) => setSelectedAccount(e.target.value)} 
-                  className="w-full rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 dark:bg-[#1A1A1A] dark:border-gray-600 dark:text-white py-3 px-4 transition-all appearance-none"
-                  required
-                >
-                  <option value="" disabled>Select an account</option>
-                  {accounts.map(account => (
-                    <option 
-                      key={account.id} 
-                      value={account.id}
-                      className="dark:bg-[#1A1A1A] dark:text-white"
-                    >
-                      {formatAccountName(account)}
-                    </option>
-                  ))}
-                </select>
+                <AnimatedDropdown 
+                  selectedValue={selectedAccount || ''}
+                  placeholder="Select an account"
+                  options={accounts.map(account => ({ value: account.id, label: formatAccountName(account) }))}
+                  onChange={setSelectedAccount}
+                />
               </div>
               <div className="flex justify-end space-x-4 pt-4">
                 <button 

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { staggerContainer, fadeInVariants } from '../../components/Common/AnimationVariants';
 import { Plus, Landmark, ChevronsRight, ChevronsDown } from 'lucide-react';
 import { calculateLoanSummary, applyPrepaymentStrategy } from '../../lib/loanCalculations';
+import AnimatedDropdown from '../Common/AnimatedDropdown';
 
 interface LoansPageProps {
   loans: Loan[];
@@ -239,16 +240,16 @@ const LoansPage: React.FC<LoansPageProps> = ({ loans, onAddLoan, onEditLoan, onD
                         placeholder="Amount"
                         min="0"
                       />
-                      <select 
-                        value={lumpSumTiming} 
-                        onChange={(e) => setLumpSumTiming(parseInt(e.target.value))} 
-                        className="w-full px-3 py-2 text-xs border border-gray-300 rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
-                      >
-                        <option value={6}>After 6 months</option>
-                        <option value={12}>After 1 year</option>
-                        <option value={24}>After 2 years</option>
-                        <option value={36}>After 3 years</option>
-                      </select>
+                      <AnimatedDropdown
+                        selectedValue={lumpSumTiming.toString()}
+                        options={[
+                          { value: '6', label: 'After 6 months' },
+                          { value: '12', label: 'After 1 year' },
+                          { value: '24', label: 'After 2 years' },
+                          { value: '36', label: 'After 3 years' },
+                        ]}
+                        onChange={(value) => setLumpSumTiming(parseInt(value))}
+                      />
                     </div>
                     <p className="text-gray-600 dark:text-gray-400 text-xs leading-relaxed">
                       Make a one-time extra payment to reduce principal and save on interest. ( It can be a bonus, Insurance, anything! )

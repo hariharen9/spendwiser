@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Calendar, Filter, X } from 'lucide-react';
+import AnimatedDropdown from '../Common/AnimatedDropdown';
 
 interface FilterBarProps {
   searchTerm: string;
@@ -68,42 +69,32 @@ const FilterBar: React.FC<FilterBarProps> = ({
         {isMobileFiltersOpen && (
           <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
             <div className="grid grid-cols-2 gap-2">
-              <select
-                value={transactionType}
-                onChange={(e) => onTransactionTypeChange(e.target.value)}
-                className="col-span-1 pl-3 pr-8 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF] appearance-none"
-              >
-                <option value="all">All Types</option>
-                <option value="income">Income</option>
-                <option value="expense">Expense</option>
-              </select>
+              <AnimatedDropdown
+                selectedValue={transactionType}
+                options={[{value: 'all', label: 'All Types'}, {value: 'income', label: 'Income'}, {value: 'expense', label: 'Expense'}]}
+                onChange={onTransactionTypeChange}
+              />
               
-              <select
-                value={selectedCategory}
-                onChange={(e) => onCategoryChange(e.target.value)}
-                className="col-span-1 pl-3 pr-8 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF] appearance-none"
-              >
-                <option value="">All Categories</option>
-                {categories.map(category => (
-                  <option key={category} value={category}>{category}</option>
-                ))}
-              </select>
+              <AnimatedDropdown
+                selectedValue={selectedCategory}
+                options={[{value: '', label: 'All Categories'}, ...categories.map(c => ({value: c, label: c}))]}
+                onChange={onCategoryChange}
+              />
             </div>
             <div>
               <label htmlFor="sort-select" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sort by</label>
-              <select
-                id="sort-select"
-                value={sortOption}
-                onChange={(e) => onSortChange(e.target.value)}
-                className="w-full pl-3 pr-8 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF] appearance-none"
-              >
-                <option value="date-desc">Date (Newest First)</option>
-                <option value="date-asc">Date (Oldest First)</option>
-                <option value="highest-income">Highest Income</option>
-                <option value="lowest-income">Lowest Income</option>
-                <option value="highest-expense">Highest Expense</option>
-                <option value="lowest-expense">Lowest Expense</option>
-              </select>
+              <AnimatedDropdown
+                selectedValue={sortOption}
+                options={[
+                  {value: 'date-desc', label: 'Date (Newest First)'},
+                  {value: 'date-asc', label: 'Date (Oldest First)'},
+                  {value: 'highest-income', label: 'Highest Income'},
+                  {value: 'lowest-income', label: 'Lowest Income'},
+                  {value: 'highest-expense', label: 'Highest Expense'},
+                  {value: 'lowest-expense', label: 'Lowest Expense'},
+                ]}
+                onChange={onSortChange}
+              />
             </div>
             
             <div className="flex items-center space-x-2">
@@ -152,9 +143,9 @@ const FilterBar: React.FC<FilterBarProps> = ({
 
       {/* Desktop Filter Bar - Unchanged */}
       <div className="hidden md:block bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           {/* Search */}
-          <div className="relative">
+          <div className="relative lg:col-span-2">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-[#888888]" />
             <input
               type="text"
@@ -166,45 +157,32 @@ const FilterBar: React.FC<FilterBarProps> = ({
           </div>
 
           {/* Transaction Type */}
-          <div className="relative">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-[#888888]" />
-            <select
-              value={transactionType}
-              onChange={(e) => onTransactionTypeChange(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF] appearance-none"
-            >
-              <option value="all">All Types</option>
-              <option value="income">Income</option>
-              <option value="expense">Expense</option>
-            </select>
-          </div>
+          <AnimatedDropdown
+            selectedValue={transactionType}
+            options={[{value: 'all', label: 'All Types'}, {value: 'income', label: 'Income'}, {value: 'expense', label: 'Expense'}]}
+            onChange={onTransactionTypeChange}
+          />
 
           {/* Category Dropdown */}
-          <div className="relative">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-[#888888]" />
-            <select
-              value={selectedCategory}
-              onChange={(e) => onCategoryChange(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF] appearance-none"
-            >
-              <option value="">All Categories</option>
-              {categories.map(category => (
-                <option key={category} value={category}>{category}</option>
-              ))}
-            </select>
-          </div>
+          <AnimatedDropdown
+            selectedValue={selectedCategory}
+            options={[{value: '', label: 'All Categories'}, ...categories.map(c => ({value: c, label: c}))]}
+            onChange={onCategoryChange}
+          />
 
-          {/* Date Filter Toggle */}
-          <div className="relative">
-            <button
-              onClick={() => setShowDateInputs(!showDateInputs)}
-              className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF] flex items-center appearance-none"
-            >
-              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-[#888888]" />
-              <span className="flex-1 text-left">Date Range</span>
-              <span className="ml-2">▼</span>
-            </button>
-          </div>
+          {/* Sort By Dropdown */}
+          <AnimatedDropdown
+            selectedValue={sortOption}
+            options={[
+              {value: 'date-desc', label: 'Sort: Newest First'},
+              {value: 'date-asc', label: 'Sort: Oldest First'},
+              {value: 'highest-income', label: 'Sort: Highest Income'},
+              {value: 'lowest-income', label: 'Sort: Lowest Income'},
+              {value: 'highest-expense', label: 'Sort: Highest Expense'},
+              {value: 'lowest-expense', label: 'Sort: Lowest Expense'},
+            ]}
+            onChange={onSortChange}
+          />
         </div>
 
         {/* Date Inputs (Hidden by default) */}

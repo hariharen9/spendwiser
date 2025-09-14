@@ -4,6 +4,7 @@ import { Account } from '../../types/types';
 import { currencies, getDefaultCategories } from '../../data/mockData';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fadeInVariants, staggerContainer, buttonHoverVariants, modalVariants } from '../../components/Common/AnimationVariants';
+import AnimatedDropdown from '../Common/AnimatedDropdown';
 
 interface SettingsPageProps {
   user: any;
@@ -315,19 +316,11 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
             <label className="block text-sm font-medium text-gray-600 dark:text-[#888888] mb-2">
               Default Currency
             </label>
-            <motion.select
-              value={currency}
-              onChange={(e) => onUpdateCurrency(e.target.value)}
-              className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF] appearance-none"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              {currencies.map(currencyItem => (
-                <option key={currencyItem.code} value={currencyItem.symbol}>
-                  {currencyItem.symbol} - {currencyItem.name}
-                </option>
-              ))}
-            </motion.select>
+            <AnimatedDropdown
+              selectedValue={currency}
+              options={currencies.map(c => ({ value: c.symbol, label: `${c.symbol} - ${c.name}` }))}
+              onChange={onUpdateCurrency}
+            />
           </motion.div>
         </motion.div>
 
@@ -400,19 +393,11 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
               <label className="block text-sm font-medium text-gray-600 dark:text-[#888888] mb-2">
                 Select Font
               </label>
-              <motion.select
-                value={selectedFont}
-                onChange={(e) => onUpdateFont(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF] appearance-none"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <option value="Montserrat">Montserrat</option>
-                <option value="Roboto">Roboto</option>
-                <option value="Poppins">Poppins</option>
-                <option value="Open Sans">Open Sans</option>
-                <option value="Lato">Lato</option>
-              </motion.select>
+              <AnimatedDropdown
+                selectedValue={selectedFont}
+                options={['Montserrat', 'Roboto', 'Poppins', 'Open Sans', 'Lato']}
+                onChange={onUpdateFont}
+              />
               <p className="mt-2 text-sm text-gray-500 dark:text-[#888888]">
                 Current font: <span style={{ fontFamily: `'${selectedFont}', sans-serif` }}>{selectedFont}</span>
               </p>
@@ -449,18 +434,12 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
               <p className="text-sm text-gray-500 dark:text-[#888888] mb-4">
                 This account will be automatically selected when adding new transactions.
               </p>
-              <motion.select
-                value={defaultAccountId || ''}
-                onChange={(e) => onSetDefaultAccount && onSetDefaultAccount(e.target.value)}
-                className="w-full md:w-64 px-4 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF] appearance-none"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <option value="">No default account</option>
-                {accounts.map(account => (
-                  <option key={account.id} value={account.id}>{account.name}</option>
-                ))}
-              </motion.select>
+              <AnimatedDropdown
+                selectedValue={defaultAccountId || ''}
+                placeholder="No default account"
+                options={[{ value: '', label: 'No default account' }, ...accounts.map(account => ({ value: account.id, label: account.name })) ]}
+                onChange={(value) => onSetDefaultAccount && onSetDefaultAccount(value)}
+              />
             </motion.div>
           </motion.div>
         )}
@@ -1148,19 +1127,11 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                     <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
                       Account Type *
                     </label>
-                    <motion.select
-                      value={accountForm.type}
-                      onChange={(e) => setAccountForm({ ...accountForm, type: e.target.value })}
-                      className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF] appearance-none"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <option value="Checking">Checking</option>
-                      <option value="Savings">Savings</option>
-                      <option value="Business Checking">Business Checking</option>
-                      <option value="Investment">Investment</option>
-                      <option value="Credit Card">Credit Card</option>
-                    </motion.select>
+                    <AnimatedDropdown
+                      selectedValue={accountForm.type}
+                      options={['Checking', 'Savings', 'Business Checking', 'Investment', 'Credit Card']}
+                      onChange={(value) => setAccountForm({ ...accountForm, type: value })}
+                    />
                   </motion.div>
                   
                   <motion.div
