@@ -173,7 +173,6 @@ const LoanModal: React.FC<LoanModalProps> = ({ isOpen, onClose, onSave, editingL
                       placeholder="0"
                       min="0"
                       step="0.01"
-                      required 
                     />
                     {interestRate === 0 && (
                       <p className="mt-1 text-xs text-green-600 dark:text-green-400">
