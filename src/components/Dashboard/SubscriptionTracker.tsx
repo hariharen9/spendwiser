@@ -1,67 +1,66 @@
 import React, { useState, useEffect } from 'react';
-import { Transaction } from '../../types/types';
 import { motion } from 'framer-motion';
 import { cardHoverVariants } from '../../components/Common/AnimationVariants';
+import { RecurringTransaction } from '../../types/types';
 
 interface SubscriptionTrackerProps {
-  transactions: Transaction[];
+  recurringTransactions: RecurringTransaction[];
   currency: string;
 }
 
-interface Subscription {
-  name: string;
-  amount: number;
-  lastDate: string;
-}
+const calculateDuration = (startDate: string): string => {
+  const start = new Date(startDate);
+  const now = new Date();
 
-const SubscriptionTracker: React.FC<SubscriptionTrackerProps> = ({ transactions, currency }) => {
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  let years = now.getFullYear() - start.getFullYear();
+  let months = now.getMonth() - start.getMonth();
 
-  useEffect(() => {
-    const identifySubscriptions = () => {
-      const potentialSubs: { [key: string]: Transaction[] } = {};
+  if (months < 0) {
+    years--;
+    months += 12;
+  }
 
-      transactions.forEach(t => {
-        if (t.type === 'expense') {
-          const normalizedName = t.name.toLowerCase().replace(/\d+/g, '').trim();
-          if (!potentialSubs[normalizedName]) {
-            potentialSubs[normalizedName] = [];
-          }
-          potentialSubs[normalizedName].push(t);
-        }
-      });
+  if (years === 0 && months === 0) {
+    return "Less than a month";
+  }
 
-      const foundSubscriptions: Subscription[] = [];
+  let duration = "";
+  if (years > 0) {
+    duration += `${years} year${years > 1 ? 's' : ''}`;
+  }
+  if (months > 0) {
+    duration += `${years > 0 ? ', ' : ''}${months} month${months > 1 ? 's' : ''}`;
+  }
+  return duration.trim();
+};
 
-      for (const name in potentialSubs) {
-        const group = potentialSubs[name].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        if (group.length > 1) {
-          for (let i = 0; i < group.length - 1; i++) {
-            const date1 = new Date(group[i].date);
-            const date2 = new Date(group[i + 1].date);
-            const diffDays = (date1.getTime() - date2.getTime()) / (1000 * 3600 * 24);
+const calculateTotalPaid = (subscription: RecurringTransaction): number => {
+  const start = new Date(subscription.startDate);
+  const end = subscription.endDate ? new Date(subscription.endDate) : new Date();
+  let totalPaid = 0;
 
-            if (diffDays > 25 && diffDays < 35) {
-              const amount1 = Math.abs(group[i].amount);
-              const amount2 = Math.abs(group[i + 1].amount);
-              if (Math.abs(amount1 - amount2) / amount2 < 0.15) { // 15% tolerance
-                if (!foundSubscriptions.find(s => s.name === group[i].name)) {
-                  foundSubscriptions.push({
-                    name: group[i].name,
-                    amount: amount1,
-                    lastDate: group[i].date,
-                  });
-                }
-              }
-            }
-          }
-        }
-      }
-      setSubscriptions(foundSubscriptions);
-    };
+  let current = new Date(start);
+  while (current <= end) {
+    totalPaid += subscription.amount;
+    switch (subscription.frequency) {
+      case 'daily':
+        current.setDate(current.getDate() + 1);
+        break;
+      case 'weekly':
+        current.setDate(current.getDate() + 7);
+        break;
+      case 'monthly':
+        current.setMonth(current.getMonth() + 1);
+        break;
+      case 'yearly':
+        current.setFullYear(current.getFullYear() + 1);
+        break;
+    }
+  }
+  return totalPaid;
+};
 
-    identifySubscriptions();
-  }, [transactions]);
+const SubscriptionTracker: React.FC<SubscriptionTrackerProps> = ({ recurringTransactions, currency }) => {
 
   return (
     <motion.div 
@@ -73,14 +72,23 @@ const SubscriptionTracker: React.FC<SubscriptionTrackerProps> = ({ transactions,
       layout
     >
       <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-4">Recurring Subscriptions</h3>
-      {subscriptions.length > 0 ? (
+      {recurringTransactions.length > 0 ? (
         <ul className="space-y-3">
-          {subscriptions.map(sub => (
-            <li key={sub.name} className="flex justify-between items-center">
-              <span className="font-medium text-gray-800 dark:text-gray-200">{sub.name}</span>
-              <span className="font-semibold text-gray-900 dark:text-white">{currency}{sub.amount.toLocaleString()}</span>
-            </li>
-          ))}
+          {recurringTransactions.map(sub => {
+            const duration = calculateDuration(sub.startDate);
+            const totalPaid = calculateTotalPaid(sub);
+            return (
+              <li key={sub.id} className="flex justify-between items-center">
+                <div>
+                  <span className="font-medium text-gray-800 dark:text-gray-200">{sub.name}</span>
+                  <p className="text-sm text-gray-500 dark:text-[#888888]">{sub.frequency} - {sub.category}</p>
+                  <p className="text-xs text-gray-500 dark:text-[#888888]">Duration: {duration}</p>
+                  <p className="text-xs text-gray-500 dark:text-[#888888]">Total Paid: {currency}{totalPaid.toFixed(2)}</p>
+                </div>
+                <span className={`font-semibold ${sub.type === 'expense' ? 'text-red-600' : 'text-green-600'}`}>{sub.type === 'expense' ? '-' : '+'}{currency}{Math.abs(sub.amount).toLocaleString()}</span>
+              </li>
+            );
+          })}
         </ul>
       ) : (
         <p className="text-gray-500 dark:text-[#888888]">No recurring subscriptions found.</p>

@@ -1229,6 +1229,7 @@ function App() {
           >
             <DashboardPage 
               transactions={transactions} 
+              recurringTransactions={recurringTransactions}
               accounts={regularAccounts} 
               budgets={budgets} 
               totalBudget={totalBudget}
@@ -1403,6 +1404,7 @@ function App() {
           >
             <DashboardPage 
               transactions={transactions} 
+              recurringTransactions={recurringTransactions}
               accounts={regularAccounts} 
               budgets={budgets} 
               totalBudget={totalBudget}

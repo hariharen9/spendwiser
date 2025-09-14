@@ -24,6 +24,7 @@ import { fadeInVariants, staggerContainer, buttonHoverVariants } from '../../com
 
 interface DashboardPageProps {
   transactions: Transaction[];
+  recurringTransactions: Transaction[];
   accounts: Account[];
   budgets: Budget[];
   totalBudget: TotalBudget | null;
@@ -63,7 +64,7 @@ const STORAGE_KEYS = {
   WIDGET_LAYOUT: 'dashboardWidgetLayout'
 };
 
-const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, budgets, totalBudget, onViewAllTransactions, currency, onExportDashboard }) => {
+const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, recurringTransactions, accounts, budgets, totalBudget, onViewAllTransactions, currency, onExportDashboard }) => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [timeRange, setTimeRange] = useState<'month' | 'quarter' | 'year'>('month');
   const [isWidgetLibraryOpen, setIsWidgetLibraryOpen] = useState(false);
@@ -197,7 +198,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, b
       case 'InsightsEngine':
         return <InsightsEngine transactions={transactions} budgets={budgets} currency={currency} />;
       case 'SubscriptionTracker':
-        return <SubscriptionTracker transactions={transactions} currency={currency} />;
+        return <SubscriptionTracker recurringTransactions={recurringTransactions} currency={currency} />;
       case 'Achievements':
         return <Achievements transactions={transactions} budgets={budgets} accounts={accounts} currency={currency} />;
       default:

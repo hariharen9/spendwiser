@@ -39,7 +39,7 @@ const AccountBalances: React.FC<AccountBalancesProps> = ({ accounts, currency })
         {accounts.map(account => (
           <li key={account.id} className="flex justify-between items-center">
             <span className="font-medium text-gray-800 dark:text-gray-200">{account.name}</span>
-            <span className="font-semibold text-gray-900 dark:text-white">{currency}{account.balance.toLocaleString()}</span>
+            <span className={`font-semibold ${account.balance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>{currency}{account.balance.toLocaleString()}</span>
           </li>
         ))}
       </ul>

@@ -11,7 +11,9 @@ interface RecentTransactionsProps {
 }
 
 const RecentTransactions: React.FC<RecentTransactionsProps> = ({ transactions, onViewAll, currency }) => {
-  const recentTransactions = transactions.slice(0, 5);
+  const recentTransactions = transactions
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 7);
 
   return (
     <motion.div 

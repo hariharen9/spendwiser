@@ -50,15 +50,15 @@ const FutureBalanceProjection: React.FC<FutureBalanceProjectionProps> = ({ trans
       <ul className="space-y-3">
         <li className="flex justify-between items-center">
           <span className="font-medium text-gray-800 dark:text-gray-200">In 3 Months</span>
-          <span className="font-semibold text-gray-900 dark:text-white">{currency}{projection3Months.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+          <span className={`font-semibold ${projection3Months >= 0 ? 'text-green-600' : 'text-red-600'}`}>{currency}{projection3Months.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
         </li>
         <li className="flex justify-between items-center">
           <span className="font-medium text-gray-800 dark:text-gray-200">In 6 Months</span>
-          <span className="font-semibold text-gray-900 dark:text-white">{currency}{projection6Months.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+          <span className={`font-semibold ${projection6Months >= 0 ? 'text-green-600' : 'text-red-600'}`}>{currency}{projection6Months.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
         </li>
         <li className="flex justify-between items-center">
           <span className="font-medium text-gray-800 dark:text-gray-200">In 12 Months</span>
-          <span className="font-semibold text-gray-900 dark:text-white">{currency}{projection12Months.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+          <span className={`font-semibold ${projection12Months >= 0 ? 'text-green-600' : 'text-red-600'}`}>{currency}{projection12Months.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
         </li>
       </ul>
       <div className="text-center mt-4">

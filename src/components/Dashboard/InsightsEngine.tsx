@@ -126,7 +126,7 @@ const InsightsEngine: React.FC<InsightsEngineProps> = ({ transactions, budgets, 
       {insights.length > 0 ? (
         <ul className="space-y-3">
           {insights.map((insight, index) => (
-            <li key={index} className="text-sm text-gray-800 dark:text-gray-200">- {insight}</li>
+            <li key={index} className={`text-sm ${insight.includes('Great job!') ? 'text-green-600' : insight.includes('Heads up!') || insight.includes('recurring payment') || insight.includes('budget with') ? 'text-yellow-600' : 'text-gray-800 dark:text-gray-200'}`}>- {insight}</li>
           ))}
         </ul>
       ) : (
