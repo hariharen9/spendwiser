@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import Masonry from 'react-masonry-css';
-import { DollarSign, TrendingUp, TrendingDown, Edit3, Save, X, Download } from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown, Edit3, Save, X, Download, Grid3X3, Eye } from 'lucide-react';
 import MetricCard from './MetricCard';
 import SpendingChart from './SpendingChart';
 import RecentTransactions from './RecentTransactions';
@@ -17,6 +16,8 @@ import LifestyleCreepIndicator from './LifestyleCreepIndicator';
 import InsightsEngine from './InsightsEngine';
 import Achievements from './Achievements';
 import TotalBudgetWidget from './TotalBudgetWidget';
+import WidgetLibraryModal from './WidgetLibraryModal';
+import DashboardContainer from './DashboardContainer';
 import './Dashboard.css';
 import { motion } from 'framer-motion';
 import { fadeInVariants, staggerContainer, buttonHoverVariants } from '../../components/Common/AnimationVariants';
@@ -31,34 +32,57 @@ interface DashboardPageProps {
   onExportDashboard?: () => void; // Add export function prop
 }
 
-// Define the order of components
-const DEFAULT_COMPONENT_ORDER = [
-  'SpendingChart',
-  'RecentTransactions',
-  'IncomeVsExpenseChart',
-  'TopSpendingCategories',
-  'BudgetSummary',
-  'AccountBalances',
-  'DaysOfBuffer',
-  'FutureBalanceProjection',
-  'CashFlowForecast',
-  'LifestyleCreepIndicator',
-  'InsightsEngine',
-  'SubscriptionTracker',
-  'Achievements',
-  'TotalBudgetWidget'
+// Widget layout interface
+interface WidgetLayout {
+  id: string;
+  column: number;
+  order: number;
+}
+// Define all available widgets with default layout
+const DEFAULT_WIDGET_LAYOUT: WidgetLayout[] = [
+  { id: 'SpendingChart', column: 0, order: 0 },
+  { id: 'AccountBalances', column: 1, order: 0 },
+  { id: 'BudgetSummary', column: 2, order: 0 },
+  { id: 'RecentTransactions', column: 0, order: 1 },
+  { id: 'IncomeVsExpenseChart', column: 1, order: 1 },
+  { id: 'TopSpendingCategories', column: 2, order: 1 },
+  { id: 'TotalBudgetWidget', column: 0, order: 2 },
+  { id: 'DaysOfBuffer', column: 1, order: 2 },
+  { id: 'Achievements', column: 2, order: 2 },
+  { id: 'InsightsEngine', column: 0, order: 3 },
+  { id: 'CashFlowForecast', column: 1, order: 3 },
+  { id: 'LifestyleCreepIndicator', column: 2, order: 3 },
+  { id: 'FutureBalanceProjection', column: 0, order: 4 },
+  { id: 'SubscriptionTracker', column: 1, order: 4 }
 ];
+
+// Widget layout storage keys
+const STORAGE_KEYS = {
+  VISIBLE_WIDGETS: 'dashboardVisibleWidgets',
+  HIDDEN_WIDGETS: 'dashboardHiddenWidgets',
+  WIDGET_LAYOUT: 'dashboardWidgetLayout'
+};
 
 const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, budgets, totalBudget, onViewAllTransactions, currency, onExportDashboard }) => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [timeRange, setTimeRange] = useState<'month' | 'quarter' | 'year'>('month');
-  const [componentOrder, setComponentOrder] = useState<string[]>(() => {
-    const savedOrder = localStorage.getItem('dashboardComponentOrder');
-    return savedOrder ? JSON.parse(savedOrder) : DEFAULT_COMPONENT_ORDER;
+  const [isWidgetLibraryOpen, setIsWidgetLibraryOpen] = useState(false);
+  const [draggedWidget, setDraggedWidget] = useState<string | null>(null);
+  
+  // Widget visibility and layout
+  const [visibleWidgets, setVisibleWidgets] = useState<string[]>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.VISIBLE_WIDGETS);
+    return saved ? JSON.parse(saved) : DEFAULT_WIDGET_LAYOUT.map(w => w.id);
   });
-  const [tempComponentOrder, setTempComponentOrder] = useState<string[]>(() => {
-    const savedOrder = localStorage.getItem('dashboardComponentOrder');
-    return savedOrder ? JSON.parse(savedOrder) : DEFAULT_COMPONENT_ORDER;
+  
+  const [hiddenWidgets, setHiddenWidgets] = useState<string[]>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.HIDDEN_WIDGETS);
+    return saved ? JSON.parse(saved) : [];
+  });
+  
+  const [widgetLayout, setWidgetLayout] = useState<WidgetLayout[]>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.WIDGET_LAYOUT);
+    return saved ? JSON.parse(saved) : DEFAULT_WIDGET_LAYOUT;
   });
 
   const filteredTransactions = useMemo(() => {
@@ -105,118 +129,130 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, b
       .reduce((sum, t) => sum + t.amount, 0)
   );
 
-  const breakpointColumnsObj = {
-    default: 3,
-    1100: 2,
-    700: 1
+  // Save state to localStorage
+  const saveToLocalStorage = () => {
+    localStorage.setItem(STORAGE_KEYS.VISIBLE_WIDGETS, JSON.stringify(visibleWidgets));
+    localStorage.setItem(STORAGE_KEYS.HIDDEN_WIDGETS, JSON.stringify(hiddenWidgets));
+    localStorage.setItem(STORAGE_KEYS.WIDGET_LAYOUT, JSON.stringify(widgetLayout));
   };
 
-  // Handle drag start
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, componentName: string) => {
-    if (!isEditMode) return;
-    e.dataTransfer.setData('text/plain', componentName);
-    e.currentTarget.classList.add('opacity-50');
+  // Toggle widget visibility
+  const handleToggleWidget = (widgetId: string) => {
+    if (visibleWidgets.includes(widgetId)) {
+      // Hide widget
+      setVisibleWidgets(prev => prev.filter(id => id !== widgetId));
+      setHiddenWidgets(prev => [...prev, widgetId]);
+    } else {
+      // Show widget
+      setHiddenWidgets(prev => prev.filter(id => id !== widgetId));
+      setVisibleWidgets(prev => [...prev, widgetId]);
+    }
   };
 
-  // Handle drag over
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    if (!isEditMode) return;
-    e.preventDefault();
+  // Reorder visible widgets
+  const handleReorderWidgets = (reorderedIds: string[]) => {
+    setVisibleWidgets(reorderedIds);
+    
+    // Update layout with new order
+    const newLayout = reorderedIds.map((id, index) => {
+      const existingLayout = widgetLayout.find(w => w.id === id);
+      return {
+        id,
+        column: existingLayout?.column || 0,
+        order: index
+      };
+    });
+    
+    setWidgetLayout(newLayout);
+    saveToLocalStorage();
   };
 
-  // Handle drop
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>, targetComponent: string) => {
-    if (!isEditMode) return;
-    e.preventDefault();
+  // Handle widget reordering from DnD
+  const handleWidgetReorder = (newWidgets: { id: string; component: React.ReactNode; column: number }[]) => {
+    const newLayout: WidgetLayout[] = newWidgets.map((widget, index) => ({
+      id: widget.id,
+      column: widget.column,
+      order: index
+    }));
     
-    const draggedComponent = e.dataTransfer.getData('text/plain');
-    if (draggedComponent === targetComponent) return;
-    
-    const newOrder = [...tempComponentOrder];
-    const draggedIndex = newOrder.indexOf(draggedComponent);
-    const targetIndex = newOrder.indexOf(targetComponent);
-    
-    // Remove the dragged component
-    newOrder.splice(draggedIndex, 1);
-    // Insert at the new position
-    newOrder.splice(targetIndex, 0, draggedComponent);
-    
-    setTempComponentOrder(newOrder);
-    
-    // Reset opacity
-    e.currentTarget.classList.remove('opacity-50');
-  };
-
-  // Handle drag end
-  const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
-    e.currentTarget.classList.remove('opacity-50');
+    setWidgetLayout(newLayout);
+    saveToLocalStorage();
   };
 
   // Render component by name
   const renderComponent = (componentName: string) => {
-    const commonProps = {
-      draggable: isEditMode,
-      onDragStart: (e: React.DragEvent<HTMLDivElement>) => handleDragStart(e, componentName),
-      onDragOver: handleDragOver,
-      onDrop: (e: React.DragEvent<HTMLDivElement>) => handleDrop(e, componentName),
-      onDragEnd: handleDragEnd,
-      className: isEditMode ? 'cursor-move animate-pulse' : ''
-    };
-
     switch (componentName) {
       case 'TotalBudgetWidget':
-        return <div {...commonProps} key="TotalBudgetWidget"><TotalBudgetWidget totalBudget={totalBudget} transactions={transactions} currency={currency} /></div>;
+        return <TotalBudgetWidget totalBudget={totalBudget} transactions={transactions} currency={currency} />;
       case 'SpendingChart':
-        return <div {...commonProps} key="SpendingChart"><SpendingChart transactions={filteredTransactions} currency={currency} timeRange={timeRange} setTimeRange={setTimeRange} /></div>;
+        return <SpendingChart transactions={filteredTransactions} currency={currency} timeRange={timeRange} setTimeRange={setTimeRange} />;
       case 'RecentTransactions':
-        return <div {...commonProps} key="RecentTransactions"><RecentTransactions transactions={transactions} onViewAll={onViewAllTransactions} currency={currency} /></div>;
+        return <RecentTransactions transactions={transactions} onViewAll={onViewAllTransactions} currency={currency} />;
       case 'IncomeVsExpenseChart':
-        return <div {...commonProps} key="IncomeVsExpenseChart"><IncomeVsExpenseChart transactions={transactions} currency={currency} /></div>;
+        return <IncomeVsExpenseChart transactions={transactions} currency={currency} />;
       case 'TopSpendingCategories':
-        return <div {...commonProps} key="TopSpendingCategories"><TopSpendingCategories transactions={transactions} currency={currency} /></div>;
+        return <TopSpendingCategories transactions={transactions} currency={currency} />;
       case 'BudgetSummary':
-        return <div {...commonProps} key="BudgetSummary"><BudgetSummary budgets={budgets} transactions={transactions} totalBudget={totalBudget} currency={currency} /></div>;
+        return <BudgetSummary budgets={budgets} transactions={transactions} totalBudget={totalBudget} currency={currency} />;
       case 'AccountBalances':
-        return <div {...commonProps} key="AccountBalances"><AccountBalances accounts={accounts} currency={currency} /></div>;
+        return <AccountBalances accounts={accounts} currency={currency} />;
       case 'DaysOfBuffer':
-        return <div {...commonProps} key="DaysOfBuffer"><DaysOfBuffer transactions={transactions} accounts={accounts} currency={currency} /></div>;
+        return <DaysOfBuffer transactions={transactions} accounts={accounts} currency={currency} />;
       case 'FutureBalanceProjection':
-        return <div {...commonProps} key="FutureBalanceProjection"><FutureBalanceProjection transactions={transactions} accounts={accounts} currency={currency} /></div>;
+        return <FutureBalanceProjection transactions={transactions} accounts={accounts} currency={currency} />;
       case 'CashFlowForecast':
-        return <div {...commonProps} key="CashFlowForecast"><CashFlowForecast transactions={transactions} currency={currency} /></div>;
+        return <CashFlowForecast transactions={transactions} currency={currency} />;
       case 'LifestyleCreepIndicator':
-        return <div {...commonProps} key="LifestyleCreepIndicator"><LifestyleCreepIndicator transactions={transactions} currency={currency} /></div>;
+        return <LifestyleCreepIndicator transactions={transactions} currency={currency} />;
       case 'InsightsEngine':
-        return <div {...commonProps} key="InsightsEngine"><InsightsEngine transactions={transactions} budgets={budgets} currency={currency} /></div>;
+        return <InsightsEngine transactions={transactions} budgets={budgets} currency={currency} />;
       case 'SubscriptionTracker':
-        return <div {...commonProps} key="SubscriptionTracker"><SubscriptionTracker transactions={transactions} currency={currency} /></div>;
+        return <SubscriptionTracker transactions={transactions} currency={currency} />;
       case 'Achievements':
-        return <div {...commonProps} key="Achievements"><Achievements transactions={transactions} budgets={budgets} accounts={accounts} currency={currency} /></div>;
+        return <Achievements transactions={transactions} budgets={budgets} accounts={accounts} currency={currency} />;
       default:
         return null;
     }
   };
 
+  // Prepare widgets for DnD container
+  const dashboardWidgets = useMemo(() => {
+    return visibleWidgets
+      .map(widgetId => {
+        const layout = widgetLayout.find(l => l.id === widgetId) || { id: widgetId, column: 0, order: 0 };
+        return {
+          id: widgetId,
+          component: renderComponent(widgetId),
+          column: layout.column
+        };
+      })
+      .filter(widget => widget.component !== null);
+  }, [visibleWidgets, widgetLayout, transactions, accounts, budgets, totalBudget, currency, timeRange]);
+
   // Toggle edit mode
   const toggleEditMode = () => {
-    if (!isEditMode) {
-      // Enter edit mode - save current order to temp
-      setTempComponentOrder([...componentOrder]);
-    }
     setIsEditMode(!isEditMode);
+    if (isEditMode) {
+      // Exiting edit mode - save changes
+      saveToLocalStorage();
+    }
   };
 
   // Save layout
   const saveLayout = () => {
-    setComponentOrder([...tempComponentOrder]);
-    localStorage.setItem('dashboardComponentOrder', JSON.stringify(tempComponentOrder));
+    saveToLocalStorage();
     setIsEditMode(false);
   };
 
   // Cancel edit mode
   const cancelEdit = () => {
-    // Revert to saved order
-    setTempComponentOrder([...componentOrder]);
+    // Revert to saved state
+    const savedVisible = localStorage.getItem(STORAGE_KEYS.VISIBLE_WIDGETS);
+    const savedHidden = localStorage.getItem(STORAGE_KEYS.HIDDEN_WIDGETS);
+    
+    if (savedVisible) setVisibleWidgets(JSON.parse(savedVisible));
+    if (savedHidden) setHiddenWidgets(JSON.parse(savedHidden));
+    
     setIsEditMode(false);
   };
 
@@ -232,7 +268,23 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, b
         initial="initial"
         animate="animate"
       >
-        {/* Export button - moved to be near edit button */}
+        {/* Widget Library button */}
+        {!isEditMode && (
+          <motion.button
+            onClick={() => setIsWidgetLibraryOpen(true)}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            variants={buttonHoverVariants}
+            whileHover="hover"
+            whileTap="tap"
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <Grid3X3 size={14} />
+            Widgets
+          </motion.button>
+        )}
+        
+        {/* Export button */}
         {onExportDashboard && !isEditMode && (
           <motion.button
             onClick={onExportDashboard}
@@ -330,35 +382,48 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, accounts, b
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
       >
-        <Masonry
-          breakpointCols={breakpointColumnsObj}
-          className="my-masonry-grid"
-          columnClassName="my-masonry-grid_column"
-        >
-          {isEditMode 
-            ? tempComponentOrder.map((componentName, index) => (
-                <motion.div
-                  key={componentName}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 * index }}
-                >
-                  {renderComponent(componentName)}
-                </motion.div>
-              ))
-            : componentOrder.map((componentName, index) => (
-                <motion.div
-                  key={componentName}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 * index }}
-                >
-                  {renderComponent(componentName)}
-                </motion.div>
-              ))
-          }
-        </Masonry>
+        <DashboardContainer
+          widgets={dashboardWidgets}
+          isEditMode={isEditMode}
+          onReorder={handleWidgetReorder}
+          onRemoveWidget={handleToggleWidget}
+          onAddWidget={() => setIsWidgetLibraryOpen(true)}
+          columnCount={3}
+        />
+        
+        {visibleWidgets.length === 0 && (
+          <div className="text-center py-12">
+            <div className="text-gray-400 dark:text-gray-600 mb-4">
+              <Grid3X3 size={48} className="mx-auto" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              No widgets to display
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-4">
+              Add some widgets to customize your dashboard
+            </p>
+            <motion.button
+              onClick={() => setIsWidgetLibraryOpen(true)}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              variants={buttonHoverVariants}
+              whileHover="hover"
+              whileTap="tap"
+            >
+              Add Widgets
+            </motion.button>
+          </div>
+        )}
       </motion.div>
+      
+      {/* Widget Library Modal */}
+      <WidgetLibraryModal
+        isOpen={isWidgetLibraryOpen}
+        onClose={() => setIsWidgetLibraryOpen(false)}
+        visibleWidgets={visibleWidgets}
+        hiddenWidgets={hiddenWidgets}
+        onToggleWidget={handleToggleWidget}
+        onReorderWidgets={handleReorderWidgets}
+      />
     </motion.div>
   );
 };

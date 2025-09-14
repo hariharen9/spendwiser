@@ -1,34 +1,363 @@
-.my-masonry-grid {
-  display: -webkit-box; /* Not needed if autoprefixing */
-  display: -ms-flexbox; /* Not needed if autoprefixing */
+/* @dnd-kit Enhanced Drag and Drop Styles */
+
+/* Draggable widget states */
+.widget-dragging {
+  opacity: 0.4;
+  transform: scale(1.02);
+  z-index: 999;
+  filter: blur(1px);
+}
+
+.widget-drag-overlay {
+  transform: scale(1.05);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  border-radius: 12px;
+  border: 2px solid #3B82F6;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+}
+
+/* Enhanced drop zone styling */
+/* Enhanced pointer-based collision detection */
+.drop-zone-enhanced {
+  position: relative;
+  border: 2px dashed transparent;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(145deg, transparent, transparent);
+  /* Increase hit area for better pointer detection */
+  padding: 4px;
+  margin: -4px;
+  box-sizing: content-box;
+}
+
+.drop-zone-enhanced.active {
+  border-color: #3B82F6;
+  background: linear-gradient(145deg, rgba(59, 130, 246, 0.05), rgba(59, 130, 246, 0.1));
+  box-shadow: inset 0 2px 4px rgba(59, 130, 246, 0.1);
+  /* Expand hit area when active */
+  padding: 8px;
+  margin: -8px;
+}
+
+.drop-zone-enhanced.drag-over {
+  border-color: #1D4ED8;
+  background: linear-gradient(145deg, rgba(29, 78, 216, 0.15), rgba(29, 78, 216, 0.25));
+  box-shadow: 
+    inset 0 2px 8px rgba(29, 78, 216, 0.2),
+    0 0 0 1px rgba(29, 78, 216, 0.3),
+    0 8px 25px rgba(29, 78, 216, 0.15);
+  transform: scale(1.02);
+  /* Maximum hit area when being dragged over */
+  padding: 12px;
+  margin: -12px;
+}
+
+/* Pointer tracking improvements */
+.widget-container {
+  position: relative;
+  transition: all 0.3s ease;
+  /* Ensure widgets are detectable by pointer */
+  pointer-events: auto;
+}
+
+.widget-container.dragging {
+  opacity: 0.3;
+  transform: scale(1.02);
+  z-index: 999;
+  /* Reduce pointer events on dragging widget to improve drop zone detection */
+  pointer-events: none;
+}
+
+.widget-container.edit-mode {
+  cursor: move;
+  border: 2px dashed rgba(59, 130, 246, 0.3);
+  border-radius: 8px;
+  /* Ensure edit mode widgets respond to pointer */
+  pointer-events: auto;
+}
+
+.widget-container.edit-mode:hover {
+  border-color: #3B82F6;
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+/* Improve drag overlay positioning */
+.drag-overlay {
+  pointer-events: none;
+  z-index: 9999;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.drag-overlay .widget-preview {
+  transform: scale(1.05);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  border-radius: 12px;
+  border: 2px solid #3B82F6;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+}
+
+/* Mobile touch improvements */
+@media (pointer: coarse) {
+  .drop-zone-enhanced {
+    /* Larger hit areas for touch devices */
+    min-height: 60px;
+    padding: 8px;
+    margin: -8px;
+  }
+  
+  .drop-zone-enhanced.active {
+    min-height: 80px;
+    padding: 12px;
+    margin: -12px;
+  }
+  
+  .drag-handle {
+    /* Larger drag handles for touch */
+    padding: 8px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  .widget-remove-btn {
+    /* Larger remove buttons for touch */
+    padding: 8px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* Column indicators */
+.column-indicator {
+  position: relative;
+}
+
+.column-indicator::before {
+  content: attr(data-column);
+  position: absolute;
+  top: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  color: #6B7280;
+  font-weight: 500;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.column-indicator.show-labels::before {
+  opacity: 1;
+}
+
+/* Sortable list animations */
+.sortable-item {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sortable-item.sorting {
+  z-index: 100;
+}
+
+/* Empty column styling */
+.empty-column {
+  min-height: 200px;
+  border: 2px dashed #E5E7EB;
+  border-radius: 12px;
   display: flex;
-  margin-left: -30px; /* gutter size offset */
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #F9FAFB, #F3F4F6);
+  transition: all 0.3s ease;
+}
+
+.empty-column:hover {
+  border-color: #3B82F6;
+  background: linear-gradient(145deg, #EFF6FF, #DBEAFE);
+}
+
+.dark .empty-column {
+  border-color: #374151;
+  background: linear-gradient(145deg, #1F2937, #111827);
+}
+
+.dark .empty-column:hover {
+  border-color: #3B82F6;
+  background: linear-gradient(145deg, #1E3A8A, #1E40AF);
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .drop-zone-enhanced,
+  .widget-edit-mode,
+  .drag-handle,
+  .sortable-item {
+    transition: none;
+  }
+  
+  .drop-zone-enhanced::before {
+    animation: none;
+  }
+}
+
+/* Focus states for keyboard navigation */
+.drag-handle:focus-visible {
+  outline: 2px solid #3B82F6;
+  outline-offset: 2px;
+}
+
+.widget-remove-btn:focus-visible {
+  outline: 2px solid #EF4444;
+  outline-offset: 2px;
+}
+
+/* Drop zone styling */
+.drop-zone {
+  min-height: 20px;
+  border: 2px dashed transparent;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.drop-zone.active {
+  border-color: #3B82F6;
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.drop-zone.active::before {
+  content: 'Drop widget here';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #3B82F6;
+  font-size: 0.875rem;
+  font-weight: 500;
+  pointer-events: none;
+}
+
+/* Draggable widget styling */
+.widget-container {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.widget-container.dragging {
+  opacity: 0.5;
+  transform: scale(1.05);
+  z-index: 1000;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.widget-container.edit-mode {
+  cursor: move;
+  border: 2px dashed rgba(59, 130, 246, 0.3);
+  border-radius: 8px;
+}
+
+.widget-container.edit-mode:hover {
+  border-color: #3B82F6;
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+/* Edit mode overlay */
+.edit-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(59, 130, 246, 0.1);
+  border: 2px dashed #3B82F6;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.edit-overlay.visible {
+  opacity: 1;
+}
+
+/* Grid layout for flexible positioning */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (min-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Empty state styling */
+.empty-dashboard {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+/* Widget animations */
+@keyframes widget-appear {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.widget-appear {
+  animation: widget-appear 0.3s ease-out;
+}
+
+/* Legacy masonry styles (keeping for backward compatibility) */
+.my-masonry-grid {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  margin-left: -30px;
   width: auto;
 }
 
 .my-masonry-grid_column {
-  padding-left: 30px; /* gutter size */
+  padding-left: 30px;
   background-clip: padding-box;
 }
 
-/* Style your items */
-.my-masonry-grid_column > div { /* change div to reference your elements you put in <Masonry> */
+.my-masonry-grid_column > div {
   margin-bottom: 30px;
 }
 
-/* Add cursor style for draggable items */
 .my-masonry-grid_column > div[draggable="true"] {
   cursor: move;
 }
 
-/* Add a subtle shadow to indicate draggable items */
 .my-masonry-grid_column > div[draggable="true"]:hover {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   transform: translateY(-2px);
   transition: all 0.2s ease;
 }
 
-/* Animation for edit mode */
 @keyframes jiggle {
   0% { transform: translate(0, 0); }
   25% { transform: translate(-2px, -2px); }
