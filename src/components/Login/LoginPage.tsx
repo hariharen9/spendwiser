@@ -94,12 +94,12 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <motion.div 
-              className="inline-flex items-center justify-center w-16 h-16 bg-[#007BFF] rounded-full mb-4"
+            <motion.div
+              className="inline-flex items-center justify-center w-16 h-16 mb-4"
               whileHover={{ scale: 1.1, rotate: 5 }}
               transition={{ type: "spring", stiffness: 300 }}
             >
-              <DollarSign className="h-8 w-8 text-white" />
+              <img src="/icon-money.svg" alt="SpendWiser Logo" className="h-full w-full" />
             </motion.div>
             <motion.h1 
               className="text-4xl font-bold text-slate-900 dark:text-[#F5F5F5] mb-2"

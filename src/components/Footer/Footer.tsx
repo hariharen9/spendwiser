@@ -22,12 +22,11 @@ const Footer = () => {
               whileHover={{ scale: 1.05 }}
             >
               <div className="flex items-center space-x-3">
-                <motion.div 
-                  className="bg-[#007BFF] p-2 rounded-lg"
+                <motion.div
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                 >
-                  <DollarSign className="h-6 w-6 text-white" />
+                  <img src="/icon-money.svg" alt="SpendWiser Logo" className="h-10 w-10" />
                 </motion.div>
                 <div>
                   <h1 className="text-xl font-bold text-gray-900 dark:text-[#F5F5F5]">SpendWiser</h1>

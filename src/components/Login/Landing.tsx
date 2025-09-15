@@ -148,9 +148,7 @@ export default function Landing({ onCtaClick }: { onCtaClick: () => void }) {
       >
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-[#007BFF] rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">SW</span>
-            </div>
+            <img src="/icon-money.svg" alt="SpendWiser Logo" className="w-8 h-8" />
             <span className="text-xl font-bold">SpendWiser</span>
           </div>
           <nav className="hidden md:flex items-center space-x-8">
