@@ -5,6 +5,7 @@ import { currencies, getDefaultCategories } from '../../data/mockData';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fadeInVariants, staggerContainer, buttonHoverVariants, modalVariants } from '../../components/Common/AnimationVariants';
 import AnimatedDropdown from '../Common/AnimatedDropdown';
+import Footer from '../Footer/Footer';
 
 interface SettingsPageProps {
   user: any;
@@ -1480,6 +1481,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
           )}
         </AnimatePresence>
       </motion.div>
+      <Footer />
     </>
   );
 };
