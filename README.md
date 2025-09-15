@@ -36,7 +36,7 @@
 > *"SpendWiser isn't just an expense tracker. It's a complete financial command center that empowers you with the clarity and tools needed to master your money."*
 
 <div align="center">
-  <img src="./docs/dashboard.png" alt="SpendWiser Interface" width="900">
+  <img src="./Assets/dashboard.gif" alt="SpendWiser Interface" width="900">
 </div>
 
 ---
@@ -97,35 +97,35 @@
 
 
 
-## 📸 Feature Screenshots
+## 📸 Featured
 
 <table width="100%">
   <tr>
     <td width="33%" align="center">
       <b>Unified Dashboard</b><br><br>
-      <img src="./docs/dashboard.png" alt="SpendWiser Dashboard" width="90%">
+      <img src="./public/assets/gifs/dashboard-compressed.gif" alt="SpendWiser Dashboard" width="90%">
     </td>
     <td width="33%" align="center">
       <b>Loan Repayment Simulator</b><br><br>
-      <img src="https://via.placeholder.com/450x300.png?text=Loan+Repayment+Simulator" alt="Loan Repayment Simulator" width="90%">
+      <img src="./public/assets/gifs/emi-compressed.gif" alt="Loan Repayment Simulator" width="90%">
     </td>
     <td width="33%" align="center">
       <b>Transaction Management</b><br><br>
-      <img src="./docs/transactions.png" alt="Transactions Page" width="90%">
+      <img src="./public/assets/gifs/transactions-compressed.gif" alt="Transactions Page" width="90%">
     </td>
   </tr>
   <tr>
     <td width="33%" align="center">
       <b>Intelligent Budgeting</b><br><br>
-      <img src="./docs/budgets.png" alt="Budgets Page" width="90%">
+      <img src="./public/assets/dashboard.png" alt="Budgets Page" width="90%">
     </td>
     <td width="33%" align="center">
       <b>Financial Goals</b><br><br>
-      <img src="https://via.placeholder.com/450x300.png?text=Financial+Goals+Page" alt="Financial Goals Page" width="90%">
+      <img src="./public/assets/gifs/others-compressed.gif" alt="Financial Goals Page" width="90%">
     </td>
     <td width="33%" align="center">
       <b>Deep Customization</b><br><br>
-      <img src="https://via.placeholder.com/450x300.png?text=Settings+Page+(Themes+&+Fonts)" alt="Settings Page" width="90%">
+      <img src="./public/assets/login.png" alt="Settings Page" width="90%">
     </td>
   </tr>
 </table>
@@ -138,29 +138,29 @@ SpendWiser is designed from the ground up to be a pleasure to use on any device.
   <tr>
     <td width="33%" align="center">
       <b>Mobile Dashboard</b><br><br>
-      <img src="./docs/mobile-dashboard.png" alt="Mobile Dashboard" width="90%">
+      <img src="./Assets/mobile-ss/Screenshot_20250912_222258.jpg" alt="Mobile Dashboard" width="90%">
     </td>
     <td width="33%" align="center">
       <b>Mobile Transactions</b><br><br>
-      <img src="https://via.placeholder.com/250x500.png?text=Mobile+Transactions" alt="Mobile Transactions" width="90%">
+      <img src="./Assets/mobile-ss/Screenshot_20250912_222333.jpg" alt="Mobile Transactions" width="90%">
     </td>
     <td width="33%" align="center">
       <b>Filter & Sort</b><br><br>
-      <img src="https://via.placeholder.com/250x500.png?text=Mobile+Filters" alt="Mobile Filters" width="90%">
+      <img src="./Assets/mobile-ss/Screenshot_20250912_222344.jpg" alt="Mobile Filters" width="90%">
     </td>
   </tr>
   <tr>
     <td width="33%" align="center">
       <b>Add Transaction</b><br><br>
-      <img src="https://via.placeholder.com/250x500.png?text=Add+Transaction+Modal" alt="Add Transaction Modal" width="90%">
+      <img src="./Assets/mobile-ss/Screenshot_20250912_222405.jpg" alt="Add Transaction Modal" width="90%">
     </td>
     <td width="33%" align="center">
       <b>Budgets on Mobile</b><br><br>
-      <img src="https://via.placeholder.com/250x500.png?text=Mobile+Budgets" alt="Mobile Budgets" width="90%">
+      <img src="./Assets/mobile-ss/Screenshot_20250912_222415.jpg" alt="Mobile Budgets" width="90%">
     </td>
     <td width="33%" align="center">
       <b>Goals on Mobile</b><br><br>
-      <img src="https://via.placeholder.com/250x500.png?text=Mobile+Goals" alt="Mobile Goals" width="90%">
+      <img src="./Assets/mobile-ss/Screenshot_20250912_222425.jpg" alt="Mobile Goals" width="90%">
     </td>
   </tr>
 </table>

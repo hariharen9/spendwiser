@@ -101,6 +101,10 @@ export default function Landing({ onCtaClick }: { onCtaClick: () => void }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [showScrollTop, setShowScrollTop] = useState(false)
   const [isHeaderVisible, setIsHeaderVisible] = useState(false)
+  const [isGifLoaded, setIsGifLoaded] = useState(false)
+  const [isEmiGifLoaded, setIsEmiGifLoaded] = useState(false)
+  const [isTransactionsGifLoaded, setIsTransactionsGifLoaded] = useState(false)
+  const [isOthersGifLoaded, setIsOthersGifLoaded] = useState(false)
 
   const targetRef = useRef<HTMLDivElement>(null)
 
@@ -208,7 +212,19 @@ export default function Landing({ onCtaClick }: { onCtaClick: () => void }) {
             </motion.div>
             <motion.div variants={itemVariants} className="relative max-w-6xl mx-auto mt-16">
                 <div className="absolute -inset-8 bg-blue-500/25 rounded-3xl blur-3xl"></div>
-                <img src="https://placehold.co/1200x800/e2e8f0/1e293b?text=SpendWiser+Dashboard" alt="SpendWiser Dashboard Preview" className="relative w-full h-auto rounded-2xl shadow-lg border-2 border-slate-200 dark:border-white/10" />
+                <div className="relative w-full h-auto rounded-2xl shadow-lg border-2 border-slate-200 dark:border-white/10 overflow-hidden">
+                    <img
+                        src="/assets/dashboard.png"
+                        alt="SpendWiser Dashboard Preview"
+                        className={`w-full h-auto object-contain transition-opacity duration-500 ${isGifLoaded ? 'opacity-0' : 'opacity-100'}`}
+                    />
+                    <img
+                        src="/assets/gifs/dashboard.gif"
+                        alt="SpendWiser Dashboard Animated Preview"
+                        className={`absolute top-0 left-0 w-full h-full object-contain transition-opacity duration-500 ${isGifLoaded ? 'opacity-100' : 'opacity-0'}`}
+                        onLoad={() => setIsGifLoaded(true)}
+                    />
+                </div>
             </motion.div>
           </motion.div>
         </section>
@@ -237,7 +253,21 @@ export default function Landing({ onCtaClick }: { onCtaClick: () => void }) {
                     <p className="text-lg text-slate-600 dark:text-white/70 mb-6 leading-relaxed">Don't just pay your loans; conquer them. Our interactive Loan Simulator is your strategic partner in becoming debt-free. Model different repayment strategies, see the impact of extra payments in real-time, and discover the fastest path to financial freedom. Know exactly how much interest you'll save and when you'll make your last payment.</p>
                     <ul className="space-y-4 text-lg"><li className="flex items-start gap-3"><Check className="h-6 w-6 text-[#007BFF] mt-1 flex-shrink-0" /><span>Visualize your complete loan amortization schedule.</span></li><li className="flex items-start gap-3"><Check className="h-6 w-6 text-[#007BFF] mt-1 flex-shrink-0" /><span>Strategize with prepayments and extra EMIs to save thousands.</span></li></ul>
                 </motion.div>
-                <motion.div variants={itemVariants} className="relative group"><div className="absolute -inset-4 bg-blue-500/20 rounded-3xl blur-2xl group-hover:blur-3xl transition-all duration-500"></div><img src="https://placehold.co/800x600/e2e8f0/1e293b?text=Loan+Simulator" alt="Loan Simulator" className="relative w-full h-auto rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10" />
+                <motion.div variants={itemVariants} className="relative group">
+                    <div className="absolute -inset-4 bg-blue-500/20 rounded-3xl blur-2xl group-hover:blur-3xl transition-all duration-500"></div>
+                    <div className="relative w-full h-auto rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden">
+                        <img
+                            src="https://placehold.co/800x600/e2e8f0/1e293b?text=Loan+Simulator+Preview"
+                            alt="Loan Simulator Preview"
+                            className={`w-full h-auto object-contain transition-opacity duration-500 ${isEmiGifLoaded ? 'opacity-0' : 'opacity-100'}`}
+                        />
+                        <img
+                            src="/assets/gifs/emi.gif"
+                            alt="Loan Simulator Animated Preview"
+                            className={`absolute top-0 left-0 w-full h-full object-contain transition-opacity duration-500 ${isEmiGifLoaded ? 'opacity-100' : 'opacity-0'}`}
+                            onLoad={() => setIsEmiGifLoaded(true)}
+                        />
+                    </div>
                 </motion.div>
             </motion.div>
 
@@ -251,7 +281,21 @@ export default function Landing({ onCtaClick }: { onCtaClick: () => void }) {
                     <p className="text-lg text-slate-600 dark:text-white/70 mb-6 leading-relaxed">Reclaim your time and eliminate manual entry. SpendWiser's intelligent automation effortlessly tracks your recurring bills, subscriptions, and income. Set it up once and let the app do the heavy lifting, so you can focus on living your life.</p>
                     <ul className="space-y-4 text-lg"><li className="flex items-start gap-3"><Check className="h-6 w-6 text-[#007BFF] mt-1 flex-shrink-0" /><span>Never miss a payment with automated bill and subscription tracking.</span></li><li className="flex items-start gap-3"><Check className="h-6 w-6 text-[#007BFF] mt-1 flex-shrink-0" /><span>Effortlessly monitor your cash flow with recurring income.</span></li></ul>
                 </motion.div>
-                <motion.div variants={itemVariants} className="relative group"><div className="absolute -inset-4 bg-purple-500/10 rounded-3xl blur-2xl group-hover:blur-3xl transition-all duration-500"></div><img src="https://placehold.co/800x600/e2e8f0/1e293b?text=Automation" alt="Automated Transactions" className="relative w-full h-auto rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10" />
+                <motion.div variants={itemVariants} className="relative group">
+                    <div className="absolute -inset-4 bg-purple-500/10 rounded-3xl blur-2xl group-hover:blur-3xl transition-all duration-500"></div>
+                    <div className="relative w-full h-auto rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden">
+                        <img
+                            src="https://placehold.co/800x600/e2e8f0/1e293b?text=Automation+Preview"
+                            alt="Automation Preview"
+                            className={`w-full h-auto object-contain transition-opacity duration-500 ${isTransactionsGifLoaded ? 'opacity-0' : 'opacity-100'}`}
+                        />
+                        <img
+                            src="/assets/gifs/transactions.gif"
+                            alt="Automation Animated Preview"
+                            className={`absolute top-0 left-0 w-full h-full object-contain transition-opacity duration-500 ${isTransactionsGifLoaded ? 'opacity-100' : 'opacity-0'}`}
+                            onLoad={() => setIsTransactionsGifLoaded(true)}
+                        />
+                    </div>
                 </motion.div>
             </motion.div>
 
@@ -265,7 +309,15 @@ export default function Landing({ onCtaClick }: { onCtaClick: () => void }) {
                     <p className="text-lg text-slate-600 dark:text-white/70 mb-6 leading-relaxed">Budgeting isn't about restriction; it's about empowerment. Create flexible, category-based budgets that align with your life. With visual progress bars and intelligent alerts, you'll always know where you stand. Turn your financial dreams—from a dream vacation to a down payment—into actionable goals and watch your savings grow.</p>
                     <ul className="space-y-4 text-lg"><li className="flex items-start gap-3"><Check className="h-6 w-6 text-[#007BFF] mt-1 flex-shrink-0" /><span>Get smart alerts before you overspend.</span></li><li className="flex items-start gap-3"><Check className="h-6 w-6 text-[#007BFF] mt-1 flex-shrink-0" /><span>Fund your goals directly and track your progress.</span></li></ul>
                 </motion.div>
-                <motion.div variants={itemVariants} className="relative group"><div className="absolute -inset-4 bg-green-500/10 rounded-3xl blur-2xl group-hover:blur-3xl transition-all duration-500"></div><img src="https://placehold.co/800x600/e2e8f0/1e293b?text=Goals+%26+Budgets" alt="Goals and Budgets" className="relative w-full h-auto rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10" />
+                <motion.div variants={itemVariants} className="relative group">
+                    <div className="absolute -inset-4 bg-green-500/10 rounded-3xl blur-2xl group-hover:blur-3xl transition-all duration-500"></div>
+                    <div className="relative w-full h-auto rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden">
+                        <img
+                            src="https://placehold.co/800x600/e2e8f0/1e293b?text=Goals+and+Budgets+Preview"
+                            alt="Goals and Budgets Preview"
+                            className={`w-full h-auto object-contain transition-opacity duration-500 opacity-100`}
+                        />
+                    </div>
                 </motion.div>
             </motion.div>
           </motion.div>
