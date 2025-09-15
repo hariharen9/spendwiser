@@ -9,14 +9,14 @@ const Footer = () => {
       <CurvedLoop 
         marqueeText="SPENDWISE ✦ Your ✦ Ultimate ✦ Expense ✦ Tracker ✦"
         speed={1.8}
-        curveAmount={500}
+        curveAmount={700}
         direction="left"
         interactive={true}
-        className="custom-text-style opacity-20 fill-black dark:fill-white"
+        className="custom-text-style opacity-20 fill-black dark:fill-white text-[8rem] mx-auto"
       />
-      <div className="max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8 mb-6 sm:mb-12">
-          <div className="sm:col-span-1">
+      <div className="max-w-6xl mx-auto mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
+          <div className="sm:col-span-1 flex flex-col items-center md:items-start">
             <motion.div
               className="flex items-center mb-6"
               whileHover={{ scale: 1.05 }}
@@ -86,13 +86,13 @@ const Footer = () => {
             <h4 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-400">Quick Links</h4>
             <ul className="space-y-2">
               {[
-                { name: 'Source Code', url: 'https://github.com/hariharen9/spendwise' },
-                { name: 'Issues', url: 'https://github.com/hariharen9/spendwise/issues' },
-                { name: 'LICENSE', url: 'https://github.com/hariharen9/spendwise/blob/main/LICENSE' },
-                { name: 'Pull Requests', url: 'https://github.com/hariharen9/spendwise/pulls' },
-                { name: 'Discussions', url: 'https://github.com/hariharen9/spendwise/discussions' },
-                { name: 'Contributing', url: 'https://github.com/hariharen9/spendwise/blob/main/CONTRIBUTING.md' },
-                { name: 'Releases', url: 'https://github.com/hariharen9/spendwise/releases' }
+                { name: 'Source Code', url: 'https://github.com/hariharen9/spendwiser' },
+                { name: 'Issues', url: 'https://github.com/hariharen9/spendwiser/issues' },
+                { name: 'LICENSE', url: 'https://github.com/hariharen9/spendwiser/blob/main/LICENSE' },
+                { name: 'Pull Requests', url: 'https://github.com/hariharen9/spendwiser/pulls' },
+                { name: 'Discussions', url: 'https://github.com/hariharen9/spendwiser/discussions' },
+                { name: 'Contributing', url: 'https://github.com/hariharen9/spendwiser/blob/main/CONTRIBUTING.md' },
+                { name: 'Releases', url: 'https://github.com/hariharen9/spendwiser/releases' }
               ].map((link, index) => (
                 <motion.li
                   key={link.name}
@@ -165,7 +165,7 @@ const Footer = () => {
         </div>
 
         <motion.div
-          className="border-t border-slate-700 pt-8 flex flex-col md:flex-row items-center justify-between"
+          className="border-t border-slate-700 pt-8 mt-16 flex flex-col md:flex-row items-center justify-between text-center md:text-left"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
@@ -182,7 +182,7 @@ const Footer = () => {
             </a>
           </p>
           <p className="text-gray-500 dark:text-slate-400 text-sm">
-            Empowering your financial journey.
+           Clarity in finance, confidence in life.
           </p>
         </motion.div>
       </div>
