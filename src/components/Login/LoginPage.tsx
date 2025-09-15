@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { DollarSign, Sun, Moon } from 'lucide-react';
 import { GoogleAuthProvider, signInWithPopup, User } from 'firebase/auth';
 import { auth } from '../../firebaseConfig';
@@ -22,6 +22,7 @@ interface LoginPageProps {
 
 const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   const [darkMode, setDarkMode] = useState(true);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -60,8 +61,12 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     setDarkMode(!darkMode);
   };
 
+  const scrollToLogin = () => {
+    scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
-    <div className="h-screen overflow-y-auto snap-y snap-mandatory">
+    <div ref={scrollContainerRef} id="main-scroll-container" className="h-screen overflow-y-auto snap-y snap-mandatory">
       <motion.div 
         className="h-screen snap-start flex items-center justify-center px-4 bg-slate-50 dark:bg-[#1A1A1A] relative"
         variants={pageVariants}
@@ -166,7 +171,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         <ScrollIndicator />
       </motion.div>
       <div className="h-screen snap-start">
-        <Landing />
+        <Landing onCtaClick={scrollToLogin} />
       </div>
     </div>
   );
