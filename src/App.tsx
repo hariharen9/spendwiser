@@ -1387,6 +1387,7 @@ function App() {
               onClearMockData={handleClearMockData}
               onDeleteUserAccount={handleDeleteUserAccount}
               onBackupData={handleBackupData}
+              onExportPDF={handleExportPDF}
               onRestoreData={handleRestoreData}
               selectedFont={selectedFont}
               onUpdateFont={onUpdateFont}
@@ -1449,6 +1450,467 @@ function App() {
     a.click();
     URL.revokeObjectURL(url);
     showToast('Data backup successful!', 'success');
+  };
+
+  const handleExportPDF = () => {
+    if (!user) return;
+
+    // Create backup data (same as handleBackupData)
+    const backupData = {
+      transactions,
+      accounts,
+      budgets,
+      goals,
+      loans,
+      recurringTransactions,
+      totalBudget,
+      userCategories,
+      settings: {
+        darkMode,
+        currency,
+        defaultAccountId,
+        fontPreference: selectedFont,
+      },
+      metadata: {
+        backupDate: new Date().toISOString(),
+        version: '1.0.0',
+      },
+    };
+
+    // Create a new PDF document
+    const doc = new jsPDF();
+    
+    // Set document properties
+    doc.setProperties({
+      title: `SpendWiser Backup - ${new Date().toISOString().split('T')[0]}`,
+      subject: 'Financial Data Backup',
+      author: 'SpendWiser',
+      keywords: 'finance, budget, transactions, backup',
+      creator: 'SpendWiser'
+    });
+
+    // Add header
+    doc.setFontSize(22);
+    doc.setTextColor(0, 123, 255); // Blue color
+    doc.text('SpendWiser Financial Statement', 105, 20, { align: 'center' });
+    
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 30);
+    doc.text(`User: ${user.email}`, 20, 37);
+    
+    // Add a line separator
+    doc.setDrawColor(0, 123, 255);
+    doc.line(20, 42, 190, 42);
+    
+    // Add summary section
+    doc.setFontSize(16);
+    doc.setTextColor(0, 123, 255);
+    doc.text('Account Summary', 20, 52);
+    
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    
+    let yPosition = 62;
+    
+    // Add account information
+    accounts.forEach((account, index) => {
+      if (yPosition > 270) { // If we're near the bottom of the page, add a new page
+        doc.addPage();
+        yPosition = 20;
+      }
+      
+      doc.setFont('helvetica', 'bold');
+      doc.text(`${account.name} (${account.type})`, 20, yPosition);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`${currency}${account.balance.toLocaleString()}`, 180, yPosition, { align: 'right' });
+      yPosition += 7;
+    });
+    
+    // Add budgets section
+    if (yPosition > 250) {
+      doc.addPage();
+      yPosition = 20;
+    } else {
+      yPosition += 10;
+    }
+    
+    doc.setFontSize(16);
+    doc.setTextColor(0, 123, 255);
+    doc.text('Budgets', 20, yPosition);
+    yPosition += 10;
+    
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    
+    // Add budgets table headers
+    if (yPosition > 260) {
+      doc.addPage();
+      yPosition = 20;
+    }
+    
+    if (budgets.length > 0) {
+      doc.setFont('helvetica', 'bold');
+      doc.text('Category', 20, yPosition);
+      doc.text('Limit', 80, yPosition);
+      doc.text('Spent', 120, yPosition);
+      doc.text('Remaining', 160, yPosition, { align: 'right' });
+      doc.setFont('helvetica', 'normal');
+      yPosition += 5;
+      
+      // Add a line under headers
+      doc.line(20, yPosition, 190, yPosition);
+      yPosition += 5;
+      
+      // Add budgets
+      budgets.forEach((budget, index) => {
+        if (yPosition > 270) { // If we're near the bottom of the page, add a new page
+          doc.addPage();
+          yPosition = 20;
+          
+          // Re-add headers on new page
+          doc.setFont('helvetica', 'bold');
+          doc.text('Category', 20, yPosition);
+          doc.text('Limit', 80, yPosition);
+          doc.text('Spent', 120, yPosition);
+          doc.text('Remaining', 160, yPosition, { align: 'right' });
+          doc.setFont('helvetica', 'normal');
+          yPosition += 5;
+          doc.line(20, yPosition, 190, yPosition);
+          yPosition += 5;
+        }
+        
+        doc.text(budget.category, 20, yPosition);
+        doc.text(`${currency}${budget.limit.toLocaleString()}`, 80, yPosition);
+        
+        // Calculate spent amount for this budget
+        const spent = transactions
+          .filter(t => t.category === budget.category && t.type === 'expense')
+          .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+        doc.text(`${currency}${spent.toLocaleString()}`, 120, yPosition);
+        
+        const remaining = budget.limit - spent;
+        doc.text(`${currency}${remaining.toLocaleString()}`, 160, yPosition, { align: 'right' });
+        
+        yPosition += 7;
+      });
+    } else {
+      doc.setFont('helvetica', 'italic');
+      doc.text('No budgets set up', 20, yPosition);
+      doc.setFont('helvetica', 'normal');
+      yPosition += 7;
+    }
+    
+    // Add loans section
+    if (yPosition > 250) {
+      doc.addPage();
+      yPosition = 20;
+    } else {
+      yPosition += 10;
+    }
+    
+    doc.setFontSize(16);
+    doc.setTextColor(0, 123, 255);
+    doc.text('Loans', 20, yPosition);
+    yPosition += 10;
+    
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    
+    // Add loans table headers
+    if (yPosition > 260) {
+      doc.addPage();
+      yPosition = 20;
+    }
+    
+    if (loans.length > 0) {
+      doc.setFont('helvetica', 'bold');
+      doc.text('Loan Name', 20, yPosition);
+      doc.text('Principal', 70, yPosition);
+      doc.text('Interest Rate', 110, yPosition);
+      doc.text('Term', 150, yPosition);
+      doc.text('Balance', 190, yPosition, { align: 'right' });
+      doc.setFont('helvetica', 'normal');
+      yPosition += 5;
+      
+      // Add a line under headers
+      doc.line(20, yPosition, 190, yPosition);
+      yPosition += 5;
+      
+      // Add loans
+      loans.forEach((loan, index) => {
+        if (yPosition > 270) { // If we're near the bottom of the page, add a new page
+          doc.addPage();
+          yPosition = 20;
+          
+          // Re-add headers on new page
+          doc.setFont('helvetica', 'bold');
+          doc.text('Loan Name', 20, yPosition);
+          doc.text('Principal', 70, yPosition);
+          doc.text('Interest Rate', 110, yPosition);
+          doc.text('Term', 150, yPosition);
+          doc.text('Balance', 190, yPosition, { align: 'right' });
+          doc.setFont('helvetica', 'normal');
+          yPosition += 5;
+          doc.line(20, yPosition, 190, yPosition);
+          yPosition += 5;
+        }
+        
+        doc.text(loan.name, 20, yPosition);
+        doc.text(`${currency}${loan.loanAmount.toLocaleString()}`, 70, yPosition);
+        doc.text(`${loan.interestRate}%`, 110, yPosition);
+        doc.text(`${loan.tenure} years`, 150, yPosition);
+        doc.text(`${currency}${loan.emi.toLocaleString()}`, 190, yPosition, { align: 'right' });
+        
+        yPosition += 7;
+      });
+    } else {
+      doc.setFont('helvetica', 'italic');
+      doc.text('No loans set up', 20, yPosition);
+      doc.setFont('helvetica', 'normal');
+      yPosition += 7;
+    }
+    
+    // Add goals section
+    if (yPosition > 250) {
+      doc.addPage();
+      yPosition = 20;
+    } else {
+      yPosition += 10;
+    }
+    
+    doc.setFontSize(16);
+    doc.setTextColor(0, 123, 255);
+    doc.text('Financial Goals', 20, yPosition);
+    yPosition += 10;
+    
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    
+    // Add goals table headers
+    if (yPosition > 260) {
+      doc.addPage();
+      yPosition = 20;
+    }
+    
+    if (goals.length > 0) {
+      doc.setFont('helvetica', 'bold');
+      doc.text('Goal Name', 20, yPosition);
+      doc.text('Target', 80, yPosition);
+      doc.text('Current', 120, yPosition);
+      doc.text('Progress', 160, yPosition, { align: 'right' });
+      doc.setFont('helvetica', 'normal');
+      yPosition += 5;
+      
+      // Add a line under headers
+      doc.line(20, yPosition, 190, yPosition);
+      yPosition += 5;
+      
+      // Add goals
+      goals.forEach((goal, index) => {
+        if (yPosition > 270) { // If we're near the bottom of the page, add a new page
+          doc.addPage();
+          yPosition = 20;
+          
+          // Re-add headers on new page
+          doc.setFont('helvetica', 'bold');
+          doc.text('Goal Name', 20, yPosition);
+          doc.text('Target', 80, yPosition);
+          doc.text('Current', 120, yPosition);
+          doc.text('Progress', 160, yPosition, { align: 'right' });
+          doc.setFont('helvetica', 'normal');
+          yPosition += 5;
+          doc.line(20, yPosition, 190, yPosition);
+          yPosition += 5;
+        }
+        
+        doc.text(goal.name, 20, yPosition);
+        doc.text(`${currency}${goal.targetAmount.toLocaleString()}`, 80, yPosition);
+        doc.text(`${currency}${goal.currentAmount.toLocaleString()}`, 120, yPosition);
+        
+        const progress = Math.round((goal.currentAmount / goal.targetAmount) * 100);
+        doc.text(`${progress}%`, 160, yPosition, { align: 'right' });
+        
+        yPosition += 7;
+      });
+    } else {
+      doc.setFont('helvetica', 'italic');
+      doc.text('No financial goals set up', 20, yPosition);
+      doc.setFont('helvetica', 'normal');
+      yPosition += 7;
+    }
+    
+    // Add credit card transactions section
+    const creditCardAccounts = accounts.filter(account => account.type === 'Credit Card');
+    if (creditCardAccounts.length > 0) {
+      if (yPosition > 250) {
+        doc.addPage();
+        yPosition = 20;
+      } else {
+        yPosition += 10;
+      }
+      
+      doc.setFontSize(16);
+      doc.setTextColor(0, 123, 255);
+      doc.text('Credit Card Transactions', 20, yPosition);
+      yPosition += 10;
+      
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      
+      // Add table headers
+      if (yPosition > 260) {
+        doc.addPage();
+        yPosition = 20;
+      }
+      
+      doc.setFont('helvetica', 'bold');
+      doc.text('Date', 20, yPosition);
+      doc.text('Description', 45, yPosition);
+      doc.text('Card', 100, yPosition);
+      doc.text('Category', 130, yPosition);
+      doc.text('Amount', 190, yPosition, { align: 'right' });
+      doc.setFont('helvetica', 'normal');
+      yPosition += 5;
+      
+      // Add a line under headers
+      doc.line(20, yPosition, 190, yPosition);
+      yPosition += 5;
+      
+      // Get credit card transactions
+      const creditCardTransactions = transactions.filter(transaction => 
+        creditCardAccounts.some(card => card.id === transaction.accountId)
+      );
+      
+      if (creditCardTransactions.length > 0) {
+        // Add credit card transactions (limit to 50 for performance)
+        const limitedCCTransactions = creditCardTransactions.slice(0, 50);
+        limitedCCTransactions.forEach((transaction, index) => {
+          if (yPosition > 270) { // If we're near the bottom of the page, add a new page
+            doc.addPage();
+            yPosition = 20;
+            
+            // Re-add headers on new page
+            doc.setFont('helvetica', 'bold');
+            doc.text('Date', 20, yPosition);
+            doc.text('Description', 45, yPosition);
+            doc.text('Card', 100, yPosition);
+            doc.text('Category', 130, yPosition);
+            doc.text('Amount', 190, yPosition, { align: 'right' });
+            doc.setFont('helvetica', 'normal');
+            yPosition += 5;
+            doc.line(20, yPosition, 190, yPosition);
+            yPosition += 5;
+          }
+          
+          doc.text(transaction.date, 20, yPosition);
+          doc.text(transaction.name.length > 15 ? transaction.name.substring(0, 15) + '...' : transaction.name, 45, yPosition);
+          
+          const card = creditCardAccounts.find(c => c.id === transaction.accountId);
+          doc.text(card ? card.name : 'Unknown Card', 100, yPosition);
+          
+          doc.text(transaction.category, 130, yPosition);
+          
+          // Color code amounts (expenses in red)
+          doc.setTextColor(220, 53, 69); // Red for expenses
+          doc.text(`${currency}${Math.abs(transaction.amount).toLocaleString()}`, 190, yPosition, { align: 'right' });
+          doc.setTextColor(0, 0, 0); // Reset to black
+          
+          yPosition += 7;
+        });
+      } else {
+        doc.setFont('helvetica', 'italic');
+        doc.text('No credit card transactions', 20, yPosition);
+        doc.setFont('helvetica', 'normal');
+        yPosition += 7;
+      }
+    }
+    
+    // Add transactions section
+    if (yPosition > 250) {
+      doc.addPage();
+      yPosition = 20;
+    } else {
+      yPosition += 10;
+    }
+    
+    doc.setFontSize(16);
+    doc.setTextColor(0, 123, 255);
+    doc.text('All Transactions', 20, yPosition);
+    yPosition += 10;
+    
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    
+    // Add table headers
+    if (yPosition > 260) {
+      doc.addPage();
+      yPosition = 20;
+    }
+    
+    doc.setFont('helvetica', 'bold');
+    doc.text('Date', 20, yPosition);
+    doc.text('Description', 45, yPosition);
+    doc.text('Category', 100, yPosition);
+    doc.text('Type', 140, yPosition);
+    doc.text('Amount', 180, yPosition, { align: 'right' });
+    doc.setFont('helvetica', 'normal');
+    yPosition += 5;
+    
+    // Add a line under headers
+    doc.line(20, yPosition, 190, yPosition);
+    yPosition += 5;
+    
+    // Add transactions (limit to 100 for performance)
+    const limitedTransactions = transactions.slice(0, 100);
+    limitedTransactions.forEach((transaction, index) => {
+      if (yPosition > 270) { // If we're near the bottom of the page, add a new page
+        doc.addPage();
+        yPosition = 20;
+        
+        // Re-add headers on new page
+        doc.setFont('helvetica', 'bold');
+        doc.text('Date', 20, yPosition);
+        doc.text('Description', 45, yPosition);
+        doc.text('Category', 100, yPosition);
+        doc.text('Type', 140, yPosition);
+        doc.text('Amount', 180, yPosition, { align: 'right' });
+        doc.setFont('helvetica', 'normal');
+        yPosition += 5;
+        doc.line(20, yPosition, 190, yPosition);
+        yPosition += 5;
+      }
+      
+      doc.text(transaction.date, 20, yPosition);
+      doc.text(transaction.name.length > 20 ? transaction.name.substring(0, 20) + '...' : transaction.name, 45, yPosition);
+      doc.text(transaction.category, 100, yPosition);
+      doc.text(transaction.type, 140, yPosition);
+      
+      // Color code amounts
+      if (transaction.type === 'income') {
+        doc.setTextColor(40, 167, 69); // Green for income
+      } else {
+        doc.setTextColor(220, 53, 69); // Red for expenses
+      }
+      
+      doc.text(`${currency}${Math.abs(transaction.amount).toLocaleString()}`, 180, yPosition, { align: 'right' });
+      doc.setTextColor(0, 0, 0); // Reset to black
+      
+      yPosition += 7;
+    });
+    
+    // Add footer
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(10);
+      doc.setTextColor(108, 117, 125);
+      doc.text(`Page ${i} of ${pageCount}`, 105, 290, { align: 'center' });
+    }
+    
+    // Save the PDF
+    doc.save(`spendwiser-statement-${new Date().toISOString().split('T')[0]}.pdf`);
+    showToast('PDF export successful!', 'success');
   };
 
   const handleRestoreData = async (data: any) => {
