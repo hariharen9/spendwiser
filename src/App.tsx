@@ -2105,7 +2105,7 @@ function App() {
                 repeatType: "reverse"
               }}
             >
-              <DollarSign className="h-6 w-6 text-white" />
+              <img src="/icon-money.svg" alt="SpendWiser Logo" className="h-8 w-8" />
             </motion.div>
             <motion.span 
               className="text-xl font-semibold"
@@ -2171,9 +2171,9 @@ function App() {
       <div className="md:hidden bg-white dark:bg-[#242424] border-b border-gray-200 dark:border-gray-700 p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="bg-[#007BFF] p-2 rounded-lg">
-              <DollarSign className="h-6 w-6 text-white" />
-            </div>
+            {/* <div className="bg-[#007BFF] p-2 rounded-lg"> */}
+              <img src="/icon-money.svg" alt="SpendWiser Logo" className="h-10 w-10" />
+            {/* </div> */}
             <div>
               <a href="https://hariharen9.site" target="_blank" rel="noopener noreferrer">
                 <h1 className="text-xl font-bold text-gray-900 dark:text-[#F5F5F5]">SpendWiser</h1>
