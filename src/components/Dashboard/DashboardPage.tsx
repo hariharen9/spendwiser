@@ -19,8 +19,18 @@ import TotalBudgetWidget from './TotalBudgetWidget';
 import WidgetLibraryModal from './WidgetLibraryModal';
 import DashboardContainer from './DashboardContainer';
 import './Dashboard.css';
-import { motion } from 'framer-motion';
+import { motion, Transition } from 'framer-motion';
 import { fadeInVariants, staggerContainer, buttonHoverVariants } from '../../components/Common/AnimationVariants';
+
+// Add this new animation variant for the breathing effect
+const breathingAnimation = {
+  scale: [1, 1.05, 1],
+  transition: {
+    duration: 2,
+    repeat: Infinity,
+    ease: "easeInOut"
+  }
+};
 
 interface DashboardPageProps {
   transactions: Transaction[];
@@ -376,7 +386,22 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, recurringTr
       
       {/* Welcome heading for mobile only */}
       <div className="md:hidden text-center mt-4 mb-0">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5]">Welcome to <span className='text-[#007BFF]'>SpendWiser!</span></h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5]">Welcome to <motion.span 
+          className='text-[#007BFF]' 
+          animate={{ 
+            scale: [1, 1.05, 1],
+            textShadow: [
+              "0 0 0px rgba(0, 123, 255, 0)",
+              "0 0 10px rgba(0, 123, 255, 0.5)",
+              "0 0 0px rgba(0, 123, 255, 0)"
+            ]
+          }} 
+          transition={{ 
+            duration: 2, 
+            repeat: Infinity, 
+            ease: "easeInOut"
+          }}
+        >SpendWiser!</motion.span></h2>
         <h4 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5]">Lets start tracking</h4>
       </div>
 
