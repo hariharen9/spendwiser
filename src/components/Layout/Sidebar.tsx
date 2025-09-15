@@ -171,7 +171,6 @@ const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onScreenChange, user, 
             />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 dark:text-[#F5F5F5] truncate">{user.displayName}</p>
-              <p className="text-xs text-gray-500 dark:text-[#888888] truncate">{user.email}</p>
             </div>
           </div>
           <motion.button
