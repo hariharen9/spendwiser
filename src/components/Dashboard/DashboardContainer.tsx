@@ -291,7 +291,7 @@ const DashboardContainer: React.FC<DashboardContainerProps> = ({
               </div>
             )}
             {/* Drop zone at top of column - Extra padding for better detection */}
-            <div className="relative" style={{ minHeight: '60px', margin: '-10px -5px 10px -5px', padding: '10px 5px' }}>
+            <div className="relative" style={{ minHeight: '40px', margin: '-5px -5px 5px -5px', padding: '5px' }}>
               <DropZone
                 id={getDropZoneId(columnIndex, 0)}
                 isActive={isEditMode}
@@ -318,7 +318,7 @@ const DashboardContainer: React.FC<DashboardContainerProps> = ({
                   </DraggableWidget>
                   
                   {/* Drop zone between widgets - Enhanced spacing */}
-                  <div className="relative" style={{ minHeight: '50px', margin: '10px -5px', padding: '5px' }}>
+                  <div className="relative" style={{ minHeight: '30px', margin: '5px -5px', padding: '2px' }}>
                     <DropZone
                       id={getDropZoneId(columnIndex, index + 1)}
                       isActive={isEditMode && activeId !== null}

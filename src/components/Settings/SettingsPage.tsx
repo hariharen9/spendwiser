@@ -562,7 +562,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
             <div className="relative group">
               <motion.button
                 onClick={onBackupData}
-                className="flex items-center justify-center space-x-1 bg-[#007BFF] text-white px-3 py-2 rounded-lg font-medium text-sm w-full hover:bg-[#0056b3] transition-colors duration-200"
+                className="flex items-center justify-center space-x-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 px-3 py-2 rounded-lg font-medium text-sm w-full hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors duration-200"
                 variants={buttonHoverVariants}
                 whileHover="hover"
                 whileTap="tap"
@@ -577,7 +577,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
             <div className="relative group">
               <motion.button
                 onClick={handleExportPDF}
-                className="flex items-center justify-center space-x-1 bg-[#28a745] text-white px-3 py-2 rounded-lg font-medium text-sm w-full hover:bg-[#218838] transition-colors duration-200"
+                className="flex items-center justify-center space-x-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-200 px-3 py-2 rounded-lg font-medium text-sm w-full hover:bg-green-200 dark:hover:bg-green-800 transition-colors duration-200"
                 variants={buttonHoverVariants}
                 whileHover="hover"
                 whileTap="tap"
@@ -585,7 +585,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
               >
                 {isExportingPDF ? (
                   <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-green-700 dark:text-green-200" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
@@ -602,7 +602,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
             <div className="relative group">
               <motion.button
                 onClick={() => document.getElementById('restore-input')?.click()}
-                className="flex items-center justify-center space-x-1 bg-[#ffc107] text-gray-900 px-3 py-2 rounded-lg font-medium text-sm w-full hover:bg-[#e0a800] transition-colors duration-200"
+                className="flex items-center justify-center space-x-1 bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-200 px-3 py-2 rounded-lg font-medium text-sm w-full hover:bg-amber-200 dark:hover:bg-amber-800 transition-colors duration-200"
                 variants={buttonHoverVariants}
                 whileHover="hover"
                 whileTap="tap"

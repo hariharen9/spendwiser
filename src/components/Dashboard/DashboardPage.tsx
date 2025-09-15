@@ -372,7 +372,13 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, recurringTr
       </motion.div>
 
       {/* Separator line between metrics and widgets */}
-      <div className="border-t border-gray-200 dark:border-gray-700 mb-4 md:mb-6"></div>
+      <div className="border-t border-gray-200 dark:border-gray-700 my-4"></div>
+      
+      {/* Welcome heading for mobile only */}
+      <div className="md:hidden text-center mt-4 mb-0">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5]">Welcome to <span className='text-[#007BFF]'>SpendWiser!</span></h2>
+        <h4 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5]">Lets start tracking</h4>
+      </div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
