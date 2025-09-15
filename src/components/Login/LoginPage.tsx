@@ -141,7 +141,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-red-500/10 to-green-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/20 via-red-400/20 to-green-400/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10"></div>
                 <GoogleIcon />
-                <span className="relative z-10">Continue with Google</span>
+                <span className="relative z-10">Start with Google</span>
               </motion.button>
             </div>
 
