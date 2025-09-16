@@ -1519,7 +1519,7 @@ function App() {
     }
   };
 
-  const handleBackupData = () => {
+  const handleBackupData = async () => {
     if (!user) return;
 
     const backupData = {
@@ -1558,7 +1558,7 @@ function App() {
     });
   };
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     if (!user) return;
 
     // Create backup data (same as handleBackupData)
