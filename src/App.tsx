@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Screen, Transaction, Account, Budget, TotalBudget, Goal, Loan, RecurringTransaction } from './types/types';
 import { User, deleteUser, GoogleAuthProvider, reauthenticateWithPopup, updateProfile, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
-import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, writeBatch, getDocs } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, writeBatch, getDocs, increment } from 'firebase/firestore';
 import { categories, getDefaultCategories, mockTransactions, mockAccounts, mockBudgets, mockCreditCards, mockGoals, mockLoans } from './data/mockData';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -90,6 +90,9 @@ function App() {
   
   // Toast system
   const { toasts, showToast, removeToast } = useToast();
+
+  // Analytics document reference
+  const analyticsGlobalRef = doc(db, 'analytics', 'global');
   
   // Transaction filter states
   const [searchTerm, setSearchTerm] = useState('');
@@ -119,9 +122,34 @@ function App() {
   };
 
   useEffect(() => {
-    const authUnsubscribe = auth.onAuthStateChanged((user) => {
+    const authUnsubscribe = auth.onAuthStateChanged(async (user) => {
       setUser(user);
       setAuthChecked(true);
+
+      // Initialize global analytics document if it doesn't exist
+      if (user) { // Only attempt if a user is logged in
+        const analyticsSnap = await getDoc(analyticsGlobalRef);
+        if (!analyticsSnap.exists()) {
+          await setDoc(analyticsGlobalRef, {
+            totalUsers: 0,
+            totalTransactions: 0,
+            totalIncome: 0.00,
+            totalExpenses: 0.00,
+            totalAccounts: 0,
+            totalBudgets: 0,
+            totalGoals: 0,
+            totalLoans: 0,
+            totalRecurringTransactions: 0,
+            totalCSVImports: 0,
+            totalCSVExports: 0,
+            totalPDFExports: 0,
+            totalBackups: 0,
+            totalRestores: 0,
+            totalMockDataLoads: 0,
+            totalMockDataClears: 0,
+          });
+        }
+      }
     });
 
     return () => authUnsubscribe();
@@ -178,6 +206,10 @@ function App() {
             categories: defaultCategories,
             themePreference: 'dark', // Set dark theme for new users
             fontPreference: 'Montserrat', // Set default font for new users
+          });
+          // Increment totalUsers analytics
+          await updateDoc(analyticsGlobalRef, {
+              totalUsers: increment(1)
           });
           setUserCategories(defaultCategories);
           setDarkMode(true);
@@ -569,6 +601,12 @@ function App() {
       } else {
         await addDoc(transactionsRef, transactionData);
         showToast('Transaction added successfully!', 'success');
+        // Increment global analytics
+        await updateDoc(analyticsGlobalRef, {
+            totalTransactions: increment(1),
+            totalIncome: transactionData.type === 'income' ? increment(transactionData.amount) : increment(0),
+            totalExpenses: transactionData.type === 'expense' ? increment(Math.abs(transactionData.amount)) : increment(0),
+        });
       }
     } catch (error) {
       console.error("Error adding/updating transaction: ", error);
@@ -599,6 +637,10 @@ function App() {
       const accountsRef = collection(db, 'spenders', user.uid, 'accounts');
       await addDoc(accountsRef, accountData);
       showToast('Account added successfully!', 'success');
+      // Increment global analytics
+      await updateDoc(analyticsGlobalRef, {
+          totalAccounts: increment(1)
+      });
     } catch (error) {
       console.error("Error adding account: ", error);
       showToast('Error adding account', 'error');
@@ -747,6 +789,10 @@ function App() {
       } else {
         await addDoc(budgetsRef, budgetData);
         showToast('Budget added successfully!', 'success');
+        // Increment global analytics
+        await updateDoc(analyticsGlobalRef, {
+            totalBudgets: increment(1)
+        });
       }
     } catch (error) {
       console.error("Error adding/updating budget: ", error);
@@ -812,6 +858,10 @@ function App() {
       const goalsRef = collection(db, 'spenders', user.uid, 'goals');
       await addDoc(goalsRef, goalData);
       showToast('Goal added successfully!', 'success');
+      // Increment global analytics
+      await updateDoc(analyticsGlobalRef, {
+          totalGoals: increment(1)
+      });
     } catch (error) {
       console.error("Error adding goal: ", error);
       showToast('Error adding goal', 'error');
@@ -877,6 +927,10 @@ function App() {
       const loansRef = collection(db, 'spenders', user.uid, 'loans');
       await addDoc(loansRef, filteredLoanData);
       showToast('Loan added successfully!', 'success');
+      // Increment global analytics
+      await updateDoc(analyticsGlobalRef, {
+          totalLoans: increment(1)
+      });
     } catch (error) {
       console.error("Error adding loan: ", error);
       showToast('Error adding loan', 'error');
@@ -917,6 +971,10 @@ function App() {
         lastProcessedDate: new Date().toISOString().split('T')[0],
       });
       showToast('Recurring transaction added successfully!', 'success');
+      // Increment global analytics
+      await updateDoc(analyticsGlobalRef, {
+          totalRecurringTransactions: increment(1)
+      });
     } catch (error) {
       console.error("Error adding recurring transaction: ", error);
       showToast('Error adding recurring transaction', 'error');
@@ -983,6 +1041,10 @@ function App() {
       
       await batch.commit();
       showToast(`${transactions.length} transactions imported successfully!`, 'success');
+      // Increment global analytics
+      await updateDoc(analyticsGlobalRef, {
+          totalCSVImports: increment(1)
+      });
     } catch (error) {
       console.error("Error importing transactions: ", error);
       showToast('Error importing transactions', 'error');
@@ -1062,6 +1124,10 @@ function App() {
       await setDoc(totalBudgetRef, mockTotalBudget);
       
       showToast('Mock data loaded successfully!', 'success');
+      // Increment global analytics
+      await updateDoc(analyticsGlobalRef, {
+          totalMockDataLoads: increment(1)
+      });
     } catch (error) {
       console.error("Error loading mock data: ", error);
       showToast('Error loading mock data', 'error');
@@ -1139,6 +1205,10 @@ function App() {
       }
       
       showToast('Mock data cleared successfully!', 'success');
+      // Increment global analytics
+      await updateDoc(analyticsGlobalRef, {
+          totalMockDataClears: increment(1)
+      });
     } catch (error) {
       console.error("Error clearing mock data: ", error);
       showToast('Error clearing mock data', 'error');
@@ -1482,6 +1552,10 @@ function App() {
     a.click();
     URL.revokeObjectURL(url);
     showToast('Data backup successful!', 'success');
+    // Increment global analytics
+    await updateDoc(analyticsGlobalRef, {
+        totalBackups: increment(1)
+    });
   };
 
   const handleExportPDF = () => {
@@ -1943,6 +2017,10 @@ function App() {
     // Save the PDF
     doc.save(`spendwiser-statement-${new Date().toISOString().split('T')[0]}.pdf`);
     showToast('PDF export successful!', 'success');
+    // Increment global analytics
+    await updateDoc(analyticsGlobalRef, {
+        totalPDFExports: increment(1)
+    });
   };
 
   const handleRestoreData = async (data: any) => {
@@ -2058,6 +2136,10 @@ function App() {
       if (data.totalBudget) setTotalBudget(data.totalBudget);
 
       showToast('Data restored successfully!', 'success');
+      // Increment global analytics
+      await updateDoc(analyticsGlobalRef, {
+          totalRestores: increment(1)
+      });
     } catch (error) {
       console.error("Error restoring data: ", error);
       showToast('Error restoring data', 'error');
