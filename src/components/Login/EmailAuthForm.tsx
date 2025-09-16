@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Mail, Lock, AlertCircle, Loader } from 'lucide-react';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, User } from 'firebase/auth';
+import { X, Mail, Lock, AlertCircle, Loader, CheckCircle } from 'lucide-react';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, User, sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../../firebaseConfig';
 
 interface EmailAuthFormProps {
@@ -37,8 +37,10 @@ const EmailAuthForm: React.FC<EmailAuthFormProps> = ({ onLogin, onBack }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [notification, setNotification] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
   const [isSigningIn, setIsSigningIn] = useState(true);
 
   const validatePassword = (pass: string) => {
@@ -61,6 +63,7 @@ const EmailAuthForm: React.FC<EmailAuthFormProps> = ({ onLogin, onBack }) => {
     const newPassword = e.target.value;
     setPassword(newPassword);
     setError(null); // Clear general error on new input
+    setNotification(null);
 
     if (!isSigningIn && newPassword) {
       setPasswordError(validatePassword(newPassword));
@@ -69,9 +72,40 @@ const EmailAuthForm: React.FC<EmailAuthFormProps> = ({ onLogin, onBack }) => {
     }
   };
 
+  const handlePasswordReset = async () => {
+    setError(null);
+    setNotification(null);
+    if (!email) {
+      setError("Please enter your email to receive a reset link.");
+      return;
+    }
+    setIsResetting(true);
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setNotification("Password reset email sent. Check your inbox (and spam folder).");
+    } catch (err: any) {
+      setNotification(null);
+      switch (err.code) {
+        case 'auth/user-not-found':
+          setError("No account found with this email address.");
+          break;
+        case 'auth/invalid-email':
+          setError("The email address is not valid.");
+          break;
+        default:
+          setError("Failed to send reset email. Please try again later.");
+          console.error("Password Reset Error:", err);
+          break;
+      }
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setNotification(null);
 
     if (!isSigningIn) {
       const validationError = validatePassword(password);
@@ -111,6 +145,7 @@ const EmailAuthForm: React.FC<EmailAuthFormProps> = ({ onLogin, onBack }) => {
           break;
         default:
           setError("An unexpected error occurred. Please try again.");
+          console.error("Auth Error:", err);
           break;
       }
     } finally {
@@ -141,7 +176,7 @@ const EmailAuthForm: React.FC<EmailAuthFormProps> = ({ onLogin, onBack }) => {
             <X size={24} />
           </motion.button>
 
-          <form onSubmit={handleAuth} className="flex flex-col space-y-6">
+          <form onSubmit={handleAuth} className="flex flex-col space-y-4">
             <motion.div variants={formItemVariants} className="text-center">
               <h2 className="text-3xl font-bold text-slate-900 dark:text-white">
                 {isSigningIn ? 'Welcome Back' : 'Create Account'}
@@ -158,7 +193,11 @@ const EmailAuthForm: React.FC<EmailAuthFormProps> = ({ onLogin, onBack }) => {
                   type="email"
                   placeholder="Email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value)
+                    setError(null)
+                    setNotification(null)
+                  }}
                   required
                   whileFocus={{ scale: 1.02 }}
                   className="w-full pl-12 pr-4 py-3 text-slate-800 dark:text-white bg-white/50 dark:bg-black/30 border-2 border-transparent rounded-lg focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 focus:outline-none transition-all"
@@ -191,7 +230,48 @@ const EmailAuthForm: React.FC<EmailAuthFormProps> = ({ onLogin, onBack }) => {
                   )}
                 </AnimatePresence>
               </div>
+               <AnimatePresence>
+                {isSigningIn && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="text-right -mt-2"
+                  >
+                    <button
+                      type="button"
+                      onClick={handlePasswordReset}
+                      disabled={isLoading || isResetting}
+                      className="text-xs font-medium text-slate-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors disabled:opacity-50 flex items-center gap-1 justify-end"
+                    >
+                      {isResetting ? (
+                        <>
+                          <Loader size={12} className="animate-spin" />
+                          <span>Sending...</span>
+                        </>
+                      ) : (
+                        'Forgot Password?'
+                      )}
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
+
+            <AnimatePresence>
+              {notification && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10, height: 0 }}
+                  animate={{ opacity: 1, y: 0, height: 'auto' }}
+                  exit={{ opacity: 0, y: -5, height: 0 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 25, duration: 0.5 }}
+                  className="flex items-center gap-2 text-sm text-green-500 bg-green-500/10 p-3 rounded-lg overflow-hidden"
+                >
+                  <CheckCircle size={16} className="flex-shrink-0" />
+                  <span className="flex-1">{notification}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             <AnimatePresence>
               {error && (
@@ -211,7 +291,7 @@ const EmailAuthForm: React.FC<EmailAuthFormProps> = ({ onLogin, onBack }) => {
             <motion.div variants={formItemVariants}>
               <motion.button
                 type="submit"
-                disabled={isLoading || !email || !password || (!isSigningIn && !!passwordError)}
+                disabled={isLoading || isResetting || !email || !password || (!isSigningIn && !!passwordError)}
                 className="w-full px-6 py-3 text-base font-semibold text-white bg-gradient-to-r from-green-500 to-teal-500 rounded-lg shadow-lg hover:shadow-teal-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
                 whileHover={{ scale: 1.03, y: -3, boxShadow: '0px 12px 25px rgba(20, 184, 166, 0.3)' }}
                 whileTap={{ scale: 0.98, y: 0 }}
@@ -243,6 +323,7 @@ const EmailAuthForm: React.FC<EmailAuthFormProps> = ({ onLogin, onBack }) => {
                   setIsSigningIn(!isSigningIn);
                   setError(null);
                   setPasswordError(null);
+                  setNotification(null);
                 }} 
                 className="text-slate-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 font-medium transition-colors"
               >
