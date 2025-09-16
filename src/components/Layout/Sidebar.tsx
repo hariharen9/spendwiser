@@ -112,7 +112,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onScreenChange, user, 
           </motion.div>
           <div>
             <h1 className="text-xl font-bold text-gray-900 dark:text-[#F5F5F5]">SpendWiser</h1>
-            <p className="text-sm text-gray-500 dark:text-[#888888]">Your Ultimate Financial Command Center</p>
+            <p className="text-xs text-gray-500 dark:text-[#888888]">The Ultimate Financial Command Center</p>
           </div>
         </div>
       </motion.div>

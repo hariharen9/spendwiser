@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { pageVariants, buttonHoverVariants } from '../../components/Common/AnimationVariants';
 import Landing from './Landing';
 import ScrollIndicator from './ScrollIndicator';
+import { Shuffle } from '../Common';
 
 const GoogleIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" className="w-5 h-5">
@@ -101,14 +102,24 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             >
               <img src="/icon-money.svg" alt="SpendWiser Logo" className="h-full w-full" />
             </motion.div>
-            <motion.h1 
-              className="text-4xl font-bold text-slate-900 dark:text-[#F5F5F5] mb-2"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-            >
-              SpendWiser
-            </motion.h1>
+            <div className="w-full text-center">
+              <Shuffle
+                text="SpendWiser"
+                shuffleDirection="right"
+                duration={0.35}
+                animationMode="evenodd"
+                shuffleTimes={1}
+                ease="power3.out"
+                stagger={0.03}
+                threshold={0.1}
+                triggerOnce={true}
+                triggerOnHover={true}
+                respectReducedMotion={true}
+                tag="h1"
+                className="text-3xl font-bold text-slate-900 dark:text-[#F5F5F5] mb-2"
+                textAlign="center"
+              />
+            </div>
             <motion.p 
               className="text-lg text-slate-600 dark:text-[#888888]"
               initial={{ opacity: 0 }}

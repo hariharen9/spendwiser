@@ -413,7 +413,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
               </label>
               <AnimatedDropdown
                 selectedValue={selectedFont}
-                options={['Montserrat', 'Roboto', 'Poppins', 'Open Sans', 'Lato']}
+                options={['Montserrat', 'Roboto', 'Poppins', 'Open Sans', 'Lato', 'Press Start 2P']}
                 onChange={onUpdateFont}
               />
               <p className="mt-2 text-sm text-gray-500 dark:text-[#888888]">
