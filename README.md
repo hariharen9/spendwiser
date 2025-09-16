@@ -15,16 +15,13 @@
     <a href="https://github.com/hariharen9/spendwiser/stargazers">
       <img src="https://img.shields.io/github/stars/hariharen9/spendwiser?style=for-the-badge&logo=github" alt="GitHub Stars">
     </a>
-    <a href="https://github.com/hariharen9/spendwiser/blob/main/LICENSE">
-      <img src="https://img.shields.io/github/license/hariharen9/spendwiser?style=for-the-badge" alt="License">
+    <a href="LICENSE">
+      <img src="https://img.shields.io/badge/License-Noncommercial-blue?style=for-the-badge" alt="License">
     </a>
     <br>
     <img src="https://img.shields.io/github/repo-size/hariharen9/spendwiser?style=for-the-badge" alt="Repo Size">
     <a href="eslint.config.js">
         <img src="https://img.shields.io/badge/code%20style-eslint-4B32C3?style=for-the-badge&logo=eslint" alt="Code Style: ESLint">
-    </a>
-    <a href="https://github.com/hariharen9/spendwiser/blob/main/CONTRIBUTING.md">
-      <img src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=for-the-badge" alt="Contributions Welcome">
     </a>
   </p>
 </div>
@@ -183,26 +180,11 @@ SpendWiser is designed from the ground up to be a pleasure to use on any device.
 | **Mobile Experience**    | ✅ PWA & Mobile-First                    | ❌ Desktop only     | 🚫 Poor mobile    |
 
 ---
-
-## 🤝 Contributing
-
-We welcome contributors of all levels! If you're looking to help, please check the `CONTRIBUTING.md` file for guidelines.
-
-### ⭐ Why Star This Repository?
+## ⭐ Why Star This Repository?
 If you find SpendWiser useful, please consider giving it a star! It's a simple way to show your appreciation and helps the project gain visibility in the community. More stars mean more contributors and a better tool for everyone. Thank you for your support!
 
-<div align="center">
 
-<p>
-  <a href="https://github.com/hariharen9/spendwiser/issues">
-    <img src="https://img.shields.io/github/issues/hariharen9/spendwiser?style=for-the-badge&logo=github" alt="Issues">
-  </a>
-  <a href="https://github.com/hariharen9/spendwiser/pulls">
-    <img src="https://img.shields.io/github/issues-pr/hariharen9/spendwiser?style=for-the-badge&logo=github" alt="Pull Requests">
-  </a>
-</p>
 
-</div>
 
 ---
 
@@ -225,7 +207,8 @@ SpendWiser is built with a focus on performance, real-time data synchronization,
 
 ---
 
-## ⚡ Quick Start (For Developers)
+<details>
+<summary>⚡ Quick Start (For Developers)</summary>
 
 1.  **Clone the repository:**
     ```bash
@@ -246,6 +229,20 @@ SpendWiser is built with a focus on performance, real-time data synchronization,
     ```bash
     npm run dev
     ```
+
+</details>
+
+---
+## 📜 License
+
+© 2025 Hariharen. All Rights Reserved.
+
+The source code for SpendWiser is available under the [PolyForm Noncommercial License 1.0.0](https://github.com/hariharen9/spendwiser/blob/main/LICENSE).
+
+**What this means:**
+- **You are free to:** View, download, modify, and run the code for your own **personal, non-commercial use**.
+- **You are NOT allowed to:** Use this software for any commercial purpose, re-sell it, or include it in a commercial product without a separate commercial license from the author.
+- **You must:** Include the original copyright notice and license in all copies or substantial portions of the software.
 
 ---
 
