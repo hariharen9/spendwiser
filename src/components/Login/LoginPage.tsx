@@ -115,7 +115,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
             >
-              Your Financial Command Center
+              Ultimate Financial Command Center
             </motion.p>
           </motion.div>
 
@@ -152,7 +152,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
               transition={{ delay: 0.6 }}
             >
               <p className="text-sm text-slate-600 dark:text-[#888888]">
-                Secure, fast, and intuitive financial management
+                Your Secure, fast, and intuitive financial manager
               </p>
             </motion.div>
           </motion.div>
