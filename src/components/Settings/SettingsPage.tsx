@@ -33,6 +33,7 @@ interface SettingsPageProps {
   onRestoreData?: (data: any) => void;
   selectedFont: string;
   onUpdateFont: (font: string) => void;
+  onUpdateUser: (name: string) => void;
 }
 
 const SettingsPage: React.FC<SettingsPageProps> = ({ 
@@ -60,7 +61,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   onExportPDF,
   onRestoreData,
   selectedFont,
-  onUpdateFont
+  onUpdateFont,
+  onUpdateUser
 }) => {
   const [showAddAccountModal, setShowAddAccountModal] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
@@ -71,6 +73,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
     limit: ''
   });
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState(user.displayName || '');
   
   // Category management states
   const [showCategoryEditorModal, setShowCategoryEditorModal] = useState(false);
@@ -266,7 +269,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
             transition={{ delay: 0.2 }}
           >
             <motion.img
-              src={user.photoURL}
+              src={user.photoURL || "https://i.pinimg.com/474x/18/b9/ff/18b9ffb2a8a791d50213a9d595c4dd52.jpg"}
               alt={user.displayName}
               className="h-20 w-20 rounded-full object-cover"
               whileHover={{ scale: 1.1 }}
@@ -284,7 +287,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                   </label>
                   <input
                     type="text"
-                    defaultValue={user.displayName}
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
                     className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
                   />
                 </motion.div>
@@ -299,10 +303,22 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                   <input
                     type="email"
                     defaultValue={user.email}
+                    disabled
                     className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
                   />
                 </motion.div>
               </div>
+              {!user.displayName && (
+                <motion.button
+                  onClick={() => onUpdateUser(displayName)}
+                  className="mt-4 px-4 py-2 bg-[#007BFF] text-white rounded-lg font-medium hover:bg-[#0056b3] transition-all duration-200"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  disabled={!displayName.trim()}
+                >
+                  Update Name
+                </motion.button>
+              )}
             </div>
           </motion.div>
         </motion.div>

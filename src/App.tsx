@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Screen, Transaction, Account, Budget, TotalBudget, Goal, Loan, RecurringTransaction } from './types/types';
-import { User, deleteUser, GoogleAuthProvider, reauthenticateWithPopup } from 'firebase/auth';
+import { User, deleteUser, GoogleAuthProvider, reauthenticateWithPopup, updateProfile } from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
 import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, writeBatch, getDocs } from 'firebase/firestore';
 import { categories, getDefaultCategories, mockTransactions, mockAccounts, mockBudgets, mockCreditCards, mockGoals, mockLoans } from './data/mockData';
@@ -1158,6 +1158,20 @@ function App() {
     }
   };
 
+  const handleUpdateUser = async (name: string) => {
+    if (user) {
+      try {
+        await updateProfile(user, { displayName: name });
+        const userDocRef = doc(db, 'spenders', user.uid);
+        await updateDoc(userDocRef, { name: name });
+        showToast('Profile updated successfully!', 'success');
+      } catch (error) {
+        console.error("Error updating profile: ", error);
+        showToast('Error updating profile', 'error');
+      }
+    }
+  };
+
   const handleExportDashboard = async (format: 'pdf' | 'png') => {
     const dashboardElement = document.getElementById('dashboard-content');
     if (!dashboardElement) return;
@@ -1391,6 +1405,7 @@ function App() {
               onRestoreData={handleRestoreData}
               selectedFont={selectedFont}
               onUpdateFont={onUpdateFont}
+              onUpdateUser={handleUpdateUser}
             />
           </motion.div>
         );

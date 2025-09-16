@@ -163,7 +163,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onScreenChange, user, 
         >
           <div className="flex items-center space-x-3 mb-3">
             <motion.img
-              src={user.photoURL || undefined} // Use photoURL
+              src={user.photoURL || "https://i.pinimg.com/474x/18/b9/ff/18b9ffb2a8a791d50213a9d595c4dd52.jpg"} // Use photoURL
               alt={user.displayName || 'User'} // Use displayName
               className="h-10 w-10 rounded-full object-cover"
               whileHover={{ scale: 1.1 }}
