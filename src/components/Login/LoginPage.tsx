@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Sun, Moon, Mail } from 'lucide-react';
+import { Sun, Moon, Mail, Loader } from 'lucide-react';
 import { GoogleAuthProvider, signInWithPopup, User } from 'firebase/auth';
 import { auth } from '../../firebaseConfig';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -39,6 +39,7 @@ interface LoginPageProps {
 const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   const [darkMode, setDarkMode] = useState(true);
   const [isEmailFormVisible, setIsEmailFormVisible] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
@@ -64,6 +65,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
 
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
+    setIsGoogleLoading(true);
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
@@ -72,6 +74,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
       }
     } catch (error) {
       console.error('Google Sign-In Error:', error);
+    } finally {
+      setIsGoogleLoading(false);
     }
   };
 
@@ -145,7 +149,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
           
           <motion.button
             onClick={handleGoogleSignIn}
-            className="group relative w-full flex items-center justify-center gap-3 px-6 py-4 text-sm font-semibold text-gray-700 dark:text-[#F5F5F5] backdrop-blur-sm bg-white/90 dark:bg-[#242424]/90 border border-gray-200/60 dark:border-gray-700/60 rounded-xl hover:bg-white dark:hover:bg-[#242424] transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] hover:-translate-y-0.5"
+            disabled={isGoogleLoading}
+            className="group relative w-full flex items-center justify-center gap-3 px-6 py-4 text-sm font-semibold text-gray-700 dark:text-[#F5F5F5] backdrop-blur-sm bg-white/90 dark:bg-[#242424]/90 border border-gray-200/60 dark:border-gray-700/60 rounded-xl hover:bg-white dark:hover:bg-[#242424] transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed"
             variants={buttonHoverVariants}
             whileHover="hover"
             whileTap="tap"
@@ -155,15 +160,25 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
           >
             <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-red-500/10 to-green-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/20 via-red-400/20 to-green-400/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10"></div>
-            <GoogleIcon />
-            <span className="relative z-10">Start with Google</span>
+            {isGoogleLoading ? (
+              <>
+                <Loader size={20} className="animate-spin" />
+                <span className="relative z-10">Signing in...</span>
+              </>
+            ) : (
+              <>
+                <GoogleIcon />
+                <span className="relative z-10">Start with Google</span>
+              </>
+            )}
           </motion.button>
         </div>
 
         <div className="relative mt-4">
           <motion.button
             onClick={() => setIsEmailFormVisible(true)}
-            className="group relative w-full flex items-center justify-center gap-3 px-6 py-4 text-sm font-semibold text-gray-700 dark:text-[#F5F5F5] backdrop-blur-sm bg-white/90 dark:bg-[#242424]/90 border border-gray-200/60 dark:border-gray-700/60 rounded-xl hover:bg-white dark:hover:bg-[#242424] transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] hover:-translate-y-0.5"
+            disabled={isGoogleLoading}
+            className="group relative w-full flex items-center justify-center gap-3 px-6 py-4 text-sm font-semibold text-gray-700 dark:text-[#F5F5F5] backdrop-blur-sm bg-white/90 dark:bg-[#242424]/90 border border-gray-200/60 dark:border-gray-700/60 rounded-xl hover:bg-white dark:hover:bg-[#242424] transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed"
             variants={buttonHoverVariants}
             whileHover="hover"
             whileTap="tap"
