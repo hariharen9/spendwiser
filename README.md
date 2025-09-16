@@ -9,7 +9,7 @@
   </p>
   
   <p>
-    <a href="#">
+    <a href="https://spenditwiser.netlify.app/">
       <img src="https://img.shields.io/badge/🚀%20Live-Visit%20Now-success?style=for-the-badge" alt="Live Demo">
     </a>
     <a href="https://github.com/hariharen9/spendwiser/stargazers">
@@ -23,7 +23,7 @@
     <a href="eslint.config.js">
         <img src="https://img.shields.io/badge/code%20style-eslint-4B32C3?style=for-the-badge&logo=eslint" alt="Code Style: ESLint">
     </a>
-    <a href="#">
+    <a href="https://github.com/hariharen9/spendwiser/blob/main/CONTRIBUTING.md">
       <img src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=for-the-badge" alt="Contributions Welcome">
     </a>
   </p>
