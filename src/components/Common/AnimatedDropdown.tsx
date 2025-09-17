@@ -116,6 +116,7 @@ const AnimatedDropdown: React.FC<AnimatedDropdownProps> = ({ options, selectedVa
                     variants={optionVariants}
                     initial="initial"
                     animate="animate"
+                    style={{ fontFamily: `'${label}', 'Montserrat', sans-serif` }}
                   >
                     {label}
                   </motion.li>
