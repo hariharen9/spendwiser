@@ -485,7 +485,7 @@ const Achievements: React.FC<AchievementsProps> = ({ transactions, budgets, acco
     };
 
     checkAchievements();
-  }, [transactions, budgets, accounts, achievements]);
+  }, [transactions, budgets, accounts]);
 
   // Enhanced confetti effect with tier-based colors
   const triggerConfetti = (achievement: Achievement) => {
