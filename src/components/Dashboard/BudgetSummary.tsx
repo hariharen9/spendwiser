@@ -3,6 +3,7 @@ import { Budget, Transaction, TotalBudget } from '../../types/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cardHoverVariants } from '../../components/Common/AnimationVariants';
 import { FlipHorizontal } from 'lucide-react';
+import { FiAlertTriangle, FiCheckCircle, FiTarget, FiTrendingUp } from 'react-icons/fi';
 
 interface BudgetSummaryProps {
   budgets: Budget[];
@@ -13,6 +14,7 @@ interface BudgetSummaryProps {
 
 const BudgetSummary: React.FC<BudgetSummaryProps> = ({ budgets, transactions, totalBudget, currency }) => {
   const [showDetailedView, setShowDetailedView] = useState(false);
+  const [showAllBudgets, setShowAllBudgets] = useState(false);
 
   const getSpentAmount = (category: string) => {
     return transactions
@@ -189,26 +191,124 @@ const BudgetSummary: React.FC<BudgetSummaryProps> = ({ budgets, transactions, to
         </div>
         
         {budgets.length === 0 ? (
-          <p className="text-gray-500 dark:text-[#888888]">No budgets set up yet.</p>
+          <div className="text-center py-6">
+            <FiTarget className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+            <p className="text-gray-500 dark:text-[#888888] mb-2">No budgets set up yet</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">Create budgets to track your spending</p>
+          </div>
         ) : (
-          <div className="space-y-4">
-            {budgets.map(budget => {
+          <div className="space-y-3">
+            {(showAllBudgets ? budgets : budgets.slice(0, 6)).map((budget, index) => {
               const spent = getSpentAmount(budget.category);
               const percentage = budget.limit > 0 ? (spent / budget.limit) * 100 : 0;
-              const progressBarColor = percentage > 100 ? 'bg-red-500' : 'bg-green-500';
+              const remaining = budget.limit - spent;
+              
+              let status = 'good';
+              let statusIcon = FiCheckCircle;
+              let statusColor = 'text-green-500';
+              let progressColor = 'bg-gradient-to-r from-green-400 to-green-500';
+              
+              if (percentage >= 90) {
+                status = 'danger';
+                statusIcon = FiAlertTriangle;
+                statusColor = 'text-red-500';
+                progressColor = 'bg-gradient-to-r from-red-400 to-red-500';
+              } else if (percentage >= 75) {
+                status = 'warning';
+                statusIcon = FiAlertTriangle;
+                statusColor = 'text-yellow-500';
+                progressColor = 'bg-gradient-to-r from-yellow-400 to-yellow-500';
+              }
+              
+              const StatusIcon = statusIcon;
 
               return (
-                <div key={budget.id}>
-                  <div className="flex justify-between mb-1">
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{budget.category}</span>
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{currency}{spent.toLocaleString()} / {currency}{budget.limit.toLocaleString()}</span>
+                <motion.div 
+                  key={budget.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800/70 transition-colors"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">{budget.category}</span>
+                      <StatusIcon className={`w-3 h-3 ${statusColor}`} />
+                    </div>
+                    <div className="text-right">
+                      <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                        {currency}{spent.toLocaleString()}
+                      </span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">
+                        / {currency}{budget.limit.toLocaleString()}
+                      </span>
+                    </div>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-                    <div className={`${progressBarColor} h-2.5 rounded-full`} style={{ width: `${Math.min(percentage, 100)}%` }}></div>
+                  
+                  <div className="mb-2">
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+                      <motion.div 
+                        className={`h-2 rounded-full ${progressColor}`}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${Math.min(percentage, 100)}%` }}
+                        transition={{ duration: 1, delay: index * 0.1 }}
+                      />
+                    </div>
                   </div>
-                </div>
+                  
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-gray-500 dark:text-gray-400">
+                      {Math.round(percentage)}% used
+                    </span>
+                    <span className={`font-medium ${
+                      remaining >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                    }`}>
+                      {remaining >= 0 ? `${currency}${remaining.toLocaleString()} left` : `${currency}${Math.abs(remaining).toLocaleString()} over`}
+                    </span>
+                  </div>
+                </motion.div>
               );
             })}
+            
+            {/* Show More/Less Button */}
+            {budgets.length > 6 && (
+              <div className="flex justify-center pt-2">
+                <motion.button
+                  onClick={() => setShowAllBudgets(!showAllBudgets)}
+                  className="flex items-center gap-1 px-3 py-1 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors rounded-md hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  {showAllBudgets ? (
+                    <>
+                      <span>Show less</span>
+                      <FiTrendingUp className="w-3 h-3 rotate-180" />
+                    </>
+                  ) : (
+                    <>
+                      <span>Show {budgets.length - 6} more</span>
+                      <FiTrendingUp className="w-3 h-3 rotate-90" />
+                    </>
+                  )}
+                </motion.button>
+              </div>
+            )}
+            
+            {/* Quick Stats */}
+            <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
+              <div className="grid grid-cols-2 gap-4 text-center">
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Active Budgets</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">{budgets.length}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">On Track</p>
+                  <p className="text-sm font-semibold text-green-600 dark:text-green-400">
+                    {budgets.filter(b => (getSpentAmount(b.category) / b.limit) * 100 < 75).length}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </motion.div>

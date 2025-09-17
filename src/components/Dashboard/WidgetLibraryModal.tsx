@@ -235,7 +235,7 @@ const WIDGET_CONFIGS: WidgetConfig[] = [
   },
   {
     id: 'InsightsEngine',
-    name: 'AI Insights',
+    name: 'Insights',
     description: 'Personalized financial recommendations and alerts',
     icon: <Brain size={20} />,
     category: 'Insights',
