@@ -247,7 +247,7 @@ export default function Landing({ onCtaClick }: { onCtaClick: () => void }) {
               </motion.div>
               <motion.div variants={itemVariants} className="relative group">
                 <div className="absolute -inset-4 bg-blue-500/20 rounded-3xl blur-2xl group-hover:blur-3xl transition-all duration-500"></div>
-                <div className="relative w-full h-auto rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden aspect-[4/3]">
+                <div className="relative w-full h-80 md:h-96 rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden">
                   <ImageCarousel
                     images={["/assets/loan-1.png", "/assets/loan-2.png"]}
                     altPrefix="Loan Simulator Preview"
@@ -268,7 +268,7 @@ export default function Landing({ onCtaClick }: { onCtaClick: () => void }) {
               </motion.div>
               <motion.div variants={itemVariants} className="relative group">
                 <div className="absolute -inset-4 bg-purple-500/10 rounded-3xl blur-2xl group-hover:blur-3xl transition-all duration-500"></div>
-                <div className="relative w-full h-auto rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden aspect-[4/3]">
+                <div className="relative w-full h-80 md:h-96 rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden">
                   <ImageCarousel
                     images={["/assets/trans-1.png", "/assets/trans-2.png"]}
                     altPrefix="Automation Preview"
@@ -289,7 +289,7 @@ export default function Landing({ onCtaClick }: { onCtaClick: () => void }) {
               </motion.div>
               <motion.div variants={itemVariants} className="relative group">
                 <div className="absolute -inset-4 bg-green-500/10 rounded-3xl blur-2xl group-hover:blur-3xl transition-all duration-500"></div>
-                <div className="relative w-full h-auto rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden aspect-[4/3]">
+                <div className="relative w-full h-80 md:h-96 rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden">
                   <ImageCarousel
                     images={["/assets/other-1.png", "/assets/other-2.png", "/assets/other-3.png", "/assets/other-4.png"]}
                     altPrefix="Goals and Budgets Preview"
