@@ -23,7 +23,11 @@ import {
   Wallet,
   Hourglass,
   Crown,
+  Download,
+  WifiOff,
 } from "lucide-react"
+import { IoLogoGooglePlaystore } from "react-icons/io5";
+import { SiAppstore } from "react-icons/si";
 import Footer from "../Footer/Footer";
 import ImageCarousel from "../Common/ImageCarousel";
 
@@ -102,6 +106,20 @@ export default function Landing({ onCtaClick }: { onCtaClick: () => void }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [showScrollTop, setShowScrollTop] = useState(false)
   const [isHeaderVisible, setIsHeaderVisible] = useState(false)
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+
+  useEffect(() => {
+    const handleInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleInstallPrompt);
+    };
+  }, []);
 
 
   const targetRef = useRef<HTMLDivElement>(null)
@@ -132,6 +150,20 @@ export default function Landing({ onCtaClick }: { onCtaClick: () => void }) {
   const scrollToTop = () => {
     targetRef.current?.scrollTo({ top: 0, behavior: "smooth" })
   }
+
+  const handleInstallClick = () => {
+    if (installPrompt) {
+      installPrompt.prompt();
+      installPrompt.userChoice.then((choiceResult: { outcome: string }) => {
+        if (choiceResult.outcome === 'accepted') {
+          console.log('User accepted the install prompt');
+        } else {
+          console.log('User dismissed the install prompt');
+        }
+        setInstallPrompt(null);
+      });
+    }
+  };
 
   const navLinks = [
     { name: "Features", id: "features" },
@@ -297,6 +329,110 @@ export default function Landing({ onCtaClick }: { onCtaClick: () => void }) {
                 </div>
               </motion.div>
             </motion.div>
+          </motion.div>
+        </section>
+
+        {/* --- PWA & Mobile First Section --- */}
+        <section id="pwa" className="relative py-24 sm:py-32 overflow-hidden bg-slate-100 dark:bg-black/20">
+          <div className="absolute inset-0 z-0 -m-32 opacity-30">
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-indigo-500"></div>
+          </div>
+          <motion.div
+            className="container mx-auto px-6 relative"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+              <motion.div variants={itemVariants} className="lg:col-span-5 relative h-[500px] min-h-[500px]">
+                <motion.img
+                  src="/Assets/mobile-ss/Screenshot_20250912_222405.jpg"
+                  alt="SpendWiser on Mobile 1"
+                  className="absolute w-auto h-[80%] top-0 left-0 rounded-3xl shadow-2xl border-2 border-white/10"
+                  style={{ rotate: -10 }}
+                  whileHover={{ scale: 1.05, rotate: -12, y: -10, zIndex: 20, boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}
+                />
+                <motion.img
+                  src="/Assets/mobile-ss/Screenshot_20250912_222415.jpg"
+                  alt="SpendWiser on Mobile 2"
+                  className="absolute w-auto h-[80%] top-1/4 left-1/4 rounded-3xl shadow-2xl border-2 border-white/10 z-10"
+                  style={{ rotate: 2 }}
+                  whileHover={{ scale: 1.05, rotate: 0, y: -10, zIndex: 20, boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}
+                />
+                <motion.img
+                  src="/Assets/mobile-ss/Screenshot_20250912_222425.jpg"
+                  alt="SpendWiser on Mobile 3"
+                  className="absolute w-auto h-[80%] top-10 right-0 rounded-3xl shadow-2xl border-2 border-white/10"
+                  style={{ rotate: 12 }}
+                  whileHover={{ scale: 1.05, rotate: 15, y: -10, zIndex: 20, boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}
+                />
+              </motion.div>
+              <motion.div variants={itemVariants} className="lg:col-span-7">
+                <motion.div
+                  variants={containerVariants}
+                  className="p-8 sm:p-10 rounded-2xl bg-white/10 dark:bg-white/5 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-lg"
+                >
+                  <motion.div variants={itemVariants} className="flex items-center gap-4 mb-4">
+                    <Smartphone className="w-10 h-10 text-purple-400" />
+                    <h2 className="text-3xl sm:text-4xl font-bold">A Native App Experience, on the Web.</h2>
+                  </motion.div>
+                  <motion.p variants={itemVariants} className="text-lg text-slate-600 dark:text-white/70 mb-8 leading-relaxed">
+                    Why choose between a website and an app? SpendWiser is a cutting-edge Progressive Web App (PWA), giving you the best of both worlds with a flawless mobile-first experience.
+                  </motion.p>
+                  
+                  <motion.ul variants={itemVariants} className="space-y-6 mb-8">
+                    <li className="flex items-start gap-4">
+                      <div className="w-10 h-10 flex-shrink-0 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                        <Download className="w-6 h-6 text-purple-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-lg">Installable</h4>
+                        <p className="text-slate-600 dark:text-white/60">Add SpendWiser to your home screen for instant, app-like access.</p>
+                      </div>
+                    </li>
+                    <li className="flex items-start gap-4">
+                      <div className="w-10 h-10 flex-shrink-0 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                        <WifiOff className="w-6 h-6 text-purple-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-lg">Works Offline</h4>
+                        <p className="text-slate-600 dark:text-white/60">Access your financial data and track spending even without a connection.</p>
+                      </div>
+                    </li>
+                    <li className="flex items-start gap-4">
+                      <div className="w-10 h-10 flex-shrink-0 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                        <Rocket className="w-6 h-6 text-purple-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-lg">Always Up-to-Date</h4>
+                        <p className="text-slate-600 dark:text-white/60">Enjoy the latest features and security updates automatically, no app store needed.</p>
+                      </div>
+                    </li>
+                  </motion.ul>
+
+                  <motion.div variants={itemVariants}>
+                    {installPrompt ? (
+                      <CtaButton onClick={handleInstallClick} className="w-full bg-purple-500/20 border-purple-400/50 text-white hover:bg-purple-500/40 text-lg py-5">
+                        <Download className="mr-3 h-6 w-6" />
+                        Install SpendWiser App
+                      </CtaButton>
+                    ) : (
+                      <p className="text-sm text-slate-500 dark:text-white/50 text-center">PWA already installed or not supported by your browser.</p>
+                    )}
+                  </motion.div>
+                  <motion.div variants={itemVariants} className="text-center mt-6">
+                    <p className="flex items-center justify-center gap-2 text-sm text-slate-500 dark:text-white/50 italic">
+                      Who needs the
+                      <IoLogoGooglePlaystore size={30} className="mx-2 text-slate-400 dark:text-white/40 hover:text-slate-500 dark:hover:text-white/60 transition-colors" />
+                      or
+                      <SiAppstore size={25} className="mx-2 text-slate-400 dark:text-white/40 hover:text-slate-500 dark:hover:text-white/60 transition-colors" />
+                      anyway? ✨
+                    </p>
+                  </motion.div>
+                </motion.div>
+              </motion.div>
+            </div>
           </motion.div>
         </section>
 
