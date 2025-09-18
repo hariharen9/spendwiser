@@ -1,25 +1,49 @@
 import React, { useState } from 'react';
-import { ArrowUpDown, Edit, Trash2 } from 'lucide-react';
 import { Transaction } from '../../types/types';
 import { motion } from 'framer-motion';
 import { fadeInVariants, staggerContainer, buttonHoverVariants } from '../../components/Common/AnimationVariants';
+import { Edit, Trash2, Check, X } from 'lucide-react';
 
 interface TransactionTableProps {
   transactions: Transaction[];
-  onEditTransaction: (transaction: Transaction) => void;
+  onEditTransaction: (transaction: Transaction) => void; // For modal
+  onSaveTransaction: (transaction: Omit<Transaction, 'id'>, id: string) => void; // For inline save
   onDeleteTransaction: (id: string) => void;
   currency: string;
+  categories: string[];
 }
 
 const TransactionTable: React.FC<TransactionTableProps> = ({
   transactions,
   onEditTransaction,
+  onSaveTransaction,
   onDeleteTransaction,
   currency
 }) => {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [editingCellId, setEditingCellId] = useState<string | null>(null);
+  const [editedName, setEditedName] = useState('');
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
-  const sortedTransactions = transactions;
+  const handleDoubleClick = (transaction: Transaction) => {
+    setEditingCellId(transaction.id);
+    setEditedName(transaction.name);
+    setEditingTransaction(transaction);
+  };
+
+  const handleCancel = () => {
+    setEditingCellId(null);
+    setEditedName('');
+    setEditingTransaction(null);
+  };
+
+  const handleSaveName = () => {
+    if (editingTransaction && editedName) {
+      const { id, ...transactionData } = { ...editingTransaction, name: editedName };
+      onSaveTransaction(transactionData, id);
+    }
+    handleCancel();
+  };
 
   return (
     <motion.div 
@@ -30,51 +54,14 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
     >
       <div>
         <table className="w-full">
-          <motion.thead 
-            className="bg-gray-50 dark:bg-[#1A1A1A]"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.1 }}
-          >
-            <tr>
-              {[
-                { key: 'date', label: 'Date' },
-                { key: 'name', label: 'Name' },
-                { key: 'category', label: 'Category' },
-                { key: 'amount', label: 'Amount' },
-                { key: 'type', label: 'Type' }
-              ].map(({ key, label }) => (
-                <motion.th
-                  key={key}
-                  className="px-6 py-4 text-left text-sm font-medium text-gray-900 dark:text-[#F5F5F5] transition-colors"
-                  whileHover={{ backgroundColor: "rgba(0, 0, 0, 0.05)" }}
-                  whileTap={{ scale: 0.98 }}
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 * (Object.keys(sortedTransactions[0] || {}).indexOf(key) + 1) }}
-                >
-                  <div className="flex items-center space-x-2">
-                    <span>{label}</span>
-                  </div>
-                </motion.th>
-              ))}
-              <motion.th 
-                className="px-6 py-4 text-left text-sm font-medium text-gray-900 dark:text-[#F5F5F5]"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
-              >
-                Actions
-              </motion.th>
-            </tr>
-          </motion.thead>
+          {/* ...thead... */}
           <motion.tbody 
             className="divide-y divide-gray-200 dark:divide-gray-700"
             variants={staggerContainer}
             initial="initial"
             animate="animate"
           >
-            {sortedTransactions.map((transaction, index) => (
+            {transactions.map((transaction, index) => (
               <motion.tr
                 key={transaction.id}
                 className="hover:bg-gray-50 dark:hover:bg-[#1A1A1A] transition-colors"
@@ -87,8 +74,35 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
                 <td className="px-6 py-4 text-sm text-gray-900 dark:text-[#F5F5F5]">
                   {new Date(transaction.date).toLocaleDateString()}
                 </td>
-                <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-[#F5F5F5]">
-                  {transaction.name}
+                <td 
+                  className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-[#F5F5F5] relative"
+                  onDoubleClick={() => handleDoubleClick(transaction)}
+                >
+                  {editingCellId === transaction.id ? (
+                    <div className='relative'>
+                      <input 
+                        type="text" 
+                        value={editedName} 
+                        onChange={(e) => setEditedName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleSaveName();
+                          if (e.key === 'Escape') handleCancel();
+                        }}
+                        className="w-full bg-gray-100 dark:bg-gray-800 rounded p-1 border border-blue-500"
+                        autoFocus
+                      />
+                      <div className="absolute right-0 top-full mt-1 flex space-x-1 z-10 bg-white dark:bg-gray-800 p-1 rounded-md shadow-lg">
+                        <button onClick={handleSaveName} className="p-1 text-green-500 hover:bg-gray-200 dark:hover:bg-gray-700 rounded">
+                          <Check className="h-4 w-4" />
+                        </button>
+                        <button onClick={handleCancel} className="p-1 text-red-500 hover:bg-gray-200 dark:hover:bg-gray-700 rounded">
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <span>{transaction.name}</span>
+                  )}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-500 dark:text-[#888888]">
                   {transaction.category}

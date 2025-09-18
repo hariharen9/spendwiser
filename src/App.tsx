@@ -620,11 +620,15 @@ function App() {
     setHasShownMockDataReminder(false);
   };
 
-  const handleAddTransaction = async (transactionData: Omit<Transaction, 'id'>) => {
+  const handleAddTransaction = async (transactionData: Omit<Transaction, 'id'>, id?: string) => {
     if (!user) return;
     try {
       const transactionsRef = collection(db, 'spenders', user.uid, 'transactions');
-      if (editingTransaction) {
+      if (id) {
+        const transactionDoc = doc(db, 'spenders', user.uid, 'transactions', id);
+        await updateDoc(transactionDoc, transactionData);
+        showToast('Transaction updated successfully!', 'success');
+      } else if (editingTransaction) {
         const transactionDoc = doc(db, 'spenders', user.uid, 'transactions', editingTransaction.id);
         await updateDoc(transactionDoc, transactionData);
         setEditingTransaction(undefined);
@@ -1426,6 +1430,7 @@ function App() {
             <TransactionsPage
               transactions={filteredTransactions}
               onEditTransaction={handleEditTransaction}
+              onSaveTransaction={handleAddTransaction}
               onDeleteTransaction={handleDeleteTransaction}
               onOpenRecurringModal={() => setIsRecurringTransactionModalOpen(true)}
               searchTerm={searchTerm}

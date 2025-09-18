@@ -10,6 +10,7 @@ import { fadeInVariants, staggerContainer } from '../../components/Common/Animat
 interface TransactionsPageProps {
   transactions: Transaction[];
   onEditTransaction: (transaction: Transaction) => void;
+  onSaveTransaction: (transaction: Omit<Transaction, 'id'>, id?: string) => void;
   onDeleteTransaction: (id: string) => void;
   onOpenRecurringModal: () => void;
   searchTerm: string;
@@ -31,6 +32,7 @@ interface TransactionsPageProps {
 const TransactionsPage: React.FC<TransactionsPageProps> = ({
   transactions,
   onEditTransaction,
+  onSaveTransaction,
   onDeleteTransaction,
   onOpenRecurringModal,
   searchTerm,
@@ -233,8 +235,10 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
         <TransactionTable
           transactions={sortedAndFilteredTransactions}
           onEditTransaction={onEditTransaction}
+          onSaveTransaction={onSaveTransaction}
           onDeleteTransaction={onDeleteTransaction}
           currency={currency}
+          categories={categories}
         />
       </motion.div>
 
