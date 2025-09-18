@@ -14,6 +14,7 @@ import Header from './components/Layout/Header';
 import FAB from './components/Common/FAB';
 import HelpFAB from './components/Common/HelpFAB';
 import AnimatedToast from './components/Common/AnimatedToast';
+import ConnectionStatus from './components/Common/ConnectionStatus';
 
 // Pages
 import DashboardPage from './components/Dashboard/DashboardPage';
@@ -2287,6 +2288,7 @@ function App() {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50 dark:bg-[#1A1A1A] overflow-hidden">
+      <ConnectionStatus />
       {/* Toast notifications */}
       <AnimatePresence>
         {toasts.map((toast) => (
@@ -2301,6 +2303,7 @@ function App() {
 
       {/* Top Bar for Mobile */}
       <div className="md:hidden bg-white dark:bg-[#242424] border-b border-gray-200 dark:border-gray-700 p-4">
+        <ConnectionStatus />
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             {/* <div className="bg-[#007BFF] p-2 rounded-lg"> */}
