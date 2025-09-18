@@ -37,7 +37,7 @@ import LoanModal from './components/Modals/LoanModal';
 import RecurringTransactionModal from './components/Modals/RecurringTransactionModal';
 
 // Icons
-import { LogOut, DollarSign, X } from 'lucide-react';
+import { LogOut, DollarSign, X, Sun, Moon } from 'lucide-react';
 
 // Framer Motion
 import { AnimatePresence, motion } from 'framer-motion';
@@ -2317,12 +2317,23 @@ function App() {
             </div>
           </div>
           {user && (
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-4">
               <img
                 src={user.photoURL || undefined}
                 alt={user.displayName || 'User'}
                 className="h-8 w-8 rounded-full object-cover"
               />
+              <button
+                onClick={onToggleDarkMode}
+                className="text-gray-500 dark:text-[#888888] hover:text-gray-900 dark:hover:text-[#F5F5F5]"
+                aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+              >
+                {darkMode ? (
+                  <Sun className="h-5 w-5 text-yellow-500" />
+                ) : (
+                  <Moon className="h-5 w-5 text-gray-700" />
+                )}
+              </button>
               <button
                 onClick={handleLogout}
                 className="text-gray-500 dark:text-[#888888] hover:text-gray-900 dark:hover:text-[#F5F5F5]"
@@ -2343,6 +2354,8 @@ function App() {
             onScreenChange={setCurrentScreen}
             user={user}
             onLogout={handleLogout}
+            darkMode={darkMode}
+            onToggleDarkMode={onToggleDarkMode}
           />
         </div>
 
@@ -2384,6 +2397,8 @@ function App() {
             onScreenChange={setCurrentScreen}
             user={null} // We don't need user info in mobile bottom nav
             onLogout={handleLogout}
+            darkMode={darkMode}
+            onToggleDarkMode={onToggleDarkMode}
           />
         </div>
       </div>

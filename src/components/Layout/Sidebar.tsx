@@ -8,7 +8,9 @@ import {
   LogOut,
   DollarSign,
   Target,
-  Landmark
+  Landmark,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { Screen } from '../../types/types';
 import { User } from 'firebase/auth';
@@ -20,9 +22,11 @@ interface SidebarProps {
   onScreenChange: (screen: Screen) => void;
   user: User | null; // Allow user to be null
   onLogout: () => void;
+  darkMode: boolean;
+  onToggleDarkMode: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onScreenChange, user, onLogout }) => {
+const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onScreenChange, user, onLogout, darkMode, onToggleDarkMode }) => {
   const navItems = [
     { id: 'dashboard' as Screen, label: 'Dashboard', icon: Home },
     { id: 'transactions' as Screen, label: 'Transactions', icon: Receipt },
@@ -161,7 +165,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onScreenChange, user, 
           animate="animate"
           transition={{ delay: 0.7 }}
         >
-          <div className="flex items-center space-x-3 mb-3">
+          <div className="flex items-center space-x-3 mb-4">
             <motion.img
               src={user.photoURL || "https://i.pinimg.com/474x/18/b9/ff/18b9ffb2a8a791d50213a9d595c4dd52.jpg"} // Use photoURL
               alt={user.displayName || 'User'} // Use displayName
@@ -173,16 +177,34 @@ const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onScreenChange, user, 
               <p className="text-sm font-medium text-gray-900 dark:text-[#F5F5F5] truncate">{user.displayName}</p>
             </div>
           </div>
-          <motion.button
-            onClick={onLogout}
-            className="w-full flex items-center space-x-2 px-3 py-2 text-gray-500 dark:text-[#888888] hover:text-red-500 dark:hover:text-red-500 hover:bg-gray-200 dark:hover:bg-[#1A1A1A] rounded-lg transition-all duration-200"
-            variants={buttonHoverVariants}
-            whileHover="hover"
-            whileTap="tap"
-          >
-            <LogOut className="h-4 w-4" />
-            <span className="text-sm">Logout</span>
-          </motion.button>
+
+          <div className="flex items-center justify-between space-x-2">
+            <motion.button
+              onClick={onLogout}
+              className="flex-grow flex items-center space-x-2 px-3 py-2 text-gray-500 dark:text-[#888888] hover:text-red-500 dark:hover:text-red-500 hover:bg-gray-200 dark:hover:bg-[#1A1A1A] rounded-lg transition-all duration-200"
+              variants={buttonHoverVariants}
+              whileHover="hover"
+              whileTap="tap"
+            >
+              <LogOut className="h-4 w-4" />
+              <span className="text-sm">Logout</span>
+            </motion.button>
+
+            <motion.button
+              onClick={onToggleDarkMode}
+              className="p-2 rounded-full text-gray-500 dark:text-[#888888] hover:text-gray-900 dark:hover:text-[#F5F5F5] hover:bg-gray-200 dark:hover:bg-[#1A1A1A] transition-colors"
+              aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+              variants={buttonHoverVariants}
+              whileHover="hover"
+              whileTap="tap"
+            >
+              {darkMode ? (
+                <Sun className="h-5 w-5 text-yellow-500" />
+              ) : (
+                <Moon className="h-5 w-5 text-gray-700" />
+              )}
+            </motion.button>
+          </div>
         </motion.div>
       )}
     </motion.div>
