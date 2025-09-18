@@ -276,7 +276,6 @@ function App() {
         themePreference: !darkMode ? 'dark' : 'light',
       });
       setDarkMode(!darkMode);
-      showToast('Theme preference updated!', 'success');
     }
   };
 

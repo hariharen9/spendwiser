@@ -42,13 +42,13 @@ const AnimatedToast: React.FC<AnimatedToastProps> = ({ message, type, onClose })
 
   return (
     <motion.div
-      className={`fixed top-4 right-4 z-50 max-w-sm w-full ${container} border rounded-lg shadow-lg`}
+      className={`fixed top-4 right-4 z-50 w-11/12 max-w-xs sm:w-full sm:max-w-sm ${container} border rounded-lg shadow-lg`}
       initial={{ opacity: 0, x: 300, scale: 0.8 }}
       animate={{ opacity: 1, x: 0, scale: 1 }}
       exit={{ opacity: 0, x: 300, scale: 0.8 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
     >
-      <div className="p-4">
+      <div className="p-3 sm:p-4">
         <div className="flex items-start">
           <div className="flex-shrink-0">
             {icon}
