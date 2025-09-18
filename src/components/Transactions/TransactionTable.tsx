@@ -17,28 +17,9 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
   onDeleteTransaction,
   currency
 }) => {
-  const [sortBy, setSortBy] = useState<keyof Transaction>('date');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
-  const handleSort = (field: keyof Transaction) => {
-    if (sortBy === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(field);
-      setSortOrder('asc');
-    }
-  };
-
-  const sortedTransactions = [...transactions].sort((a, b) => {
-    const aVal = a[sortBy];
-    const bVal = b[sortBy];
-    
-    if (sortOrder === 'asc') {
-      return aVal > bVal ? 1 : -1;
-    }
-    return aVal < bVal ? 1 : -1;
-  });
+  const sortedTransactions = transactions;
 
   return (
     <motion.div 
@@ -65,8 +46,7 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
               ].map(({ key, label }) => (
                 <motion.th
                   key={key}
-                  className="px-6 py-4 text-left text-sm font-medium text-gray-900 dark:text-[#F5F5F5] cursor-pointer hover:bg-gray-100 dark:hover:bg-[#242424] transition-colors"
-                  onClick={() => handleSort(key as keyof Transaction)}
+                  className="px-6 py-4 text-left text-sm font-medium text-gray-900 dark:text-[#F5F5F5] transition-colors"
                   whileHover={{ backgroundColor: "rgba(0, 0, 0, 0.05)" }}
                   whileTap={{ scale: 0.98 }}
                   initial={{ opacity: 0, y: -10 }}
@@ -75,7 +55,6 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
                 >
                   <div className="flex items-center space-x-2">
                     <span>{label}</span>
-                    <ArrowUpDown className="h-4 w-4 text-gray-400 dark:text-[#888888]" />
                   </div>
                 </motion.th>
               ))}

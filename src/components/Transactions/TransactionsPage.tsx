@@ -226,7 +226,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
         transition={{ delay: 0.3 }}
       >
         <TransactionTable
-          transactions={transactions}
+          transactions={sortedAndFilteredTransactions}
           onEditTransaction={onEditTransaction}
           onDeleteTransaction={onDeleteTransaction}
           currency={currency}
