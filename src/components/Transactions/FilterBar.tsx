@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Calendar, Filter, X } from 'lucide-react';
+import { Search, Calendar, Filter, X, Clock } from 'lucide-react';
 import AnimatedDropdown from '../Common/AnimatedDropdown';
 
 interface FilterBarProps {
@@ -35,13 +35,68 @@ const FilterBar: React.FC<FilterBarProps> = ({
 }) => {
   const [showDateInputs, setShowDateInputs] = useState(false);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const [selectedPreset, setSelectedPreset] = useState('custom');
 
   const clearDateRange = () => {
     onStartDateChange('');
     onEndDateChange('');
+    setSelectedPreset('custom');
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toISOString().split('T')[0];
+  };
+
+  const handleDatePresetChange = (preset: string) => {
+    setSelectedPreset(preset);
+    const today = new Date();
+    let start = new Date(), end = new Date();
+
+    switch (preset) {
+      case 'today':
+        start = today;
+        end = today;
+        break;
+      case 'this-week':
+        start = new Date(today.setDate(today.getDate() - today.getDay()));
+        end = new Date(today.setDate(today.getDate() - today.getDay() + 6));
+        break;
+      case 'this-month':
+        start = new Date(today.getFullYear(), today.getMonth(), 1);
+        end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        break;
+      case 'this-year':
+        start = new Date(today.getFullYear(), 0, 1);
+        end = new Date(today.getFullYear(), 11, 31);
+        break;
+      case 'custom':
+        onStartDateChange('');
+        onEndDateChange('');
+        return;
+      default:
+        return;
+    }
+    onStartDateChange(formatDate(start));
+    onEndDateChange(formatDate(end));
+  };
+
+  const handlePillClick = (preset: string) => {
+    if (selectedPreset === preset) {
+      handleDatePresetChange('custom');
+    } else {
+      handleDatePresetChange(preset);
+    }
   };
 
   // For mobile view, we'll show a simplified filter bar with a toggle
+  const datePresetOptions = [
+    { value: 'custom', label: 'Custom Range' },
+    { value: 'today', label: 'Today' },
+    { value: 'this-week', label: 'This Week' },
+    { value: 'this-month', label: 'This Month' },
+    { value: 'this-year', label: 'This Year' },
+  ];
+
   return (
     <>
       {/* Mobile Filter Bar */}
@@ -116,24 +171,21 @@ const FilterBar: React.FC<FilterBarProps> = ({
             </div>
             
             {showDateInputs && (
-              <div className="grid grid-cols-2 gap-2">
-                <div className="relative">
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => onStartDateChange(e.target.value)}
-                    className="w-full pl-8 pr-4 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
-                  />
-                  <Calendar className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-[#888888]" />
-                </div>
-                <div className="relative">
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => onEndDateChange(e.target.value)}
-                    className="w-full pl-8 pr-4 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
-                  />
-                  <Calendar className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-[#888888]" />
+              <div className="space-y-4">
+                <AnimatedDropdown
+                  selectedValue={selectedPreset}
+                  options={datePresetOptions}
+                  onChange={handleDatePresetChange}
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="relative">
+                    <input type="date" value={startDate} onChange={(e) => { onStartDateChange(e.target.value); setSelectedPreset('custom'); }} className="w-full pl-8 pr-4 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]" />
+                    <Calendar className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-[#888888]" />
+                  </div>
+                  <div className="relative">
+                    <input type="date" value={endDate} onChange={(e) => { onEndDateChange(e.target.value); setSelectedPreset('custom'); }} className="w-full pl-8 pr-4 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]" />
+                    <Calendar className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-[#888888]" />
+                  </div>
                 </div>
               </div>
             )}
@@ -185,28 +237,52 @@ const FilterBar: React.FC<FilterBarProps> = ({
           />
         </div>
 
+        <div className="flex justify-between items-center mt-4">
+            <div className="flex items-center justify-start space-x-2">
+                <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Quick Select:</span>
+                <div>
+                    <button 
+                        onClick={() => handlePillClick('today')} 
+                        className={`px-3 py-1 text-sm rounded-full transition-colors ${selectedPreset === 'today' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'}`}>
+                        Today
+                    </button>
+                </div>
+                <div>
+                    <button 
+                        onClick={() => handlePillClick('this-week')} 
+                        className={`px-3 py-1 text-sm rounded-full transition-colors ${selectedPreset === 'this-week' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'}`}>
+                        This Week
+                    </button>
+                </div>
+                <div>
+                    <button 
+                        onClick={() => handlePillClick('this-month')} 
+                        className={`px-3 py-1 text-sm rounded-full transition-colors ${selectedPreset === 'this-month' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'}`}>
+                        This Month
+                    </button>
+                </div>
+            </div>
+            <button onClick={() => setShowDateInputs(!showDateInputs)} className="flex items-center text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">
+                <Clock className="h-4 w-4 mr-1" />
+                {showDateInputs ? 'Hide Date Filters' : 'Filter by Date'}
+            </button>
+        </div>
+
         {/* Date Inputs (Hidden by default) */}
         {showDateInputs && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <AnimatedDropdown
+              selectedValue={selectedPreset}
+              options={datePresetOptions}
+              onChange={handleDatePresetChange}
+            />
             <div className="relative">
               <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-[#888888]" />
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => onStartDateChange(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
-                placeholder="Start Date"
-              />
+              <input type="date" value={startDate} onChange={(e) => { onStartDateChange(e.target.value); setSelectedPreset('custom'); }} className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]" placeholder="Start Date" />
             </div>
             <div className="relative">
               <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-[#888888]" />
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => onEndDateChange(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
-                placeholder="End Date"
-              />
+              <input type="date" value={endDate} onChange={(e) => { onEndDateChange(e.target.value); setSelectedPreset('custom'); }} className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]" placeholder="End Date" />
             </div>
             <div className="flex items-center">
               <button
