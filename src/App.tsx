@@ -35,6 +35,7 @@ import ImportCSVModal from './components/Modals/ImportCSVModal';
 import ExportModal from './components/Modals/ExportModal';
 import LoanModal from './components/Modals/LoanModal';
 import RecurringTransactionModal from './components/Modals/RecurringTransactionModal';
+import FeedbackModal from './components/Modals/FeedbackModal';
 
 // Icons
 import { LogOut, DollarSign, X, Sun, Moon } from 'lucide-react';
@@ -88,6 +89,9 @@ function App() {
   const [reauthPassword, setReauthPassword] = useState('');
   const [categoriesLoaded, setCategoriesLoaded] = useState(false);
   const [selectedFont, setSelectedFont] = useState<string>('Montserrat'); // Default font
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+  const [feedbackPromptTransactionCount, setFeedbackPromptTransactionCount] = useState(0);
+  const [isFeedbackSubmitting, setIsFeedbackSubmitting] = useState(false);
   
   // Toast system
   const { toasts, showToast, removeToast } = useToast();
@@ -469,6 +473,33 @@ function App() {
       setDoc(userDocRef, { themePreference: darkMode ? 'dark' : 'light' }, { merge: true });
     }
   }, [darkMode, user, themeLoaded]);
+
+  // Effect to trigger feedback modal
+  useEffect(() => {
+    if (!user || !transactionsLoaded || !user.uid) return;
+
+    const userDocRef = doc(db, 'spenders', user.uid);
+    const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const userData = docSnap.data();
+        const currentTransactionCount = transactions.length;
+        const hasGivenFeedback = userData.hasGivenFeedback || false;
+        const transactionsAtLastPrompt = userData.transactionsAtLastFeedbackPrompt || 0;
+
+        if (!hasGivenFeedback && currentTransactionCount >= 10) {
+          if (currentTransactionCount >= (transactionsAtLastPrompt + 10)) {
+            setIsFeedbackModalOpen(true);
+            // Update transactionsAtLastFeedbackPrompt in Firestore
+            updateDoc(userDocRef, { transactionsAtLastFeedbackPrompt: currentTransactionCount });
+          }
+        }
+      }
+    }, (error) => {
+      console.error("Error fetching user data for feedback prompt: ", error);
+    });
+
+    return () => unsubscribe();
+  }, [user, transactions.length, transactionsLoaded]);
 
   
 
@@ -1129,6 +1160,13 @@ function App() {
       await updateDoc(analyticsGlobalRef, {
           totalMockDataLoads: increment(1)
       });
+
+      // After loading mock data, update transactionsAtLastFeedbackPrompt
+      // to prevent immediate feedback modal popup for mock transactions.
+      const userDocRef = doc(db, 'spenders', user.uid);
+      await updateDoc(userDocRef, {
+        transactionsAtLastFeedbackPrompt: transactions.length, // Set to current count (including mock data)
+      });
     } catch (error) {
       console.error("Error loading mock data: ", error);
       showToast('Error loading mock data', 'error');
@@ -1257,6 +1295,43 @@ function App() {
         console.error("Error updating profile: ", error);
         showToast('Error updating profile', 'error');
       }
+    }
+  };
+
+  const handleFeedbackSubmit = async (rating: number, feedback: string) => {
+    if (!user) return;
+    setIsFeedbackSubmitting(true);
+    try {
+      const userDocRef = doc(db, 'spenders', user.uid);
+      const analyticsSnap = await getDoc(analyticsGlobalRef);
+      const analyticsData = analyticsSnap.exists() ? analyticsSnap.data() : {};
+
+      // Update user document
+      await updateDoc(userDocRef, {
+        feedbackStars: rating,
+        feedbackText: feedback,
+        hasGivenFeedback: true,
+      });
+
+      // Update global analytics
+      const currentTotalFeedbackSum = analyticsData.totalFeedbackSum || 0;
+      const currentTotalFeedbackCount = analyticsData.totalFeedbackCount || 0;
+      const currentTotalUsersGivenFeedback = analyticsData.totalUsersGivenFeedback || 0;
+
+      await updateDoc(analyticsGlobalRef, {
+        totalUsersGivenFeedback: increment(1),
+        totalFeedbackSum: increment(rating),
+        totalFeedbackCount: increment(1),
+        totalAverageFeedbackStars: (currentTotalFeedbackSum + rating) / (currentTotalFeedbackCount + 1),
+      });
+
+      showToast('Thank you for your feedback!', 'success');
+      setIsFeedbackModalOpen(false); // Close modal after submission
+    } catch (error) {
+      console.error("Error submitting feedback: ", error);
+      showToast('Error submitting feedback', 'error');
+    } finally {
+      setIsFeedbackSubmitting(false);
     }
   };
 
@@ -2669,6 +2744,14 @@ function App() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Feedback Modal */}
+      <FeedbackModal
+        isOpen={isFeedbackModalOpen}
+        onClose={() => setIsFeedbackModalOpen(false)}
+        onSubmit={handleFeedbackSubmit}
+        isLoading={isFeedbackSubmitting}
+      />
     </div>
   );
 }

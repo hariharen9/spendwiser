@@ -20,12 +20,21 @@ export interface Budget {
   isMock?: boolean;
 }
 
-export interface User {
-  name: string;
-  email: string;
-  avatar: string;
-  currency: string;
-}
+export type User = {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null;
+  defaultAccountId?: string;
+  currency?: string;
+  themePreference?: 'dark' | 'light';
+  fontPreference?: string;
+  categories?: string[];
+  feedbackStars?: number;
+  feedbackText?: string;
+  hasGivenFeedback?: boolean;
+  transactionsAtLastFeedbackPrompt?: number;
+};
 
 export interface Account {
   id: string;
