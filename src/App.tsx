@@ -1495,21 +1495,22 @@ function App() {
             animate="animate"
             exit="exit"
           >
-            <GoalsPage
-              goals={goals}
-              onAddGoal={() => setIsGoalModalOpen(true)}
-              onEditGoal={(goal) => {
-                setEditingGoal(goal);
-                setIsGoalModalOpen(true);
-              }}
-              onDeleteGoal={handleDeleteGoal}
-              onAddFunds={(goal) => {
-                setSelectedGoal(goal);
-                setIsAddFundsModalOpen(true);
-              }}
-              currency={currency}
-            />
-          </motion.div>
+                          <GoalsPage
+                          goals={goals}
+                          onAddGoal={() => setIsGoalModalOpen(true)}
+                          onEditGoal={(goal) => {
+                            setEditingGoal(goal);
+                            setIsGoalModalOpen(true);
+                          }}
+                          onDeleteGoal={handleDeleteGoal}
+                          onAddFunds={(goal) => {
+                            setSelectedGoal(goal);
+                            setIsAddFundsModalOpen(true);
+                          }}
+                          currency={currency}
+                          transactions={transactions}
+                          accounts={accounts}
+                        />          </motion.div>
         );
       case 'loans':
         return (

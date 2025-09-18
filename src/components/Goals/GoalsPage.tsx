@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Goal } from '../../types/types';
+import { Goal, Transaction, Account } from '../../types/types';
 import { motion } from 'framer-motion';
 import { staggerContainer, fadeInVariants } from '../../components/Common/AnimationVariants';
 import { Plus, Target } from 'lucide-react';
+import GoalDetailsModal from './GoalDetailsModal';
 
 interface GoalsPageProps {
   goals: Goal[];
@@ -11,9 +12,13 @@ interface GoalsPageProps {
   onDeleteGoal: (id: string) => void;
   onAddFunds: (goal: Goal) => void;
   currency: string;
+  transactions: Transaction[];
+  accounts: Account[];
 }
 
-const GoalsPage: React.FC<GoalsPageProps> = ({ goals, onAddGoal, onEditGoal, onDeleteGoal, onAddFunds, currency }) => {
+const GoalsPage: React.FC<GoalsPageProps> = ({ goals, onAddGoal, onEditGoal, onDeleteGoal, onAddFunds, currency, transactions, accounts }) => {
+  const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
+
   return (
     <motion.div 
       className="space-y-6"
@@ -51,8 +56,9 @@ const GoalsPage: React.FC<GoalsPageProps> = ({ goals, onAddGoal, onEditGoal, onD
           {goals.map(goal => (
             <motion.div 
               key={goal.id} 
-              className="bg-white dark:bg-[#242424] rounded-lg shadow p-6 space-y-4"
+              className="bg-white dark:bg-[#242424] rounded-lg shadow p-6 space-y-4 cursor-pointer"
               variants={fadeInVariants}
+              onClick={() => setSelectedGoal(goal)}
             >
               <div className="flex items-center justify-between">
                 <span className="text-2xl">{goal.emoji}</span>
@@ -76,16 +82,23 @@ const GoalsPage: React.FC<GoalsPageProps> = ({ goals, onAddGoal, onEditGoal, onD
                 Target Date: {new Date(goal.targetDate).toLocaleDateString()}
               </div>
               <div className="flex space-x-2">
-                <button onClick={() => onAddFunds(goal)} className="bg-green-500 text-white px-3 py-1 rounded-lg text-sm">Add Funds</button>
-                <button onClick={() => onEditGoal(goal)} className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white px-3 py-1 rounded-lg text-sm">Edit</button>
-                <button onClick={() => onDeleteGoal(goal.id)} className="bg-red-500 text-white px-3 py-1 rounded-lg text-sm">Delete</button>
+                <button onClick={(e) => {e.stopPropagation(); onAddFunds(goal)}} className="bg-green-500 text-white px-3 py-1 rounded-lg text-sm">Add Funds</button>
+                <button onClick={(e) => {e.stopPropagation(); onEditGoal(goal)}} className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white px-3 py-1 rounded-lg text-sm">Edit</button>
+                <button onClick={(e) => {e.stopPropagation(); onDeleteGoal(goal.id)}} className="bg-red-500 text-white px-3 py-1 rounded-lg text-sm">Delete</button>
               </div>
             </motion.div>
           ))}
         </div>
       )}
+      <GoalDetailsModal 
+        isOpen={selectedGoal !== null}
+        onClose={() => setSelectedGoal(null)}
+        goal={selectedGoal}
+        transactions={transactions}
+        accounts={accounts}
+        currency={currency}
+      />
     </motion.div>
   );
 };
-
 export default GoalsPage;
