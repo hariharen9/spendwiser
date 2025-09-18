@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, DollarSign, AlertTriangle, Calendar } from 'lucide-react';
+import { X, DollarSign, AlertTriangle, Calendar, Rows, Columns } from 'lucide-react';
 import { Transaction, Account } from '../../types/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { modalVariants } from '../Common/AnimationVariants';
@@ -56,6 +56,10 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   
   const [isLargeAmount, setIsLargeAmount] = useState(false);
   const [suggestedCategory, setSuggestedCategory] = useState<string | null>(null);
+  const [isCompact, setIsCompact] = useState(() => {
+    const savedMode = localStorage.getItem('addTransactionModalCompactMode');
+    return savedMode ? JSON.parse(savedMode) : false;
+  });
 
   const allAccounts = [...accounts, ...creditCards];
 
@@ -95,6 +99,11 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
       setIsLargeAmount(false);
     }
   }, [formData.amount]);
+
+  // Save isCompact preference to localStorage
+  useEffect(() => {
+    localStorage.setItem('addTransactionModalCompactMode', JSON.stringify(isCompact));
+  }, [isCompact]);
 
   useEffect(() => {
     if (editingTransaction) {
@@ -155,6 +164,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
 
   // Determine if account selection is required
   const isAccountRequired = allAccounts.length > 0;
+  const shouldShowAccountField = !isCompact || (allAccounts.length > 1 && !defaultAccountId);
 
   // Handle quick date selection
   const setQuickDate = (daysOffset: number) => {
@@ -187,7 +197,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
           onClick={onClose}
         >
           <motion.div
-            className="bg-white dark:bg-[#242424] rounded-xl border border-gray-200 dark:border-gray-700 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto"
+            className="bg-white dark:bg-[#242424] rounded-xl border border-gray-200 dark:border-gray-700 w-full max-w-md shadow-2xl flex flex-col max-h-[90vh]"
             variants={modalVariants}
             initial="initial"
             animate="animate"
@@ -195,7 +205,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 md:p-6 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between p-4 md:p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
               <motion.div 
                 className="flex items-center space-x-3"
                 initial={{ opacity: 0, x: -20 }}
@@ -209,23 +219,43 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                   {editingTransaction ? 'Edit Transaction' : 'Add Transaction'}
                 </h2>
               </motion.div>
-              <motion.button
-                onClick={onClose}
-                className="text-gray-500 dark:text-[#888888] hover:text-gray-800 dark:hover:text-[#F5F5F5] p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <X className="h-5 w-5 md:h-6 md:w-6" />
-              </motion.button>
+              <div className="flex items-center space-x-2">
+                <div className="relative group">
+                    <motion.button
+                        type="button"
+                        onClick={() => setIsCompact(!isCompact)}
+                        className="text-gray-500 dark:text-[#888888] p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    >
+                        {isCompact ? <Rows className="h-5 w-5" /> : <Columns className="h-5 w-5" />}
+                    </motion.button>
+                    <div className="absolute bottom-full mb-2 w-64 right-0 transform translate-x-1/4 bg-gray-800 text-white text-xs rounded py-2 px-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-[60]">
+                        <h4 className="font-bold">{isCompact ? 'Switch to Comfy View' : 'Switch to Compact View'}</h4>
+                        {isCompact ? (
+                            <p>Shows all fields including date, accounts, and notes for detailed entries.</p>
+                        ) : (
+                            <p>Hides date, account (if default is set), and notes for faster entry.</p>
+                        )}
+                        <div className="absolute top-full right-1/2 transform translate-x-1/2 h-0 w-0 border-x-4 border-x-transparent border-t-4 border-t-gray-800"></div>
+                    </div>
+                </div>
+                <motion.button
+                  onClick={onClose}
+                  className="text-gray-500 dark:text-[#888888] hover:text-gray-800 dark:hover:text-[#F5F5F5] p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <X className="h-5 w-5 md:h-6 md:w-6" />
+                </motion.button>
+              </div>
             </div>
 
             {/* Form */}
             <motion.form 
               onSubmit={handleSubmit} 
-              className="p-4 md:p-6 space-y-4 md:space-y-6"
+              className="p-4 md:p-6 space-y-4 md:space-y-6 overflow-y-auto"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
@@ -363,49 +393,51 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
               </motion.div>
 
               {/* Date and Quick Selection */}
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                transition={{ delay: 0.5 }}
-              >
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center">
-                  <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2">
-                    <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                  </span>
-                  Date *
-                </label>
-                <div className="mb-2 flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setQuickDate(0)}
-                    className="text-xs bg-gray-100 dark:bg-[#1A1A1A] hover:bg-gray-200 dark:hover:bg-[#2A2A2A] text-gray-700 dark:text-gray-300 px-2 py-1 rounded transition-colors"
-                  >
-                    Today
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setQuickDate(-1)}
-                    className="text-xs bg-gray-100 dark:bg-[#1A1A1A] hover:bg-gray-200 dark:hover:bg-[#2A2A2A] text-gray-700 dark:text-gray-300 px-2 py-1 rounded transition-colors"
-                  >
-                    Yesterday
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setQuickDate(-7)}
-                    className="text-xs bg-gray-100 dark:bg-[#1A1A1A] hover:bg-gray-200 dark:hover:bg-[#2A2A2A] text-gray-700 dark:text-gray-300 px-2 py-1 rounded transition-colors"
-                  >
-                    Last Week
-                  </button>
-                </div>
-                <input
-                  type="date"
-                  required
-                  value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-[#1A1A1A] dark:border-gray-600 dark:text-white py-2 md:py-3 px-3 md:px-4 transition-all"
-                />
-              </motion.div>
+              {!isCompact && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center">
+                    <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2">
+                      <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    </span>
+                    Date *
+                  </label>
+                  <div className="mb-2 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setQuickDate(0)}
+                      className="text-xs bg-gray-100 dark:bg-[#1A1A1A] hover:bg-gray-200 dark:hover:bg-[#2A2A2A] text-gray-700 dark:text-gray-300 px-2 py-1 rounded transition-colors"
+                    >
+                      Today
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setQuickDate(-1)}
+                      className="text-xs bg-gray-100 dark:bg-[#1A1A1A] hover:bg-gray-200 dark:hover:bg-[#2A2A2A] text-gray-700 dark:text-gray-300 px-2 py-1 rounded transition-colors"
+                    >
+                      Yesterday
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setQuickDate(-7)}
+                      className="text-xs bg-gray-100 dark:bg-[#1A1A1A] hover:bg-gray-200 dark:hover:bg-[#2A2A2A] text-gray-700 dark:text-gray-300 px-2 py-1 rounded transition-colors"
+                    >
+                      Last Week
+                    </button>
+                  </div>
+                  <input
+                    type="date"
+                    required
+                    value={formData.date}
+                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                    className="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-[#1A1A1A] dark:border-gray-600 dark:text-white py-2 md:py-3 px-3 md:px-4 transition-all"
+                  />
+                </motion.div>
+              )}
 
               {/* Category */}
               <motion.div
@@ -428,59 +460,63 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
               </motion.div>
 
               {/* Account */}
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                transition={{ delay: 0.7 }}
-              >
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center">
-                  <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2">
-                    <DollarSign className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                  </span>
-                  {isAccountRequired ? 'Account *' : 'Account (Optional)'}
-                </label>
-                {allAccounts.length === 0 ? (
-                  <p className="text-sm text-gray-500 dark:text-[#888888] py-2 md:py-3 px-3 md:px-4">
-                    No accounts available. Add an account in Settings.
-                  </p>
-                ) : allAccounts.length === 1 ? (
-                  <div className="py-2 md:py-3 px-3 md:px-4 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5]">
-                    {formatAccountName(allAccounts[0])} (Auto-selected)
-                    <input type="hidden" name="accountId" value={allAccounts[0].id} />
-                  </div>
-                ) : (
-                  <AccountDropdown
-                    accounts={accounts}
-                    creditCards={creditCards}
-                    selectedValue={formData.accountId}
-                    onChange={(value) => setFormData({ ...formData, accountId: value })}
-                    defaultAccountId={defaultAccountId}
-                  />
-                )}
-              </motion.div>
+              {shouldShowAccountField && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ delay: 0.7 }}
+                >
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center">
+                    <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2">
+                      <DollarSign className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    </span>
+                    {isAccountRequired ? 'Account *' : 'Account (Optional)'}
+                  </label>
+                  {allAccounts.length === 0 ? (
+                    <p className="text-sm text-gray-500 dark:text-[#888888] py-2 md:py-3 px-3 md:px-4">
+                      No accounts available. Add an account in Settings.
+                    </p>
+                  ) : allAccounts.length === 1 ? (
+                    <div className="py-2 md:py-3 px-3 md:px-4 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5]">
+                      {formatAccountName(allAccounts[0])} (Auto-selected)
+                      <input type="hidden" name="accountId" value={allAccounts[0].id} />
+                    </div>
+                  ) : (
+                    <AccountDropdown
+                      accounts={accounts}
+                      creditCards={creditCards}
+                      selectedValue={formData.accountId}
+                      onChange={(value) => setFormData({ ...formData, accountId: value })}
+                      defaultAccountId={defaultAccountId}
+                    />
+                  )}
+                </motion.div>
+              )}
 
               {/* Comments */}
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                transition={{ delay: 0.8 }}
-              >
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center">
-                  <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2">
-                    <DollarSign className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                  </span>
-                  Comments (Optional)
-                </label>
-                <textarea
-                  rows={3}
-                  value={formData.comments}
-                  onChange={(e) => setFormData({ ...formData, comments: e.target.value })}
-                  className="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-[#1A1A1A] dark:border-gray-600 dark:text-white py-2 md:py-3 px-3 md:px-4 transition-all resize-none placeholder-gray-400 dark:placeholder-[#888888]"
-                  placeholder="Add any additional notes..."
-                />
-              </motion.div>
+              {!isCompact && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ delay: 0.8 }}
+                >
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center">
+                    <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2">
+                      <DollarSign className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    </span>
+                    Comments (Optional)
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={formData.comments}
+                    onChange={(e) => setFormData({ ...formData, comments: e.target.value })}
+                    className="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-[#1A1A1A] dark:border-gray-600 dark:text-white py-2 md:py-3 px-3 md:px-4 transition-all resize-none placeholder-gray-400 dark:placeholder-[#888888]"
+                    placeholder="Add any additional notes..."
+                  />
+                </motion.div>
+              )}
 
               {/* Actions */}
               <motion.div 
