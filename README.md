@@ -135,29 +135,43 @@ SpendWiser is designed from the ground up to be a pleasure to use on any device.
   <tr>
     <td width="33%" align="center">
       <b>Mobile Dashboard</b><br><br>
-      <img src="./Assets/mobile-ss/Screenshot_20250912_222258.jpg" alt="Mobile Dashboard" width="90%">
+      <img src="./Assets/mobile-ss/dash.jpg" alt="Mobile Dashboard" width="90%">
     </td>
     <td width="33%" align="center">
       <b>Mobile Transactions</b><br><br>
-      <img src="./Assets/mobile-ss/Screenshot_20250912_222333.jpg" alt="Mobile Transactions" width="90%">
+      <img src="./Assets/mobile-ss/transactions.jpg" alt="Mobile Transactions" width="90%">
     </td>
     <td width="33%" align="center">
-      <b>Filter & Sort</b><br><br>
-      <img src="./Assets/mobile-ss/Screenshot_20250912_222344.jpg" alt="Mobile Filters" width="90%">
+      <b>Transactions Log</b><br><br>
+      <img src="./Assets/mobile-ss/trans.jpg" alt="Mobile Budgets" width="90%">
     </td>
   </tr>
   <tr>
     <td width="33%" align="center">
-      <b>Add Transaction</b><br><br>
-      <img src="./Assets/mobile-ss/Screenshot_20250912_222405.jpg" alt="Add Transaction Modal" width="90%">
+      <b>Mobile Credit Cards</b><br><br>
+      <img src="./Assets/mobile-ss/CCs.jpg" alt="Mobile Credit Cards" width="90%">
     </td>
     <td width="33%" align="center">
-      <b>Budgets on Mobile</b><br><br>
-      <img src="./Assets/mobile-ss/Screenshot_20250912_222415.jpg" alt="Mobile Budgets" width="90%">
+      <b>Mobile Loans</b><br><br>
+      <img src="./Assets/mobile-ss/loans.jpg" alt="Mobile Loans" width="90%">
     </td>
     <td width="33%" align="center">
-      <b>Goals on Mobile</b><br><br>
-      <img src="./Assets/mobile-ss/Screenshot_20250912_222425.jpg" alt="Mobile Goals" width="90%">
+      <b>Mobile Settings</b><br><br>
+      <img src="./Assets/mobile-ss/settings.jpg" alt="Mobile Settings" width="90%">
+    </td>
+  </tr>
+  <tr>
+    <td width="33%" align="center">
+      <b>Mobile Login</b><br><br>
+      <img src="./Assets/mobile-ss/login.jpg" alt="Mobile Login" width="90%">
+    </td>
+    <td width="33%" align="center">
+      <b>Mobile Footer</b><br><br>
+      <img src="./Assets/mobile-ss/footer.jpg" alt="Mobile Footer" width="90%">
+    </td>
+    <td width="33%" align="center">
+      <b>Mobile Budgets</b><br><br>
+      <img src="./Assets/mobile-ss/budgets.jpg" alt="Mobile Budgets" width="90%">
     </td>
   </tr>
 </table>

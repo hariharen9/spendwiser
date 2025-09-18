@@ -347,21 +347,21 @@ export default function Landing({ onCtaClick }: { onCtaClick: () => void }) {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
               <motion.div variants={itemVariants} className="lg:col-span-5 relative h-[500px] min-h-[500px]">
                 <motion.img
-                  src="/Assets/mobile-ss/Screenshot_20250912_222405.jpg"
+                  src="/assets/mobile-ss/login.jpg"
                   alt="SpendWiser on Mobile 1"
                   className="absolute w-auto h-[80%] top-0 left-0 rounded-3xl shadow-2xl border-2 border-white/10"
                   style={{ rotate: -10 }}
                   whileHover={{ scale: 1.05, rotate: -12, y: -10, zIndex: 20, boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}
                 />
                 <motion.img
-                  src="/Assets/mobile-ss/Screenshot_20250912_222415.jpg"
+                  src="/assets/mobile-ss/dash.jpg"
                   alt="SpendWiser on Mobile 2"
                   className="absolute w-auto h-[80%] top-1/4 left-1/4 rounded-3xl shadow-2xl border-2 border-white/10 z-10"
                   style={{ rotate: 2 }}
                   whileHover={{ scale: 1.05, rotate: 0, y: -10, zIndex: 20, boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}
                 />
                 <motion.img
-                  src="/Assets/mobile-ss/Screenshot_20250912_222425.jpg"
+                  src="/assets/mobile-ss/transactions.jpg"
                   alt="SpendWiser on Mobile 3"
                   className="absolute w-auto h-[80%] top-10 right-0 rounded-3xl shadow-2xl border-2 border-white/10"
                   style={{ rotate: 12 }}
@@ -514,7 +514,7 @@ export default function Landing({ onCtaClick }: { onCtaClick: () => void }) {
                     <div><h3 className="text-xl font-bold mb-2">{item.title}</h3><p className="text-slate-600 dark:text-white/70 leading-relaxed">{item.description}</p></div>
                   </motion.div>)}
               </motion.div>
-              <motion.div variants={itemVariants}><Card className="bg-blue-500/5 border-blue-500/20 p-8"><div className="text-center"><div className="w-16 h-16 bg-[#007BFF] rounded-2xl flex items-center justify-center mx-auto mb-6"><TrendingUp className="w-8 h-8 text-white" /></div><h3 className="text-2xl font-bold mb-4">Join a Thriving Community</h3><p className="text-slate-600 dark:text-white/70 mb-6 leading-relaxed">You're not alone. Join thousands of users who are using SpendWiser to build a better financial future.</p><div className="grid grid-cols-3 gap-4 text-center"><div><div className="text-2xl font-bold text-[#007BFF]">1K+</div><div className="text-sm text-slate-600 dark:text-white/70">Active Users</div></div><div><div className="text-2xl font-bold text-[#007BFF]">$100k+</div><div className="text-sm text-slate-600 dark:text-white/70">Money Tracked</div></div><div><div className="text-2xl font-bold text-[#007BFF]">4.9★</div><div className="text-sm text-slate-600 dark:text-white/70">User Rating</div></div></div></div></Card>
+              <motion.div variants={itemVariants}><Card className="bg-blue-500/5 border-blue-500/20 p-8"><div className="text-center"><div className="w-16 h-16 bg-[#007BFF] rounded-2xl flex items-center justify-center mx-auto mb-6"><TrendingUp className="w-8 h-8 text-white" /></div><h3 className="text-2xl font-bold mb-4">Join a Thriving Community</h3><p className="text-slate-600 dark:text-white/70 mb-6 leading-relaxed">You're not alone. Join thousands of users who are using SpendWiser to build a better financial future.</p><div className="grid grid-cols-3 gap-4 text-center"><div><div className="text-2xl font-bold text-[#007BFF]">500+</div><div className="text-sm text-slate-600 dark:text-white/70">Active Users</div></div><div><div className="text-2xl font-bold text-[#007BFF]">₹100k+</div><div className="text-sm text-slate-600 dark:text-white/70">Money Tracked</div></div><div><div className="text-2xl font-bold text-[#007BFF]">4.9★</div><div className="text-sm text-slate-600 dark:text-white/70">User Rating</div></div></div></div></Card>
               </motion.div>
             </motion.div>
           </motion.div>
