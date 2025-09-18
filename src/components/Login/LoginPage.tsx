@@ -247,26 +247,25 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
 
   return (
     <div ref={scrollContainerRef} id="main-scroll-container" className="h-screen overflow-y-auto snap-y snap-mandatory">
+      <div className="fixed top-4 right-4 z-[60]">
+        <button
+          onClick={toggleDarkMode}
+          className="p-2 rounded-full bg-white/50 dark:bg-black/20 backdrop-blur-sm shadow-md hover:shadow-lg transition-all"
+          aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+        >
+          {darkMode ? (
+            <Sun className="h-5 w-5 text-yellow-500" />
+          ) : (
+            <Moon className="h-5 w-5 text-gray-700" />
+          )}
+        </button>
+      </div>
       <motion.div 
         className="h-screen snap-start flex items-center justify-center px-4 bg-slate-50 dark:bg-[#1A1A1A] relative overflow-hidden"
         variants={pageVariants}
         initial="initial"
         animate="animate"
       >
-        <div className="absolute top-4 right-4 z-20">
-          <button
-            onClick={toggleDarkMode}
-            className="p-2 rounded-full bg-white/50 dark:bg-black/20 backdrop-blur-sm shadow-md hover:shadow-lg transition-all"
-            aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
-          >
-            {darkMode ? (
-              <Sun className="h-5 w-5 text-yellow-500" />
-            ) : (
-              <Moon className="h-5 w-5 text-gray-700" />
-            )}
-          </button>
-        </div>
-
         {isMobile ? (
           <div className="w-full max-w-md px-4">
             <AnimatePresence mode="wait">
