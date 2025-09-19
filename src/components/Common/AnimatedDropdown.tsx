@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 
 // Define the shape of an option if it's an object
@@ -18,7 +18,7 @@ interface AnimatedDropdownProps {
   placeholder?: string;
 }
 
-const dropdownVariants = {
+const dropdownVariants: Variants = {
   initial: { opacity: 0, scale: 0.95, y: -10 },
   animate: {
     opacity: 1,
@@ -29,7 +29,7 @@ const dropdownVariants = {
   exit: { opacity: 0, scale: 0.95, y: -10, transition: { duration: 0.1 } },
 };
 
-const optionVariants = {
+const optionVariants: Variants = {
   initial: { opacity: 0, x: -10 },
   animate: (i: number) => ({
     opacity: 1,
@@ -41,6 +41,8 @@ const optionVariants = {
 const AnimatedDropdown: React.FC<AnimatedDropdownProps> = ({ options, selectedValue, onChange, placeholder = 'Select an option' }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
 
   // Helper to check if an option is of type Option (object with value and label)
   const isOptionObject = (option: string | Option): option is Option => {
@@ -51,6 +53,18 @@ const AnimatedDropdown: React.FC<AnimatedDropdownProps> = ({ options, selectedVa
     onChange(isOptionObject(option) ? option.value : option);
     setIsOpen(false);
   };
+
+  // Calculate dropdown position
+  useEffect(() => {
+    if (isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + window.scrollY,
+        left: rect.left + window.scrollX,
+        width: rect.width
+      });
+    }
+  }, [isOpen]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -80,6 +94,7 @@ const AnimatedDropdown: React.FC<AnimatedDropdownProps> = ({ options, selectedVa
   return (
     <div className="relative w-full" ref={dropdownRef}>
       <motion.button
+        ref={buttonRef}
         type="button"
         className="w-full flex items-center justify-between rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-[#1A1A1A] dark:border-gray-600 dark:text-white py-2 px-3 transition-all text-left"
         onClick={() => setIsOpen(!isOpen)}
@@ -97,11 +112,18 @@ const AnimatedDropdown: React.FC<AnimatedDropdownProps> = ({ options, selectedVa
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            className="absolute z-10 mt-1 w-full bg-white dark:bg-[#2c2c2c] rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-y-auto max-h-60"
+            className="absolute bg-white dark:bg-[#2c2c2c] rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-y-auto max-h-60"
             variants={dropdownVariants}
             initial="initial"
             animate="animate"
             exit="exit"
+            style={{ 
+              position: 'fixed',
+              zIndex: 1000,
+              top: dropdownPosition.top,
+              left: dropdownPosition.left,
+              width: dropdownPosition.width
+            }}
           >
             <ul className="py-1">
               {options.map((option, i) => {

@@ -402,7 +402,9 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, recurringTr
             ease: "easeInOut"
           }}
         >SpendWiser!</motion.span></h2>
-        <h4 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5]">Lets start tracking</h4>
+        <h4 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5]">
+          Let's Start <span className="underline" style={{ color: '#28A745' }}>Tracking..</span>
+        </h4>
       </div>
 
       <motion.div
