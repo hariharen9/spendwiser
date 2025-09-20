@@ -264,6 +264,14 @@ const WIDGET_CONFIGS: WidgetConfig[] = [
     icon: <DollarSign size={20} />,
     category: 'Financial',
     color: 'bg-rose-500'
+  },
+  {
+    id: 'NetWorthWidget',
+    name: 'Net Worth',
+    description: 'Calculate and display your net worth (Assets - Liabilities)',
+    icon: <DollarSign size={20} />,
+    category: 'Financial',
+    color: 'bg-lime-500'
   }
 ];
 
@@ -328,8 +336,9 @@ const WidgetLibraryModal: React.FC<WidgetLibraryModalProps> = ({
     return columns;
   };
 
-  const hiddenFilteredWidgets = filteredWidgets.filter(widget => 
-    hiddenWidgets.includes(widget.id)
+
+  const availableWidgets = WIDGET_CONFIGS.filter(
+    (widget) => !visibleWidgets.includes(widget.id) && !hiddenWidgets.includes(widget.id)
   );
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -560,18 +569,18 @@ const WidgetLibraryModal: React.FC<WidgetLibraryModalProps> = ({
                 </DndContext>
               </div>
 
-              {/* Hidden Widgets Section */}
+              {/* Available Widgets Section */}
               <div>
                 <motion.h3 
                   className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-4 flex items-center gap-2"
                   variants={fadeInVariants}
                 >
-                  <EyeOff size={20} className="text-gray-500" />
-                  Hidden Widgets ({hiddenFilteredWidgets.length})
+                  <Eye size={20} className="text-gray-500" />
+                  Available Widgets ({availableWidgets.length})
                 </motion.h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {hiddenFilteredWidgets.map((widget) => (
+                  {availableWidgets.map((widget) => (
                     <div
                       key={widget.id}
                       className="p-3 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-[#1A1A1A] opacity-75 hover:scale-[1.02] hover:opacity-100 transition-all"
@@ -602,7 +611,7 @@ const WidgetLibraryModal: React.FC<WidgetLibraryModalProps> = ({
                       </div>
                     </div>
                   ))}
-                  {hiddenFilteredWidgets.length === 0 && (
+                  {availableWidgets.length === 0 && (
                     <div className="col-span-2 text-center py-8 text-gray-500 dark:text-[#888888]">
                       All widgets are currently visible
                     </div>

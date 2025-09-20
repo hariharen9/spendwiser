@@ -1412,6 +1412,7 @@ function App() {
               recurringTransactions={recurringTransactions}
               accounts={regularAccounts} 
               budgets={budgets} 
+              loans={loans}
               totalBudget={totalBudget}
               onViewAllTransactions={() => setCurrentScreen('transactions')} 
               currency={currency} 
@@ -1591,6 +1592,7 @@ function App() {
               recurringTransactions={recurringTransactions}
               accounts={regularAccounts} 
               budgets={budgets} 
+              loans={loans}
               totalBudget={totalBudget}
               onViewAllTransactions={() => setCurrentScreen('transactions')} 
               currency={currency} 

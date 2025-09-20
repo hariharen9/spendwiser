@@ -3,7 +3,8 @@ import { DollarSign, TrendingUp, TrendingDown, Edit3, Save, X, Download, Grid3X3
 import MetricCard from './MetricCard';
 import SpendingChart from './SpendingChart';
 import RecentTransactions from './RecentTransactions';
-import { Transaction, RecurringTransaction, Account, Budget, TotalBudget } from '../../types/types';
+import { Transaction, RecurringTransaction, Account, Budget, TotalBudget, Loan } from '../../types/types';
+import NetWorthWidget from './NetWorthWidget';
 import IncomeVsExpenseChart from './IncomeVsExpenseChart';
 import BudgetSummary from './BudgetSummary';
 import AccountBalances from './AccountBalances';
@@ -37,6 +38,7 @@ interface DashboardPageProps {
   recurringTransactions: RecurringTransaction[];
   accounts: Account[];
   budgets: Budget[];
+  loans: Loan[];
   totalBudget: TotalBudget | null;
   onViewAllTransactions: () => void;
   currency: string;
@@ -58,13 +60,14 @@ const DEFAULT_WIDGET_LAYOUT: WidgetLayout[] = [
   { id: 'IncomeVsExpenseChart', column: 1, order: 1 },
   { id: 'TopSpendingCategories', column: 2, order: 1 },
   { id: 'TotalBudgetWidget', column: 0, order: 2 },
-  { id: 'DaysOfBuffer', column: 1, order: 2 },
+  { id: 'NetWorthWidget', column: 1, order: 2 },
+  { id: 'DaysOfBuffer', column: 1, order: 3 },
   { id: 'Achievements', column: 2, order: 2 },
   { id: 'InsightsEngine', column: 0, order: 3 },
-  { id: 'CashFlowForecast', column: 1, order: 3 },
+  { id: 'CashFlowForecast', column: 1, order: 4 },
   { id: 'LifestyleCreepIndicator', column: 2, order: 3 },
   { id: 'FutureBalanceProjection', column: 0, order: 4 },
-  { id: 'SubscriptionTracker', column: 1, order: 4 }
+  { id: 'SubscriptionTracker', column: 1, order: 5 }
 ];
 
 // Widget layout storage keys
@@ -74,7 +77,7 @@ const STORAGE_KEYS = {
   WIDGET_LAYOUT: 'dashboardWidgetLayout'
 };
 
-const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, recurringTransactions, accounts, budgets, totalBudget, onViewAllTransactions, currency, onExportDashboard }) => {
+const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, recurringTransactions, accounts, budgets, loans, totalBudget, onViewAllTransactions, currency, onExportDashboard }) => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [timeRange, setTimeRange] = useState<'month' | 'quarter' | 'year'>('month');
   const [isWidgetLibraryOpen, setIsWidgetLibraryOpen] = useState(false);
@@ -83,7 +86,11 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, recurringTr
   // Widget visibility and layout
   const [visibleWidgets, setVisibleWidgets] = useState<string[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.VISIBLE_WIDGETS);
-    return saved ? JSON.parse(saved) : DEFAULT_WIDGET_LAYOUT.map(w => w.id);
+    let widgets = saved ? JSON.parse(saved) : DEFAULT_WIDGET_LAYOUT.map(w => w.id);
+    if (!widgets.includes('NetWorthWidget')) {
+      widgets.push('NetWorthWidget');
+    }
+    return widgets;
   });
   
   const [hiddenWidgets, setHiddenWidgets] = useState<string[]>(() => {
@@ -211,6 +218,8 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, recurringTr
         return <SubscriptionTracker recurringTransactions={recurringTransactions} currency={currency} />;
       case 'Achievements':
         return <Achievements transactions={transactions} budgets={budgets} accounts={accounts} currency={currency} />;
+      case 'NetWorthWidget':
+        return <NetWorthWidget accounts={accounts} loans={loans} currency={currency} />;
       default:
         return null;
     }
