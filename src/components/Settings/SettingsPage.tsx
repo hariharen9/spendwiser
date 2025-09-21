@@ -55,42 +55,47 @@ const SettingsPage: React.FC<SettingsPageProps> = (props) => {
       >
         <div className="space-y-8">
           <ProfileSettings user={props.user} onUpdateUser={props.onUpdateUser} />
-          <AppearanceSettings 
-            darkMode={props.darkMode} 
-            onToggleDarkMode={props.onToggleDarkMode} 
-            selectedFont={props.selectedFont} 
-            onUpdateFont={props.onUpdateFont} 
+          <AppearanceSettings
+            darkMode={props.darkMode}
+            onToggleDarkMode={props.onToggleDarkMode}
+            selectedFont={props.selectedFont}
+            onUpdateFont={props.onUpdateFont}
           />
-          <FinancialSettings 
-            currency={props.currency} 
-            onUpdateCurrency={props.onUpdateCurrency} 
-            defaultAccountId={props.defaultAccountId} 
-            onSetDefaultAccount={props.onSetDefaultAccount} 
-            accounts={props.accounts} 
-            categories={props.categories} 
-            onAddCategory={props.onAddCategory} 
-            onEditCategory={props.onEditCategory} 
-            onDeleteCategory={props.onDeleteCategory} 
-            onResetCategories={props.onResetCategories} 
-            onUpdateCategories={props.onUpdateCategories} 
+          <FinancialSettings
+            currency={props.currency}
+            onUpdateCurrency={props.onUpdateCurrency}
+            defaultAccountId={props.defaultAccountId}
+            onSetDefaultAccount={props.onSetDefaultAccount}
+            accounts={props.accounts}
+            categories={props.categories}
+            onAddCategory={props.onAddCategory}
+            onEditCategory={props.onEditCategory}
+            onDeleteCategory={props.onDeleteCategory}
+            onResetCategories={props.onResetCategories}
+            onUpdateCategories={props.onUpdateCategories}
           />
-          <FeedbackAndSupport onOpenFeedbackModal={props.onOpenFeedbackModal} />
+          <div className="hidden lg:block">
+            <FeedbackAndSupport onOpenFeedbackModal={props.onOpenFeedbackModal} />
+          </div>
         </div>
         <div className="space-y-8">
-          <AccountManagement 
-            accounts={props.accounts} 
-            onAddAccount={props.onAddAccount} 
-            onEditAccount={props.onEditAccount} 
-            onDeleteAccount={props.onDeleteAccount} 
-            currency={props.currency} 
+          <AccountManagement
+            accounts={props.accounts}
+            onAddAccount={props.onAddAccount}
+            onEditAccount={props.onEditAccount}
+            onDeleteAccount={props.onDeleteAccount}
+            currency={props.currency}
           />
-          <DataManagement 
-            onBackupData={props.onBackupData} 
-            onExportPDF={props.onExportPDF} 
-            onRestoreData={props.onRestoreData} 
-            onLoadMockData={props.onLoadMockData} 
-            onClearMockData={props.onClearMockData} 
+          <DataManagement
+            onBackupData={props.onBackupData}
+            onExportPDF={props.onExportPDF}
+            onRestoreData={props.onRestoreData}
+            onLoadMockData={props.onLoadMockData}
+            onClearMockData={props.onClearMockData}
           />
+          <div className="lg:hidden">
+          <FeedbackAndSupport onOpenFeedbackModal={props.onOpenFeedbackModal} />
+        </div>
           <SecuritySettings onDeleteUserAccount={props.onDeleteUserAccount} />
         </div>
       </motion.div>
