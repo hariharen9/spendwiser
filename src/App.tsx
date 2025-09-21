@@ -473,33 +473,6 @@ function App() {
     }
   }, [darkMode, user, themeLoaded]);
 
-  // Effect to trigger feedback modal
-  useEffect(() => {
-    if (!user || !transactionsLoaded || !user.uid) return;
-
-    const userDocRef = doc(db, 'spenders', user.uid);
-    const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const userData = docSnap.data();
-        const currentTransactionCount = transactions.length;
-        const hasGivenFeedback = userData.hasGivenFeedback || false;
-        const transactionsAtLastPrompt = userData.transactionsAtLastFeedbackPrompt || 0;
-
-        if (!hasGivenFeedback && currentTransactionCount >= 10) {
-          if (currentTransactionCount >= (transactionsAtLastPrompt + 10)) {
-            setIsFeedbackModalOpen(true);
-            // Update transactionsAtLastFeedbackPrompt in Firestore
-            updateDoc(userDocRef, { transactionsAtLastFeedbackPrompt: currentTransactionCount });
-          }
-        }
-      }
-    }, (error) => {
-      console.error("Error fetching user data for feedback prompt: ", error);
-    });
-
-    return () => unsubscribe();
-  }, [user, transactions.length, transactionsLoaded]);
-
   
 
   // Effect to show mock data reminder in settings
@@ -1575,6 +1548,7 @@ function App() {
               selectedFont={selectedFont}
               onUpdateFont={onUpdateFont}
               onUpdateUser={handleUpdateUser}
+              onOpenFeedbackModal={() => setIsFeedbackModalOpen(true)}
             />
           </motion.div>
         );

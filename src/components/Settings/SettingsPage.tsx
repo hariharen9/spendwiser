@@ -9,7 +9,8 @@ import {
   FinancialSettings,
   DataManagement,
   AccountManagement,
-  SecuritySettings
+  SecuritySettings,
+  FeedbackAndSupport
 } from './sections';
 import { Account } from '../../types/types';
 
@@ -40,6 +41,7 @@ interface SettingsPageProps {
   selectedFont: string;
   onUpdateFont: (font: string) => void;
   onUpdateUser: (name: string) => void;
+  onOpenFeedbackModal: () => void;
 }
 
 const SettingsPage: React.FC<SettingsPageProps> = (props) => {
@@ -72,6 +74,7 @@ const SettingsPage: React.FC<SettingsPageProps> = (props) => {
             onResetCategories={props.onResetCategories} 
             onUpdateCategories={props.onUpdateCategories} 
           />
+          <FeedbackAndSupport onOpenFeedbackModal={props.onOpenFeedbackModal} />
         </div>
         <div className="space-y-8">
           <AccountManagement 
