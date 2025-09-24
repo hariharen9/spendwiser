@@ -345,13 +345,34 @@ const BudgetsPage: React.FC<BudgetsPageProps> = ({
           animate="animate"
         >
           {budgets.map((budget, index) => {
-            const calculatedSpent = transactions
-              .filter(t => t.type === 'expense' && t.category === budget.category)
+            const currentMonthStr = new Date().toISOString().slice(0, 7);
+            const categoryTransactions = transactions.filter(t => t.type === 'expense' && t.category === budget.category);
+
+            const calculatedSpent = categoryTransactions
+              .filter(t => t.date.startsWith(currentMonthStr))
               .reduce((sum, t) => sum + Math.abs(t.amount), 0);
 
             const percentage = (calculatedSpent / budget.limit) * 100;
             const isOverBudget = percentage > 100;
             const isNearLimit = percentage > 80;
+
+            // Calculate 3-month historical average
+            let totalSpentInPastMonths = 0;
+            let monthsWithSpending = 0;
+            for (let i = 1; i <= 3; i++) {
+              const d = new Date();
+              d.setMonth(d.getMonth() - i);
+              const monthStr = d.toISOString().slice(0, 7);
+              const monthlySpend = categoryTransactions
+                .filter(t => t.date.startsWith(monthStr))
+                .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+              
+              if (monthlySpend > 0) {
+                totalSpentInPastMonths += monthlySpend;
+                monthsWithSpending++;
+              }
+            }
+            const historicalAverage = monthsWithSpending > 0 ? totalSpentInPastMonths / monthsWithSpending : 0;
 
             return (
               <motion.div 
@@ -368,6 +389,11 @@ const BudgetsPage: React.FC<BudgetsPageProps> = ({
                     <p className="text-sm text-gray-500 dark:text-[#888888]">
                       {currency}{calculatedSpent.toFixed(2)} of {currency}{budget.limit} spent
                     </p>
+                    {historicalAverage > 0 && (
+                      <p className="text-xs text-gray-400 dark:text-gray-500 italic">
+                        3-Month Avg: {currency}{historicalAverage.toFixed(2)}
+                      </p>
+                    )}
                   </div>
                   <div className="flex items-center space-x-4">
                     <div className="text-right">
