@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion, useAnimation } from 'framer-motion';
-import { Star, MessageSquare } from 'lucide-react';
+import { Star, MessageSquare, Heart } from 'lucide-react';
 import { fadeInVariants, buttonHoverVariants } from '../../Common/AnimationVariants';
 
 interface FeedbackAndSupportProps {
@@ -42,7 +41,10 @@ const FeedbackAndSupport: React.FC<FeedbackAndSupportProps> = ({ onOpenFeedbackM
       variants={fadeInVariants} 
       className="bg-white dark:bg-[#242424] backdrop-blur-lg border border-gray-200 dark:border-gray-700 p-4 rounded-lg shadow-lg text-gray-800 dark:text-white"
     >
-      <h3 className="text-lg font-bold mb-2">Enjoying SpendWiser?</h3>
+      <h3 className="text-lg font-bold mb-2 flex items-center gap-2">
+        <Heart className="text-red-500" />
+        <span>Enjoying SpendWiser?</span>
+      </h3>
       <p className="mb-4 opacity-80 text-sm">
         Your feedback and support help us make the app better for everyone.
       </p>

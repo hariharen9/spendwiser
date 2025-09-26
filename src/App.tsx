@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Screen, Transaction, Account, Budget, TotalBudget, Goal, Loan, RecurringTransaction } from './types/types';
+import { Screen, Transaction, Account, Budget, TotalBudget, Goal, Loan, RecurringTransaction, Shortcut } from './types/types';
 import { User, deleteUser, GoogleAuthProvider, reauthenticateWithPopup, updateProfile, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
 import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, writeBatch, getDocs, increment } from 'firebase/firestore';
@@ -36,6 +36,7 @@ import ExportModal from './components/Modals/ExportModal';
 import LoanModal from './components/Modals/LoanModal';
 import RecurringTransactionModal from './components/Modals/RecurringTransactionModal';
 import FeedbackModal from './components/Modals/FeedbackModal';
+import ShortcutModal from './components/Modals/ShortcutModal';
 
 // Icons
 import { LogOut, DollarSign, X, Sun, Moon } from 'lucide-react';
@@ -57,6 +58,7 @@ function App() {
   const [goalsLoaded, setGoalsLoaded] = useState(false);
   const [loansLoaded, setLoansLoaded] = useState(false);
   const [recurringTransactionsLoaded, setRecurringTransactionsLoaded] = useState(false);
+  const [shortcutsLoaded, setShortcutsLoaded] = useState(false);
   const [currentScreen, setCurrentScreen] = useState<Screen>('dashboard');
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -64,6 +66,7 @@ function App() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loans, setLoans] = useState<Loan[]>([]);
   const [recurringTransactions, setRecurringTransactions] = useState<RecurringTransaction[]>([]);
+  const [shortcuts, setShortcuts] = useState<Shortcut[]>([]);
   const [totalBudget, setTotalBudget] = useState<TotalBudget | null>(null);
   const [isAddTransactionModalOpen, setIsAddTransactionModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | undefined>();
@@ -77,6 +80,9 @@ function App() {
   const [isAddFundsModalOpen, setIsAddFundsModalOpen] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+  const [helpModalPage, setHelpModalPage] = useState('transactions'); // Add this state for help modal page
+  const [isShortcutModalOpen, setIsShortcutModalOpen] = useState(false);
+  const [editingShortcut, setEditingShortcut] = useState<Shortcut | undefined>();
   const [darkMode, setDarkMode] = useState(true); // Default to dark mode
   const [themeLoaded, setThemeLoaded] = useState(false);
   const [defaultAccountId, setDefaultAccountId] = useState<string | null>(null);
@@ -161,7 +167,7 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const allDataLoaded = transactionsLoaded && accountsLoaded && budgetsLoaded && categoriesLoaded && goalsLoaded && loansLoaded && recurringTransactionsLoaded;
+    const allDataLoaded = transactionsLoaded && accountsLoaded && budgetsLoaded && categoriesLoaded && goalsLoaded && loansLoaded && recurringTransactionsLoaded && shortcutsLoaded;
     if (authChecked) {
       if (user && allDataLoaded) {
         setLoading(false);
@@ -170,7 +176,19 @@ function App() {
         setLoading(false);
       }
     }
-  }, [user, authChecked, transactionsLoaded, accountsLoaded, budgetsLoaded, categoriesLoaded, goalsLoaded, loansLoaded]);
+  }, [user, authChecked, transactionsLoaded, accountsLoaded, budgetsLoaded, categoriesLoaded, goalsLoaded, loansLoaded, shortcutsLoaded]);
+
+  useEffect(() => {
+    if (user) {
+      const shortcutsRef = collection(db, 'spenders', user.uid, 'shortcuts');
+      const unsubscribe = onSnapshot(shortcutsRef, snapshot => {
+        const shortcutsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Shortcut[];
+        setShortcuts(shortcutsData);
+        setShortcutsLoaded(true);
+      });
+      return () => unsubscribe();
+    }
+  }, [user]);
 
   useEffect(() => {
     if (user) {
@@ -1014,6 +1032,49 @@ function App() {
     }
   };
 
+  const handleAddShortcut = async (shortcutData: Omit<Shortcut, 'id'>) => {
+    if (!user) return;
+    try {
+      const shortcutsRef = collection(db, 'spenders', user.uid, 'shortcuts');
+      await addDoc(shortcutsRef, shortcutData);
+      showToast('Shortcut added successfully!', 'success');
+    } catch (error) {
+      console.error("Error adding shortcut: ", error);
+      showToast('Error adding shortcut', 'error');
+    }
+  };
+
+  const handleUpdateShortcut = async (shortcut: Shortcut) => {
+    if (!user) return;
+    try {
+      const shortcutDoc = doc(db, 'spenders', user.uid, 'shortcuts', shortcut.id);
+      const { id, ...shortcutData } = shortcut;
+      await updateDoc(shortcutDoc, shortcutData);
+      showToast('Shortcut updated successfully!', 'success');
+    } catch (error) {
+      console.error("Error updating shortcut: ", error);
+      showToast('Error updating shortcut', 'error');
+    }
+  };
+
+  const handleDeleteShortcut = async (id: string) => {
+    if (!user) return;
+    try {
+      const shortcutDoc = doc(db, 'spenders', user.uid, 'shortcuts', id);
+      await deleteDoc(shortcutDoc);
+      showToast('Shortcut deleted successfully!', 'success');
+    } catch (error) {
+      console.error("Error deleting shortcut: ", error);
+      showToast('Error deleting shortcut', 'error');
+    }
+  };
+
+  // Add this new function for opening shortcut help
+  const handleOpenShortcutHelp = () => {
+    setHelpModalPage('shortcuts');
+    setIsHelpModalOpen(true);
+  };
+
   const handleExportCSV = () => {
     const csvContent = [
       ['Date', 'Name', 'Category', 'Amount', 'Type'],
@@ -1549,6 +1610,13 @@ function App() {
               onUpdateFont={onUpdateFont}
               onUpdateUser={handleUpdateUser}
               onOpenFeedbackModal={() => setIsFeedbackModalOpen(true)}
+              shortcuts={shortcuts}
+              onOpenShortcutModal={() => setIsShortcutModalOpen(true)}
+              onEditShortcut={(shortcut) => {
+                setEditingShortcut(shortcut);
+                setIsShortcutModalOpen(true);
+              }}
+              onOpenShortcutHelp={handleOpenShortcutHelp}
             />
           </motion.div>
         );
@@ -2480,6 +2548,7 @@ function App() {
         creditCards={creditCards}
         defaultAccountId={defaultAccountId}
         categories={userCategories} // Pass user categories to the modal
+        shortcuts={shortcuts}
       />
 
       {/* Import CSV Modal */}
@@ -2501,6 +2570,26 @@ function App() {
         recurringTransactions={recurringTransactions}
         currency={currency}
       />
+
+      {isShortcutModalOpen && (
+        <ShortcutModal
+          isOpen={isShortcutModalOpen}
+          onClose={() => {
+            setIsShortcutModalOpen(false);
+            setEditingShortcut(undefined);
+          }}
+          onSave={handleAddShortcut}
+          onUpdate={handleUpdateShortcut}
+          onDelete={handleDeleteShortcut}
+          onEditShortcut={(shortcut) => {
+            setEditingShortcut(shortcut);
+          }}
+          editingShortcut={editingShortcut}
+          shortcuts={shortcuts}
+          categories={userCategories}
+          accounts={accounts}
+        />
+      )}
 
       {/* Budget Modal */}
       <BudgetModal
@@ -2557,7 +2646,7 @@ function App() {
       <HelpModal
         isOpen={isHelpModalOpen}
         onClose={() => setIsHelpModalOpen(false)}
-        page={currentScreen}
+        page={helpModalPage} // Add this prop
       />
 
       {/* Export Modal */}

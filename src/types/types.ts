@@ -1,4 +1,4 @@
-export type Screen = 'dashboard' | 'transactions' | 'credit-cards' | 'budgets' | 'settings' | 'goals' | 'loans';
+export type Screen = 'dashboard' | 'transactions' | 'credit-cards' | 'budgets' | 'settings' | 'goals' | 'loans' | 'shortcuts';
 
 export interface Transaction {
   id: string;
@@ -94,4 +94,13 @@ export interface RecurringTransaction {
   lastProcessedDate: string;
   accountId?: string;
   isMock?: boolean;
+}
+
+export interface Shortcut {
+  id: string;
+  keyword: string;
+  name: string;
+  category: string;
+  type: 'income' | 'expense';
+  accountId?: string;
 }

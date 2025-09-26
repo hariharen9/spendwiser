@@ -82,7 +82,12 @@ const AccountManagement: React.FC<AccountManagementProps> = ({ accounts, onAddAc
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
       >
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5]">Financial Accounts</h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M3 6h18M7 6v12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V6M7 6h10M7 6V4a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v2M7 6h10M3 6v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6" />
+          </svg>
+          <span>Financial Accounts</span>
+        </h3>
         <motion.button
           onClick={() => handleOpenModal(null)}
           className="flex items-center space-x-2 bg-[#00C9A7] text-white px-4 py-2 rounded-lg font-medium"

@@ -135,7 +135,10 @@ const DataManagement: React.FC<DataManagementProps> = ({
       <div className="border-t border-gray-200 dark:border-gray-700 my-6"></div>
 
       <div>
-        <h4 className="text-md font-semibold text-gray-900 dark:text-[#F5F5F5] mb-4">Mock Data (Demo)</h4>
+        <h4 className="text-md font-semibold text-gray-900 dark:text-[#F5F5F5] mb-4 flex items-center gap-2">
+          <Settings className="h-4 w-4" />
+          <span>Mock Data (Demo)</span>
+        </h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="relative group">
             <motion.button

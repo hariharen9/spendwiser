@@ -109,6 +109,41 @@ const helpContent: { [key: string]: { title: string; content: React.ReactNode; q
     ),
     quote: "The best way to get out of debt is to stop digging.",
   },
+  shortcuts: {
+    title: 'Transaction Shortcuts: Speed Up Your Entry',
+    content: (
+      <div className="space-y-4">
+        <p>Transaction shortcuts help you quickly add frequently used transactions without typing all the details each time.</p>
+        
+        <h4 className="font-semibold text-gray-900 dark:text-white">Creating a Shortcut</h4>
+        <ul className="list-disc list-inside space-y-2">
+          <li><strong>Add New Shortcut:</strong> Click the "Add New Shortcut" button.</li>
+          <li><strong>Set Keyword:</strong> Enter a short keyword you'll use to trigger the shortcut (e.g., "cofe(coffee)", "ln(lunch)", "gas..").</li>
+          <li><strong>Transaction Details:</strong> Enter the transaction name, category, type, and optionally select an account.</li>
+          <li><strong>Save:</strong> Click "Save Shortcut" to create your new shortcut.</li>
+        </ul>
+
+        <h4 className="font-semibold text-gray-900 dark:text-white pt-4">Using Shortcuts</h4>
+        <p>To use a shortcut when adding a transaction:</p>
+        <ol className="list-decimal list-inside space-y-2 mt-2">
+          <li><strong>Open Add Transaction:</strong> Click the "Add Transaction" button.</li>
+          <li><strong>Type the Shortcut:</strong> In the transaction name field, type your <strong>keyword followed by a dot and the amount (e.g., "cofe.50", "ln.670")</strong>.</li>
+          <li><strong>Blur the Field:</strong> Click anywhere else or press Tab to move out of the name field.</li>
+          <li><strong>Automatic Fill:</strong> The transaction details will automatically populate based on your shortcut.</li>
+          <li><strong>Adjust if Needed:</strong> Make any necessary adjustments to the transaction details.</li>
+          <li><strong>Save:</strong> Click "Save Transaction" to add it to your records.</li>
+        </ol>
+
+        <h4 className="font-semibold text-gray-900 dark:text-white pt-4">Managing Shortcuts</h4>
+        <ul className="list-disc list-inside space-y-2">
+          <li><strong>Edit:</strong> Click the "Edit" button next to any shortcut to modify its details.</li>
+          <li><strong>Delete:</strong> To remove a shortcut, you'll need to edit it and delete it from the edit modal.</li>
+          <li><strong>Best Practices:</strong> Use short, memorable keywords and create shortcuts for your most frequent transactions.</li>
+        </ul>
+      </div>
+    ),
+    quote: "I've got a shortcut for everything these days. Even my coffee has a shortcut.",
+  },
 };
 
 const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose, page }) => {

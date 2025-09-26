@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { staggerContainer } from '../Common/AnimationVariants';
@@ -10,9 +9,10 @@ import {
   DataManagement,
   AccountManagement,
   SecuritySettings,
-  FeedbackAndSupport
+  FeedbackAndSupport,
+  ShortcutsSettings
 } from './sections';
-import { Account } from '../../types/types';
+import { Account, Shortcut } from '../../types/types';
 
 interface SettingsPageProps {
   user: any;
@@ -42,6 +42,10 @@ interface SettingsPageProps {
   onUpdateFont: (font: string) => void;
   onUpdateUser: (name: string) => void;
   onOpenFeedbackModal: () => void;
+  shortcuts: Shortcut[];
+  onOpenShortcutModal: () => void;
+  onEditShortcut: (shortcut: Shortcut) => void;
+  onOpenShortcutHelp: () => void; // Add this new prop
 }
 
 const SettingsPage: React.FC<SettingsPageProps> = (props) => {
@@ -73,6 +77,12 @@ const SettingsPage: React.FC<SettingsPageProps> = (props) => {
             onDeleteCategory={props.onDeleteCategory}
             onResetCategories={props.onResetCategories}
             onUpdateCategories={props.onUpdateCategories}
+          />
+          <ShortcutsSettings 
+            shortcuts={props.shortcuts}
+            onOpenShortcutModal={props.onOpenShortcutModal}
+            onEditShortcut={props.onEditShortcut}
+            onOpenHelp={props.onOpenShortcutHelp} // Add this new prop
           />
           <div className="hidden lg:block">
             <FeedbackAndSupport onOpenFeedbackModal={props.onOpenFeedbackModal} />

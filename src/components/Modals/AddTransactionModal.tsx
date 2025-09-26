@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, DollarSign, AlertTriangle, Calendar, Rows, Columns } from 'lucide-react';
-import { Transaction, Account } from '../../types/types';
+import { Transaction, Account, Shortcut } from '../../types/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { modalVariants } from '../Common/AnimationVariants';
 import AnimatedDropdown from '../Common/AnimatedDropdown';
@@ -15,6 +15,7 @@ interface AddTransactionModalProps {
   creditCards?: Account[];
   defaultAccountId?: string | null;
   categories?: string[];
+  shortcuts: Shortcut[];
 }
 
 // Category keywords mapping for auto-categorization
@@ -42,7 +43,8 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   accounts,
   creditCards = [],
   defaultAccountId,
-  categories = ['Salary', 'Freelance', 'Investment', 'Groceries', 'Food & Dining', 'Transportation', 'Entertainment', 'Shopping', 'Utilities', 'Healthcare', 'Education', 'Recharge & Bills', 'Other']
+  categories = ['Salary', 'Freelance', 'Investment', 'Groceries', 'Food & Dining', 'Transportation', 'Entertainment', 'Shopping', 'Utilities', 'Healthcare', 'Education', 'Recharge & Bills', 'Other'],
+  shortcuts,
 }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -62,6 +64,28 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   });
 
   const allAccounts = [...accounts, ...creditCards];
+
+  const handleNameBlur = () => {
+    const lowerName = formData.name.toLowerCase();
+    if (lowerName.includes('.')) {
+      const parts = lowerName.split('.');
+      if (parts.length === 2 && !isNaN(Number(parts[1]))) {
+        const keyword = parts[0];
+        const amount = parts[1];
+        const shortcut = shortcuts.find(s => s.keyword.toLowerCase() === keyword);
+        if (shortcut) {
+          setFormData(prev => ({
+            ...prev,
+            name: shortcut.name,
+            amount: amount,
+            category: shortcut.category,
+            type: shortcut.type,
+            accountId: shortcut.accountId || prev.accountId,
+          }));
+        }
+      }
+    }
+  };
 
   // Auto-categorization based on transaction name
   useEffect(() => {
@@ -278,6 +302,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onBlur={handleNameBlur}
                   className="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-[#1A1A1A] dark:border-gray-600 dark:text-white py-2 md:py-3 px-3 md:px-4 transition-all placeholder-gray-400 dark:placeholder-[#888888]"
                   placeholder="e.g., Coffee Shop, Salary, Gas Station"
                 />
