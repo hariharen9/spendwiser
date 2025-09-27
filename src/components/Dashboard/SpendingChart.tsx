@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cardHoverVariants } from '../../components/Common/AnimationVariants';
 import { 
   FiBarChart2, FiPieChart, FiTrendingUp, FiDollarSign, FiDownload, FiZap, 
-  FiEye, FiChevronDown, FiChevronUp, FiTarget, FiAlertTriangle, FiTrendingDown,
+  FiChevronDown, FiChevronUp, FiTarget, FiAlertTriangle, FiTrendingDown,
   FiActivity, FiCalendar, FiFilter, FiRefreshCw
 } from 'react-icons/fi';
 
@@ -17,6 +17,7 @@ interface ChartData {
   value: number;
   color: string;
   percentage: number;
+  [key: string]: any;
 }
 
 interface SpendingChartProps {
@@ -31,7 +32,7 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, currency, t
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [animationKey, setAnimationKey] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [showComparison, setShowComparison] = useState(false);
+  // Removed showComparison state
   const [showInsights, setShowInsights] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
@@ -257,7 +258,7 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, currency, t
   };
 
   // Handle view mode change
-  const handleViewModeChange = (mode: 'pie' | 'bar') => {
+  const handleViewModeChange = (mode: 'pie' | 'bar' | 'trend') => {
     setViewMode(mode);
     setAnimationKey(prevKey => prevKey + 1);
   };
@@ -441,20 +442,6 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, currency, t
           {/* Action Buttons */}
           <div className="flex gap-2">
             <motion.button
-              onClick={() => setShowComparison(!showComparison)}
-              className={`p-2 rounded-lg transition-colors ${
-                showComparison
-                  ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/25'
-                  : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-              }`}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              title="Compare with previous period"
-            >
-              <FiEye className="h-4 w-4" />
-            </motion.button>
-            
-            <motion.button
               onClick={handleExport}
               disabled={isExporting}
               className="p-2 rounded-lg bg-green-500 text-white shadow-lg shadow-green-500/25 hover:bg-green-600 hover:shadow-xl hover:shadow-green-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -475,17 +462,17 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, currency, t
       {/* Stats summary - very small cards */}
       <div className="grid grid-cols-3 gap-2 mb-6">
         <motion.div 
-          className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 rounded p-2 border border-blue-100 dark:border-blue-900/50"
+          className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 rounded p-1 sm:p-2 border border-blue-100 dark:border-blue-900/50"
           whileHover={{ y: -2 }}
           transition={{ type: "spring", stiffness: 300 }}
         >
           <div className="flex items-center">
-            <div className="p-1.5 bg-blue-100 dark:bg-blue-900/50 rounded mr-2">
+            <div className="p-1 bg-blue-100 dark:bg-blue-900/50 rounded mr-1 sm:mr-2">
               <FiDollarSign className="h-3 w-3 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
-              <p className="text-sm font-bold text-gray-900 dark:text-[#F5F5F5]">
+              <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Total</p>
+              <p className="text-xs sm:text-sm font-bold text-gray-900 dark:text-[#F5F5F5]">
                 {currency}{totalSpending.toLocaleString()}
               </p>
             </div>
@@ -494,20 +481,20 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, currency, t
 
         {highestSpendingCategory && (
           <motion.div 
-            className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 rounded p-2 border border-purple-100 dark:border-purple-900/50"
+            className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 rounded p-1 sm:p-2 border border-purple-100 dark:border-purple-900/50"
             whileHover={{ y: -2 }}
             transition={{ type: "spring", stiffness: 300 }}
           >
             <div className="flex items-center">
               <div 
-                className="p-1.5 rounded mr-2"
+                className="p-1 rounded mr-1 sm:mr-2"
                 style={{ backgroundColor: `${highestSpendingCategory.color}20` }}
               >
                 <FiTrendingUp className="h-3 w-3" style={{ color: highestSpendingCategory.color }} />
               </div>
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Top</p>
-                <p className="text-sm font-bold text-gray-900 dark:text-[#F5F5F5] truncate max-w-[80px]">
+                <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Top</p>
+                <p className="text-xs sm:text-sm font-bold text-gray-900 dark:text-[#F5F5F5] truncate max-w-[60px] sm:max-w-[80px]">
                   {highestSpendingCategory.name}
                 </p>
               </div>
@@ -516,19 +503,19 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, currency, t
         )}
 
         <motion.div 
-          className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 rounded p-2 border border-green-100 dark:border-green-900/50"
+          className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 rounded p-1 sm:p-2 border border-green-100 dark:border-green-900/50"
           whileHover={{ y: -2 }}
           transition={{ type: "spring", stiffness: 300 }}
         >
           <div className="flex items-center">
-            <div className="p-1.5 bg-green-100 dark:bg-green-900/50 rounded mr-2">
-              <div className="h-3 w-3 flex items-center justify-center text-green-600 dark:text-green-400 text-[10px] font-bold">
+            <div className="p-1 bg-green-100 dark:bg-green-900/50 rounded mr-1 sm:mr-2">
+              <div className="h-3 w-3 flex items-center justify-center text-green-600 dark:text-green-400 text-[8px] sm:text-[10px] font-bold">
                 {data.length}
               </div>
             </div>
             <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Categories</p>
-              <p className="text-sm font-bold text-gray-900 dark:text-[#F5F5F5]">
+              <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Categories</p>
+              <p className="text-xs sm:text-sm font-bold text-gray-900 dark:text-[#F5F5F5]">
                 {data.length}
               </p>
             </div>
@@ -540,7 +527,7 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, currency, t
       <div className="h-80 md:h-96 relative">
         <AnimatePresence mode="wait">
           <motion.div
-            key={`${viewMode}-${animationKey}-${showComparison}`}
+            key={`${viewMode}-${animationKey}`}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
@@ -552,10 +539,10 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, currency, t
                 <PieChart>
                   <Pie
                     data={data}
-                    cx={showComparison ? "25%" : "50%"}
+                    cx="50%"
                     cy="50%"
-                    innerRadius={showComparison ? 40 : 60}
-                    outerRadius={showComparison ? 80 : 120}
+                    innerRadius={60}
+                    outerRadius={120}
                     paddingAngle={2}
                     dataKey="value"
                     nameKey="name"
@@ -573,35 +560,13 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, currency, t
                       );
                     })}
                   </Pie>
-                  {showComparison && comparisonData.length > 0 && (
-                    <Pie
-                      data={comparisonData}
-                      cx="75%"
-                      cy="50%"
-                      innerRadius={40}
-                      outerRadius={80}
-                      paddingAngle={2}
-                      dataKey="value"
-                      nameKey="name"
-                      opacity={0.7}
-                    >
-                      {comparisonData.map((entry, index) => (
-                        <Cell key={`comp-cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                  )}
                   <Tooltip content={<CustomTooltip />} />
                 </PieChart>
               </ResponsiveContainer>
             ) : viewMode === 'bar' ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={showComparison ? 
-                    data.map(item => ({
-                      ...item,
-                      previous: comparisonData.find(comp => comp.name === item.name)?.value || 0
-                    })) : data
-                  }
+                  data={data}
                   margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
@@ -618,9 +583,6 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, currency, t
                   />
                   <Tooltip content={<CustomTooltip />} />
                   <Bar dataKey="value" name="Current" fill="#007BFF" />
-                  {showComparison && (
-                    <Bar dataKey="previous" name="Previous" fill="#6C757D" opacity={0.7} />
-                  )}
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -655,13 +617,7 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, currency, t
           </motion.div>
         </AnimatePresence>
 
-        {/* Chart Labels for Comparison Mode */}
-        {showComparison && viewMode === 'pie' && comparisonData.length > 0 && (
-          <div className="absolute top-4 left-4 right-4 flex justify-between text-xs text-gray-500 dark:text-gray-400">
-            <span>Current {timeRange}</span>
-            <span>Previous {timeRange}</span>
-          </div>
-        )}
+        {/* Chart Labels removed */}
       </div>
 
       {/* Legend and category details */}
@@ -827,10 +783,6 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, currency, t
                 <motion.button
                   onClick={() => {
                     setShowInsights(!showInsights);
-                    // Toggle comparison mode to show more insights
-                    if (!showInsights) {
-                      setShowComparison(true);
-                    }
                   }}
                   className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                     showInsights 
