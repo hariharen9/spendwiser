@@ -109,7 +109,12 @@ const ShortcutModal: React.FC<ShortcutModalProps> = ({
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Keyword</label>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center">
+                      <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2">
+                        <Tag className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      </span>
+                      Keyword
+                    </label>
                     <input
                       type="text"
                       required
@@ -121,7 +126,12 @@ const ShortcutModal: React.FC<ShortcutModalProps> = ({
                     <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Short, memorable words to trigger this shortcut</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Transaction Name</label>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center">
+                      <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2">
+                        <DollarSign className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      </span>
+                      Transaction Name
+                    </label>
                     <input
                       type="text"
                       required
@@ -134,7 +144,12 @@ const ShortcutModal: React.FC<ShortcutModalProps> = ({
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Category</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center">
+                    <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2">
+                      <Tag className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    </span>
+                    Category
+                  </label>
                   <AnimatedDropdown
                     selectedValue={formData.category}
                     options={categories}
@@ -143,7 +158,12 @@ const ShortcutModal: React.FC<ShortcutModalProps> = ({
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Category for this transaction type</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Type</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center">
+                    <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2">
+                      <Type className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    </span>
+                    Type
+                  </label>
                   <div className="grid grid-cols-2 gap-2">
                     <motion.button
                       type="button"
@@ -174,7 +194,12 @@ const ShortcutModal: React.FC<ShortcutModalProps> = ({
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Account (Optional)</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center">
+                    <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2">
+                      <Briefcase className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    </span>
+                    Account (Optional)
+                  </label>
                   <AnimatedDropdown
                     selectedValue={formData.accountId}
                     options={accounts.map(acc => ({ value: acc.id, label: acc.name }))}

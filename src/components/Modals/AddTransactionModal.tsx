@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, DollarSign, AlertTriangle, Calendar, Rows, Columns } from 'lucide-react';
+import { X, DollarSign, AlertTriangle, Calendar, Rows, Columns, Tag, Briefcase, MessageSquare } from 'lucide-react';
 import { Transaction, Account, Shortcut } from '../../types/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { modalVariants } from '../Common/AnimationVariants';
@@ -315,7 +315,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                     animate={{ opacity: 1, y: 0 }}
                   >
                     <div className="flex items-center">
-                      <DollarSign className="h-4 w-4 text-blue-500 mr-2" />
+                      <Tag className="h-4 w-4 text-blue-500 mr-2" />
                       <span className="text-blue-800 dark:text-blue-200 text-sm">
                         Suggested category: <span className="font-semibold">{suggestedCategory}</span>
                       </span>
@@ -472,7 +472,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
               >
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center">
                   <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2">
-                    <DollarSign className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    <Tag className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                   </span>
                   Category *
                 </label>
@@ -493,7 +493,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                 >
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center">
                     <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2">
-                      <DollarSign className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      <Briefcase className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                     </span>
                     {isAccountRequired ? 'Account *' : 'Account (Optional)'}
                   </label>
@@ -528,7 +528,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                 >
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center">
                     <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2">
-                      <DollarSign className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      <MessageSquare className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                     </span>
                     Comments (Optional)
                   </label>
