@@ -8,9 +8,10 @@ import {
 } from "../types/types";
 
 export const mockUser: User = {
-  name: "Sarah Johnson",
+  uid: "mock-user-123",
+  displayName: "Sarah Johnson",
   email: "sarah@example.com",
-  avatar:
+  photoURL:
     "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&dpr=2",
   currency: "₹",
 };
@@ -118,6 +119,29 @@ const dateFiveMonthsAgo2 = formatDate(
 );
 
 export const mockTransactions: Transaction[] = [
+  // Transactions for today with full timestamps
+  {
+    id: "33",
+    name: "Morning Coffee",
+    amount: -250,
+    date: new Date(new Date().getTime() - 5 * 60 * 1000).toISOString(), // 5 minutes ago
+    category: "Food & Dining",
+    type: "expense",
+    accountId: "acc1",
+    isMock: true,
+    createdAt: new Date(new Date().getTime() - 5 * 60 * 1000).toISOString(),
+  },
+  {
+    id: "34",
+    name: "Lunch with Colleagues",
+    amount: -850,
+    date: new Date(new Date().getTime() - 3 * 60 * 60 * 1000).toISOString(), // 3 hours ago
+    category: "Food & Dining",
+    type: "expense",
+    accountId: "acc2",
+    isMock: true,
+    createdAt: new Date(new Date().getTime() - 3 * 60 * 60 * 1000).toISOString(),
+  },
   // Recent Income transactions
   {
     id: "1",
@@ -127,6 +151,7 @@ export const mockTransactions: Transaction[] = [
     category: "Salary",
     type: "income",
     isMock: true,
+    createdAt: new Date().toISOString(),
   },
   {
     id: "2",
@@ -136,6 +161,7 @@ export const mockTransactions: Transaction[] = [
     category: "Freelance",
     type: "income",
     isMock: true,
+    createdAt: new Date().toISOString(),
   },
   {
     id: "3",
@@ -145,6 +171,7 @@ export const mockTransactions: Transaction[] = [
     category: "Investment",
     type: "income",
     isMock: true,
+    createdAt: new Date().toISOString(),
   },
   // Recent Expense transactions
   {
@@ -156,6 +183,7 @@ export const mockTransactions: Transaction[] = [
     type: "expense",
     accountId: "acc1",
     isMock: true,
+    createdAt: new Date().toISOString(),
   },
   {
     id: "5",
@@ -166,6 +194,7 @@ export const mockTransactions: Transaction[] = [
     type: "expense",
     accountId: "acc1",
     isMock: true,
+    createdAt: new Date().toISOString(),
   },
   {
     id: "6",
@@ -176,6 +205,7 @@ export const mockTransactions: Transaction[] = [
     type: "expense",
     accountId: "acc2",
     isMock: true,
+    createdAt: new Date().toISOString(),
   },
   {
     id: "7",
@@ -186,6 +216,7 @@ export const mockTransactions: Transaction[] = [
     type: "expense",
     accountId: "acc1",
     isMock: true,
+    createdAt: new Date().toISOString(),
   },
   {
     id: "8",
@@ -196,6 +227,7 @@ export const mockTransactions: Transaction[] = [
     type: "expense",
     accountId: "acc2",
     isMock: true,
+    createdAt: new Date().toISOString(),
   },
   {
     id: "9",
@@ -206,6 +238,7 @@ export const mockTransactions: Transaction[] = [
     type: "expense",
     accountId: "acc1",
     isMock: true,
+    createdAt: new Date().toISOString(),
   },
   {
     id: "10",
@@ -215,6 +248,7 @@ export const mockTransactions: Transaction[] = [
     category: "Utilities",
     type: "expense",
     isMock: true,
+    createdAt: new Date().toISOString(),
   },
   {
     id: "11",
@@ -225,6 +259,7 @@ export const mockTransactions: Transaction[] = [
     type: "expense",
     accountId: "acc2",
     isMock: true,
+    createdAt: new Date().toISOString(),
   },
   {
     id: "12",
@@ -235,6 +270,7 @@ export const mockTransactions: Transaction[] = [
     type: "expense",
     accountId: "acc1",
     isMock: true,
+    createdAt: new Date().toISOString(),
   },
   {
     id: "13",
@@ -244,6 +280,7 @@ export const mockTransactions: Transaction[] = [
     category: "Education",
     type: "expense",
     isMock: true,
+    createdAt: new Date().toISOString(),
   },
   {
     id: "14",
@@ -254,6 +291,7 @@ export const mockTransactions: Transaction[] = [
     type: "expense",
     accountId: "acc2",
     isMock: true,
+    createdAt: new Date().toISOString(),
   },
   {
     id: "15",
@@ -264,6 +302,7 @@ export const mockTransactions: Transaction[] = [
     type: "expense",
     accountId: "acc1",
     isMock: true,
+    createdAt: new Date().toISOString(),
   },
 
   // Transactions from two months ago
@@ -275,6 +314,7 @@ export const mockTransactions: Transaction[] = [
     category: "Salary",
     type: "income",
     isMock: true,
+    createdAt: new Date().toISOString(),
   },
   {
     id: "17",
@@ -285,6 +325,7 @@ export const mockTransactions: Transaction[] = [
     type: "expense",
     accountId: "acc1",
     isMock: true,
+    createdAt: new Date().toISOString(),
   },
   {
     id: "18",
@@ -294,6 +335,7 @@ export const mockTransactions: Transaction[] = [
     category: "Utilities",
     type: "expense",
     isMock: true,
+    createdAt: new Date().toISOString(),
   },
   {
     id: "19",
@@ -304,6 +346,7 @@ export const mockTransactions: Transaction[] = [
     type: "expense",
     accountId: "acc2",
     isMock: true,
+    createdAt: new Date().toISOString(),
   },
   {
     id: "20",
@@ -314,6 +357,7 @@ export const mockTransactions: Transaction[] = [
     type: "expense",
     accountId: "acc1",
     isMock: true,
+    createdAt: new Date().toISOString(),
   },
 
   // Transactions from five months ago
@@ -325,6 +369,7 @@ export const mockTransactions: Transaction[] = [
     category: "Salary",
     type: "income",
     isMock: true,
+    createdAt: new Date().toISOString(),
   },
   {
     id: "22",
@@ -335,6 +380,7 @@ export const mockTransactions: Transaction[] = [
     type: "expense",
     accountId: "acc2",
     isMock: true,
+    createdAt: new Date().toISOString(),
   },
   {
     id: "23",
@@ -345,6 +391,7 @@ export const mockTransactions: Transaction[] = [
     type: "expense",
     accountId: "acc1",
     isMock: true,
+    createdAt: new Date().toISOString(),
   },
   {
     id: "24",
@@ -355,6 +402,7 @@ export const mockTransactions: Transaction[] = [
     type: "expense",
     accountId: "acc2",
     isMock: true,
+    createdAt: new Date().toISOString(),
   },
   {
     id: "25",
@@ -365,6 +413,7 @@ export const mockTransactions: Transaction[] = [
     type: "expense",
     accountId: "acc1",
     isMock: true,
+    createdAt: new Date().toISOString(),
   },
 
   // Mock Credit Card Transactions
@@ -377,6 +426,7 @@ export const mockTransactions: Transaction[] = [
     type: "expense",
     accountId: "cc1",
     isMock: true,
+    createdAt: new Date().toISOString(),
   },
   {
     id: "27",
@@ -387,6 +437,7 @@ export const mockTransactions: Transaction[] = [
     type: "expense",
     accountId: "cc1",
     isMock: true,
+    createdAt: new Date().toISOString(),
   },
   {
     id: "28",
@@ -397,6 +448,7 @@ export const mockTransactions: Transaction[] = [
     type: "expense",
     accountId: "cc1",
     isMock: true,
+    createdAt: new Date().toISOString(),
   },
   {
     id: "29",
@@ -407,6 +459,7 @@ export const mockTransactions: Transaction[] = [
     type: "expense",
     accountId: "cc2",
     isMock: true,
+    createdAt: new Date().toISOString(),
   },
   {
     id: "30",
@@ -417,6 +470,7 @@ export const mockTransactions: Transaction[] = [
     type: "expense",
     accountId: "cc2",
     isMock: true,
+    createdAt: new Date().toISOString(),
   },
   {
     id: "31",
@@ -427,6 +481,7 @@ export const mockTransactions: Transaction[] = [
     type: "expense",
     accountId: "cc3",
     isMock: true,
+    createdAt: new Date().toISOString(),
   },
   {
     id: "32",
@@ -437,6 +492,7 @@ export const mockTransactions: Transaction[] = [
     type: "expense",
     accountId: "cc3",
     isMock: true,
+    createdAt: new Date().toISOString(),
   },
 ];
 

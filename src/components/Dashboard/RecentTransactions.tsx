@@ -15,7 +15,21 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({ transactions, o
   const [hoveredTransaction, setHoveredTransaction] = useState<string | null>(null);
   
   const recentTransactions = transactions
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .sort((a, b) => {
+      // First sort by transaction date (newest first)
+      const dateComparison = new Date(b.date).getTime() - new Date(a.date).getTime();
+      if (dateComparison !== 0) {
+        return dateComparison;
+      }
+      
+      // For transactions on the same date, sort by creation time (newest first)
+      if (a.createdAt && b.createdAt) {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+      
+      // If createdAt is not available for either transaction, maintain original order
+      return 0;
+    })
     .slice(0, 7);
 
   const getCategoryIcon = (category: string) => {
@@ -37,11 +51,27 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({ transactions, o
   const getTimeAgo = (date: string) => {
     const now = new Date();
     const txDate = new Date(date);
-    const diffInHours = Math.floor((now.getTime() - txDate.getTime()) / (1000 * 60 * 60));
-    
-    if (diffInHours < 1) return 'Just now';
-    if (diffInHours < 24) return `${diffInHours}h ago`;
-    if (diffInHours < 48) return 'Yesterday';
+    const diffInMilliseconds = now.getTime() - txDate.getTime();
+    const diffInMinutes = Math.floor(diffInMilliseconds / (1000 * 60));
+    const diffInHours = Math.floor(diffInMilliseconds / (1000 * 60 * 60));
+
+    const today = new Date();
+    const isToday = today.toDateString() === txDate.toDateString();
+
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const isYesterday = yesterday.toDateString() === txDate.toDateString();
+
+    if (isToday) {
+      if (diffInMinutes < 1) return 'Just now';
+      if (diffInHours < 1) return `${diffInMinutes}m ago`;
+      return `${diffInHours}h ago`;
+    }
+
+    if (isYesterday) {
+      return 'Yesterday';
+    }
+
     return txDate.toLocaleDateString();
   };
 

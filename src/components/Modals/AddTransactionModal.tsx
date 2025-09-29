@@ -134,7 +134,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
       setFormData({
         name: editingTransaction.name,
         amount: Math.abs(editingTransaction.amount).toString(),
-        date: editingTransaction.date,
+        date: editingTransaction.date.split('T')[0],
         category: editingTransaction.category,
         type: editingTransaction.type,
         accountId: editingTransaction.accountId || '',
@@ -172,10 +172,15 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
     const amount = parseFloat(formData.amount);
     const finalAmount = formData.type === 'expense' ? -amount : amount;
 
+    const isToday = formData.date === new Date().toISOString().split('T')[0];
+    const finalDateString = (isToday && !editingTransaction)
+      ? new Date().toISOString()
+      : formData.date;
+
     const transaction: Omit<Transaction, 'id'> = {
       name: formData.name,
       amount: finalAmount,
-      date: formData.date,
+      date: finalDateString,
       category: formData.category,
       type: formData.type,
       ...(formData.accountId && { accountId: formData.accountId }),

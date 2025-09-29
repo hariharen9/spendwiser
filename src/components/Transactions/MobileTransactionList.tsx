@@ -31,15 +31,31 @@ const MobileTransactionList: React.FC<MobileTransactionListProps> = ({
     });
   };
 
-  // Group transactions by date
-  const groupedTransactions = transactions.reduce((groups, transaction) => {
-    const date = transaction.date;
-    if (!groups[date]) {
-      groups[date] = [];
-    }
-    groups[date].push(transaction);
-    return groups;
-  }, {} as Record<string, Transaction[]>);
+  // Group transactions by date, sorted by transaction date first, then by creation time
+  const groupedTransactions = transactions
+    .sort((a, b) => {
+      // First sort by transaction date (newest first)
+      const dateComparison = new Date(b.date).getTime() - new Date(a.date).getTime();
+      if (dateComparison !== 0) {
+        return dateComparison;
+      }
+      
+      // For transactions on the same date, sort by creation time (newest first)
+      if (a.createdAt && b.createdAt) {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+      
+      // If createdAt is not available for either transaction, maintain original order
+      return 0;
+    })
+    .reduce((groups, transaction) => {
+      const date = transaction.date;
+      if (!groups[date]) {
+        groups[date] = [];
+      }
+      groups[date].push(transaction);
+      return groups;
+    }, {} as Record<string, Transaction[]>);
 
   // Format date for display as header
   const formatHeaderDate = (dateString: string) => {

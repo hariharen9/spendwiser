@@ -68,10 +68,38 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
 
     switch (sortOption) {
       case 'date-desc':
-        filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        filtered.sort((a, b) => {
+          // First sort by transaction date (newest first)
+          const dateComparison = new Date(b.date).getTime() - new Date(a.date).getTime();
+          if (dateComparison !== 0) {
+            return dateComparison;
+          }
+          
+          // For transactions on the same date, sort by creation time (newest first)
+          if (a.createdAt && b.createdAt) {
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          }
+          
+          // If createdAt is not available for either transaction, maintain original order
+          return 0;
+        });
         break;
       case 'date-asc':
-        filtered.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        filtered.sort((a, b) => {
+          // First sort by transaction date (oldest first)
+          const dateComparison = new Date(a.date).getTime() - new Date(b.date).getTime();
+          if (dateComparison !== 0) {
+            return dateComparison;
+          }
+          
+          // For transactions on the same date, sort by creation time (newest first)
+          if (a.createdAt && b.createdAt) {
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          }
+          
+          // If createdAt is not available for either transaction, maintain original order
+          return 0;
+        });
         break;
       case 'highest-income':
         filtered.sort((a, b) => {
@@ -106,8 +134,22 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
         });
         break;
       default:
-        // Default sort by date descending
-        filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        // Default sort by transaction date first, then by creation time
+        filtered.sort((a, b) => {
+          // First sort by transaction date (newest first)
+          const dateComparison = new Date(b.date).getTime() - new Date(a.date).getTime();
+          if (dateComparison !== 0) {
+            return dateComparison;
+          }
+          
+          // For transactions on the same date, sort by creation time (newest first)
+          if (a.createdAt && b.createdAt) {
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          }
+          
+          // If createdAt is not available for either transaction, maintain original order
+          return 0;
+        });
         break;
     }
 

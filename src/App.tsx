@@ -615,23 +615,28 @@ function App() {
     if (!user) return;
     try {
       const transactionsRef = collection(db, 'spenders', user.uid, 'transactions');
+      // Add createdAt timestamp for new transactions
+      const transactionWithTimestamp = id || editingTransaction ? 
+        transactionData : 
+        { ...transactionData, createdAt: new Date().toISOString() };
+      
       if (id) {
         const transactionDoc = doc(db, 'spenders', user.uid, 'transactions', id);
-        await updateDoc(transactionDoc, transactionData);
+        await updateDoc(transactionDoc, transactionWithTimestamp);
         showToast('Transaction updated successfully!', 'success');
       } else if (editingTransaction) {
         const transactionDoc = doc(db, 'spenders', user.uid, 'transactions', editingTransaction.id);
-        await updateDoc(transactionDoc, transactionData);
+        await updateDoc(transactionDoc, transactionWithTimestamp);
         setEditingTransaction(undefined);
         showToast('Transaction updated successfully!', 'success');
       } else {
-        await addDoc(transactionsRef, transactionData);
+        await addDoc(transactionsRef, transactionWithTimestamp);
         showToast('Transaction added successfully!', 'success');
         // Increment global analytics
         await updateDoc(analyticsGlobalRef, {
             totalTransactions: increment(1),
-            totalIncome: transactionData.type === 'income' ? increment(transactionData.amount) : increment(0),
-            totalExpenses: transactionData.type === 'expense' ? increment(Math.abs(transactionData.amount)) : increment(0),
+            totalIncome: transactionWithTimestamp.type === 'income' ? increment(transactionWithTimestamp.amount) : increment(0),
+            totalExpenses: transactionWithTimestamp.type === 'expense' ? increment(Math.abs(transactionWithTimestamp.amount)) : increment(0),
         });
       }
     } catch (error) {

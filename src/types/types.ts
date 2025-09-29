@@ -10,6 +10,7 @@ export interface Transaction {
   accountId?: string;
   comments?: string;
   isMock?: boolean;
+  createdAt?: string;
 }
 
 export interface Budget {
