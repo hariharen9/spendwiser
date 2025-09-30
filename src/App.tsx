@@ -1456,6 +1456,9 @@ function App() {
               totalBudget={totalBudget}
               onViewAllTransactions={() => setCurrentScreen('transactions')} 
               currency={currency} 
+              setCurrentScreen={setCurrentScreen}
+              onSaveTransaction={handleAddTransaction}
+              categories={userCategories}
             />
           </motion.div>
         );
@@ -1645,6 +1648,9 @@ function App() {
               totalBudget={totalBudget}
               onViewAllTransactions={() => setCurrentScreen('transactions')} 
               currency={currency} 
+              setCurrentScreen={setCurrentScreen}
+              onSaveTransaction={handleAddTransaction}
+              categories={userCategories}
             />
           </motion.div>
         );

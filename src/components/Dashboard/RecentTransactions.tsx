@@ -3,34 +3,58 @@ import { ArrowUpRight, ArrowDownLeft, Eye } from 'lucide-react';
 import { Transaction } from '../../types/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cardHoverVariants } from '../../components/Common/AnimationVariants';
-import { FiClock, FiDollarSign, FiTag, FiCalendar } from 'react-icons/fi';
+import { FiClock, FiTag } from 'react-icons/fi';
 
 interface RecentTransactionsProps {
   transactions: Transaction[];
   onViewAll: () => void;
   currency: string;
+  onSaveTransaction: (transaction: Omit<Transaction, 'id'>, id: string) => void;
+  categories: string[];
 }
 
-const RecentTransactions: React.FC<RecentTransactionsProps> = ({ transactions, onViewAll, currency }) => {
+const RecentTransactions: React.FC<RecentTransactionsProps> = ({ transactions, onViewAll, currency, onSaveTransaction, categories }) => {
   const [hoveredTransaction, setHoveredTransaction] = useState<string | null>(null);
-  
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingField, setEditingField] = useState<'name' | 'category' | null>(null);
+  const [editedValue, setEditedValue] = useState('');
+
   const recentTransactions = transactions
     .sort((a, b) => {
-      // First sort by transaction date (newest first)
       const dateComparison = new Date(b.date).getTime() - new Date(a.date).getTime();
-      if (dateComparison !== 0) {
-        return dateComparison;
-      }
-      
-      // For transactions on the same date, sort by creation time (newest first)
-      if (a.createdAt && b.createdAt) {
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      }
-      
-      // If createdAt is not available for either transaction, maintain original order
+      if (dateComparison !== 0) return dateComparison;
+      if (a.createdAt && b.createdAt) return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       return 0;
     })
     .slice(0, 7);
+
+  const handleDoubleClick = (transaction: Transaction, field: 'name' | 'category') => {
+    setEditingId(transaction.id);
+    setEditingField(field);
+    setEditedValue(transaction[field]);
+  };
+
+  const handleCancel = () => {
+    setEditingId(null);
+    setEditingField(null);
+    setEditedValue('');
+  };
+
+  const handleSave = () => {
+    if (!editingId || !editingField) return;
+
+    const transactionToUpdate = transactions.find(t => t.id === editingId);
+    if (transactionToUpdate) {
+      const { id, ...transactionData } = { ...transactionToUpdate, [editingField]: editedValue };
+      onSaveTransaction(transactionData, id);
+    }
+    handleCancel();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') handleSave();
+    if (e.key === 'Escape') handleCancel();
+  };
 
   const getCategoryIcon = (category: string) => {
     const iconMap: { [key: string]: React.ReactNode } = {
@@ -115,24 +139,36 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({ transactions, o
                 onMouseEnter={() => setHoveredTransaction(transaction.id)}
                 onMouseLeave={() => setHoveredTransaction(null)}
               >
-                <div className={`p-3 rounded-xl border transition-all duration-200 cursor-pointer ${
+                <div className={`p-3 rounded-xl border transition-all duration-200 ${
                   hoveredTransaction === transaction.id
                     ? 'bg-gray-50 dark:bg-gray-800/50 border-gray-300 dark:border-gray-600 shadow-sm'
                     : 'bg-white dark:bg-gray-800/20 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                 }`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      {/* Category Icon */}
                       <div className="text-lg">
                         {getCategoryIcon(transaction.category)}
                       </div>
-                      
-                      {/* Transaction Details */}
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <p className="font-medium text-gray-900 dark:text-white text-sm truncate">
-                            {transaction.name}
-                          </p>
+                          {editingId === transaction.id && editingField === 'name' ? (
+                            <input 
+                              type="text"
+                              value={editedValue}
+                              onChange={(e) => setEditedValue(e.target.value)}
+                              onKeyDown={handleKeyDown}
+                              onBlur={handleSave}
+                              className="w-full bg-gray-100 dark:bg-gray-700 rounded p-1 border border-blue-500 text-sm"
+                              autoFocus
+                            />
+                          ) : (
+                            <p 
+                              className="font-medium text-gray-900 dark:text-white text-sm truncate cursor-pointer"
+                              onDoubleClick={() => handleDoubleClick(transaction, 'name')}
+                            >
+                              {transaction.name}
+                            </p>
+                          )}
                           <div className={`p-1 rounded-full ${
                             transaction.type === 'income' 
                               ? 'bg-green-100 dark:bg-green-900/30'
@@ -147,15 +183,31 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({ transactions, o
                         </div>
                         <div className="flex items-center gap-2 mt-1">
                           <FiTag className="w-3 h-3 text-gray-400" />
-                          <span className="text-xs text-gray-500 dark:text-gray-400">{transaction.category}</span>
+                          {editingId === transaction.id && editingField === 'category' ? (
+                             <select
+                                value={editedValue}
+                                onChange={(e) => setEditedValue(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                onBlur={handleSave}
+                                className="w-full bg-gray-100 dark:bg-gray-700 rounded p-1 border border-blue-500 text-xs"
+                                autoFocus
+                              >
+                                {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                              </select>
+                          ) : (
+                            <span 
+                              className="text-xs text-gray-500 dark:text-gray-400 cursor-pointer"
+                              onDoubleClick={() => handleDoubleClick(transaction, 'category')}
+                            >
+                              {transaction.category}
+                            </span>
+                          )}
                           <span className="text-gray-300 dark:text-gray-600">•</span>
                           <FiClock className="w-3 h-3 text-gray-400" />
                           <span className="text-xs text-gray-500 dark:text-gray-400">{getTimeAgo(transaction.date)}</span>
                         </div>
                       </div>
                     </div>
-                    
-                    {/* Amount */}
                     <div className="text-right">
                       <p className={`font-bold text-sm ${
                         transaction.type === 'income' 
@@ -170,8 +222,6 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({ transactions, o
               </motion.div>
             ))}
           </AnimatePresence>
-          
-          {/* Summary Stats */}
           <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
             <div className="grid grid-cols-2 gap-4 text-center">
               <div>

@@ -46,6 +46,9 @@ interface DashboardPageProps {
   onViewAllTransactions: () => void;
   currency: string;
   onExportDashboard?: () => void; // Add export function prop
+  setCurrentScreen: (screen: string) => void;
+  onSaveTransaction: (transaction: Omit<Transaction, 'id'>, id?: string) => void;
+  categories: string[];
 }
 
 // Widget layout interface
@@ -82,7 +85,7 @@ const STORAGE_KEYS = {
   WIDGET_LAYOUT: 'dashboardWidgetLayout'
 };
 
-const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, recurringTransactions, accounts, budgets, loans, goals, totalBudget, onViewAllTransactions, currency, onExportDashboard }) => {
+const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, recurringTransactions, accounts, budgets, loans, goals, totalBudget, onViewAllTransactions, currency, onExportDashboard, setCurrentScreen, onSaveTransaction, categories }) => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [timeRange, setTimeRange] = useState<'month' | 'quarter' | 'year'>('month');
   const [isWidgetLibraryOpen, setIsWidgetLibraryOpen] = useState(false);
@@ -214,13 +217,13 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, recurringTr
       case 'SpendingChart':
         return <SpendingChart transactions={filteredTransactions} currency={currency} timeRange={timeRange} setTimeRange={setTimeRange} />;
       case 'RecentTransactions':
-        return <RecentTransactions transactions={transactions} onViewAll={onViewAllTransactions} currency={currency} />;
+        return <RecentTransactions transactions={transactions} onViewAll={onViewAllTransactions} currency={currency} onSaveTransaction={onSaveTransaction} categories={categories} />;
       case 'IncomeVsExpenseChart':
         return <IncomeVsExpenseChart transactions={transactions} currency={currency} />;
       case 'TopSpendingCategories':
         return <TopSpendingCategories transactions={transactions} currency={currency} />;
       case 'BudgetSummary':
-        return <BudgetSummary budgets={budgets} transactions={transactions} totalBudget={totalBudget} currency={currency} />;
+        return <BudgetSummary budgets={budgets} transactions={transactions} totalBudget={totalBudget} currency={currency} onNavigate={setCurrentScreen} />;
       case 'AccountBalances':
         return <AccountBalances accounts={accounts} currency={currency} />;
       case 'DaysOfBuffer':

@@ -10,9 +10,10 @@ interface BudgetSummaryProps {
   transactions: Transaction[];
   totalBudget: TotalBudget | null;
   currency: string;
+  onNavigate: (screen: string) => void;
 }
 
-const BudgetSummary: React.FC<BudgetSummaryProps> = ({ budgets, transactions, totalBudget, currency }) => {
+const BudgetSummary: React.FC<BudgetSummaryProps> = ({ budgets, transactions, totalBudget, currency, onNavigate }) => {
   const [showDetailedView, setShowDetailedView] = useState(false);
   const [showAllBudgets, setShowAllBudgets] = useState(false);
 
@@ -228,7 +229,8 @@ const BudgetSummary: React.FC<BudgetSummaryProps> = ({ budgets, transactions, to
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800/70 transition-colors"
+                  className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800/70 transition-colors cursor-pointer"
+                  onClick={() => onNavigate('budgets')}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
