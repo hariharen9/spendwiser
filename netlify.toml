@@ -1,5 +1,5 @@
 [build]
-  command = "git fetch --tags && export VITE_APP_VERSION=$(git describe --tags --long) && vite build"
+  command = "git fetch --tags && export VITE_APP_VERSION=$(git describe --tags --long --abbrev=5 | sed 's/g//') && vite build"
   publish = "dist"
 
 [[redirects]]
