@@ -445,7 +445,7 @@ function App() {
         
         const percentageUsed = (monthlyExpenses / totalBudget.limit) * 100;
         
-        if (percentageUsed >= 80 && percentageUsed < 100) {
+        if (percentageUsed >= 90 && percentageUsed < 100) {
           showToast(
             `You've used ${Math.round(percentageUsed)}% of your monthly budget. ${Math.round(totalBudget.limit - monthlyExpenses)} ${currency} remaining.`,
             'warning'
