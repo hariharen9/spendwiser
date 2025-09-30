@@ -1452,6 +1452,7 @@ function App() {
               accounts={regularAccounts} 
               budgets={budgets} 
               loans={loans}
+              goals={goals}
               totalBudget={totalBudget}
               onViewAllTransactions={() => setCurrentScreen('transactions')} 
               currency={currency} 
@@ -1640,6 +1641,7 @@ function App() {
               accounts={regularAccounts} 
               budgets={budgets} 
               loans={loans}
+              goals={goals}
               totalBudget={totalBudget}
               onViewAllTransactions={() => setCurrentScreen('transactions')} 
               currency={currency} 

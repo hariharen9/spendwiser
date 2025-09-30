@@ -39,7 +39,8 @@ import {
   DollarSign,
   Clock,
   Activity,
-  GripVertical
+  GripVertical,
+  Landmark
 } from 'lucide-react';
 import { modalVariants, fadeInVariants, buttonHoverVariants } from '../Common/AnimationVariants';
 
@@ -272,6 +273,22 @@ const WIDGET_CONFIGS: WidgetConfig[] = [
     icon: <DollarSign size={20} />,
     category: 'Financial',
     color: 'bg-lime-500'
+  },
+  {
+    id: 'FinancialGoalsWidget',
+    name: 'Financial Goals',
+    description: 'Track progress towards your financial goals',
+    icon: <Target size={20} />,
+    category: 'Financial',
+    color: 'bg-green-500'
+  },
+  {
+    id: 'DebtPaydownWidget',
+    name: 'Debt Paydown',
+    description: 'Visualize your debt reduction journey',
+    icon: <Landmark size={20} />,
+    category: 'Financial',
+    color: 'bg-orange-500'
   }
 ];
 

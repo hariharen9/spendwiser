@@ -19,6 +19,8 @@ import Achievements from './Achievements';
 import TotalBudgetWidget from './TotalBudgetWidget';
 import WidgetLibraryModal from './WidgetLibraryModal';
 import DashboardContainer from './DashboardContainer';
+import FinancialGoalsWidget from './FinancialGoalsWidget';
+import DebtPaydownWidget from './DebtPaydownWidget';
 import './Dashboard.css';
 import { motion, Transition } from 'framer-motion';
 import { fadeInVariants, staggerContainer, buttonHoverVariants } from '../../components/Common/AnimationVariants';
@@ -39,6 +41,7 @@ interface DashboardPageProps {
   accounts: Account[];
   budgets: Budget[];
   loans: Loan[];
+  goals: Goal[];
   totalBudget: TotalBudget | null;
   onViewAllTransactions: () => void;
   currency: string;
@@ -67,7 +70,9 @@ const DEFAULT_WIDGET_LAYOUT: WidgetLayout[] = [
   { id: 'CashFlowForecast', column: 1, order: 4 },
   { id: 'LifestyleCreepIndicator', column: 2, order: 3 },
   { id: 'FutureBalanceProjection', column: 0, order: 4 },
-  { id: 'SubscriptionTracker', column: 1, order: 5 }
+  { id: 'SubscriptionTracker', column: 1, order: 5 },
+  { id: 'FinancialGoalsWidget', column: 0, order: 5 },
+  { id: 'DebtPaydownWidget', column: 2, order: 4 },
 ];
 
 // Widget layout storage keys
@@ -77,7 +82,7 @@ const STORAGE_KEYS = {
   WIDGET_LAYOUT: 'dashboardWidgetLayout'
 };
 
-const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, recurringTransactions, accounts, budgets, loans, totalBudget, onViewAllTransactions, currency, onExportDashboard }) => {
+const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, recurringTransactions, accounts, budgets, loans, goals, totalBudget, onViewAllTransactions, currency, onExportDashboard }) => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [timeRange, setTimeRange] = useState<'month' | 'quarter' | 'year'>('month');
   const [isWidgetLibraryOpen, setIsWidgetLibraryOpen] = useState(false);
@@ -86,11 +91,19 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, recurringTr
   // Widget visibility and layout
   const [visibleWidgets, setVisibleWidgets] = useState<string[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.VISIBLE_WIDGETS);
-    let widgets = saved ? JSON.parse(saved) : DEFAULT_WIDGET_LAYOUT.map(w => w.id);
-    if (!widgets.includes('NetWorthWidget')) {
-      widgets.push('NetWorthWidget');
+    if (!saved) return DEFAULT_WIDGET_LAYOUT.map(w => w.id);
+
+    const savedVisible = JSON.parse(saved);
+    const allKnownDefaultWidgets = new Set(DEFAULT_WIDGET_LAYOUT.map(w => w.id));
+    const savedHidden = JSON.parse(localStorage.getItem(STORAGE_KEYS.HIDDEN_WIDGETS) || '[]');
+    const allSavedWidgets = new Set([...savedVisible, ...savedHidden]);
+
+    for (const defaultWidget of allKnownDefaultWidgets) {
+      if (!allSavedWidgets.has(defaultWidget)) {
+        savedVisible.push(defaultWidget);
+      }
     }
-    return widgets;
+    return savedVisible;
   });
   
   const [hiddenWidgets, setHiddenWidgets] = useState<string[]>(() => {
@@ -100,7 +113,13 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, recurringTr
   
   const [widgetLayout, setWidgetLayout] = useState<WidgetLayout[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.WIDGET_LAYOUT);
-    return saved ? JSON.parse(saved) : DEFAULT_WIDGET_LAYOUT;
+    if (!saved) return DEFAULT_WIDGET_LAYOUT;
+
+    const savedLayout = JSON.parse(saved);
+    const layoutWidgetIds = new Set(savedLayout.map((w: WidgetLayout) => w.id));
+
+    const newWidgetsLayout = DEFAULT_WIDGET_LAYOUT.filter(w => !layoutWidgetIds.has(w.id));
+    return [...savedLayout, ...newWidgetsLayout];
   });
 
   const filteredTransactions = useMemo(() => {
@@ -220,6 +239,10 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, recurringTr
         return <Achievements transactions={transactions} budgets={budgets} accounts={accounts} currency={currency} />;
       case 'NetWorthWidget':
         return <NetWorthWidget accounts={accounts} loans={loans} currency={currency} />;
+      case 'FinancialGoalsWidget':
+        return <FinancialGoalsWidget goals={goals} currency={currency} />;
+      case 'DebtPaydownWidget':
+        return <DebtPaydownWidget loans={loans} currency={currency} />;
       default:
         return null;
     }
