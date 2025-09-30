@@ -109,6 +109,9 @@ const SettingsPage: React.FC<SettingsPageProps> = (props) => {
           <SecuritySettings onDeleteUserAccount={props.onDeleteUserAccount} />
         </div>
       </motion.div>
+      <div className="text-center text-sm text-gray-500 dark:text-gray-400 mt-8">
+        Version: {import.meta.env.VITE_APP_VERSION || 'development'}
+      </div>
       <Footer />
     </>
   );

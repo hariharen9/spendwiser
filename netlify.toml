@@ -1,0 +1,8 @@
+[build]
+  command = "git fetch --tags && export VITE_APP_VERSION=$(git describe --tags --long) && vite build"
+  publish = "dist"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
