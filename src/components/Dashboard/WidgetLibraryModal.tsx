@@ -355,7 +355,7 @@ const WidgetLibraryModal: React.FC<WidgetLibraryModalProps> = ({
 
 
   const availableWidgets = WIDGET_CONFIGS.filter(
-    (widget) => !visibleWidgets.includes(widget.id) && !hiddenWidgets.includes(widget.id)
+    (widget) => !visibleWidgets.includes(widget.id)
   );
 
   const handleDragStart = (event: DragStartEvent) => {
