@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Transaction } from '../../types/types';
+import { Transaction, Account } from '../../types/types';
 import { motion } from 'framer-motion';
 import { fadeInVariants, staggerContainer, buttonHoverVariants } from '../../components/Common/AnimationVariants';
 import { Edit, Trash2, Check, X } from 'lucide-react';
@@ -11,6 +11,7 @@ interface TransactionTableProps {
   onDeleteTransaction: (id: string) => void;
   currency: string;
   categories: string[];
+  accounts: Account[]; // Add accounts property
 }
 
 const TransactionTable: React.FC<TransactionTableProps> = ({
@@ -18,12 +19,14 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
   onEditTransaction,
   onSaveTransaction,
   onDeleteTransaction,
-  currency
+  currency,
+  accounts // Add accounts parameter
 }) => {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [editingCellId, setEditingCellId] = useState<string | null>(null);
   const [editedName, setEditedName] = useState('');
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [tooltipId, setTooltipId] = useState<string | null>(null); // For tooltip tracking
 
   const handleDoubleClick = (transaction: Transaction) => {
     setEditingCellId(transaction.id);
@@ -82,6 +85,16 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
     });
   };
 
+  // Find credit card account by ID
+  const getCreditCardInfo = (accountId: string | undefined) => {
+    if (!accountId) return null;
+    const account = accounts.find(acc => acc.id === accountId);
+    if (account && account.type === 'Credit Card') {
+      return account;
+    }
+    return null;
+  };
+
   let rowIndex = 0;
 
   return (
@@ -125,6 +138,7 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
                 {/* Transaction Rows */}
                 {dateTransactions.map((transaction) => {
                   const currentIndex = rowIndex++;
+                  const creditCardInfo = getCreditCardInfo(transaction.accountId);
                   return (
                     <motion.tr
                       key={transaction.id}
@@ -142,8 +156,27 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
                         className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-[#F5F5F5] relative"
                         onDoubleClick={() => handleDoubleClick(transaction)}
                       >
+                        <div className="flex items-center">
+                          <span>{transaction.name}</span>
+                          {creditCardInfo && (
+                            <div className="relative ml-2">
+                              <span 
+                                className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs font-medium rounded-full cursor-pointer"
+                                onMouseEnter={() => setTooltipId(transaction.id)}
+                                onMouseLeave={() => setTooltipId(null)}
+                              >
+                                CC
+                              </span>
+                              {tooltipId === transaction.id && (
+                                <div className="absolute z-50 px-2 py-1 text-xs font-medium text-white bg-gray-900 rounded-md shadow-sm bottom-full left-1/2 transform -translate-x-1/2 -translate-y-2 whitespace-nowrap">
+                                  Paid with {creditCardInfo.name}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
                         {editingCellId === transaction.id ? (
-                          <div className='relative'>
+                          <div className='relative mt-2'>
                             <input 
                               type="text" 
                               value={editedName} 
@@ -164,9 +197,7 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
                               </button>
                             </div>
                           </div>
-                        ) : (
-                          <span>{transaction.name}</span>
-                        )}
+                        ) : null}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500 dark:text-[#888888]">
                         {transaction.category}

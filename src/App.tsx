@@ -1491,6 +1491,7 @@ function App() {
               currency={currency}
               sortOption={sortOption}
               setSortOption={setSortOption}
+              accounts={accountsWithDynamicBalances} // Pass accounts data for credit card identification
             />
           </motion.div>
         );

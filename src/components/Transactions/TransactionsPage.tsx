@@ -3,7 +3,7 @@ import FilterBar from './FilterBar';
 import TransactionTable from './TransactionTable';
 import MobileTransactionList from './MobileTransactionList';
 import TransactionSummary from './TransactionSummary';
-import { Transaction } from '../../types/types';
+import { Transaction, Account } from '../../types/types';
 import { motion } from 'framer-motion';
 import { fadeInVariants, staggerContainer } from '../../components/Common/AnimationVariants';
 
@@ -27,6 +27,7 @@ interface TransactionsPageProps {
   currency: string;
   sortOption: string;
   setSortOption: (value: string) => void;
+  accounts: Account[]; // Add accounts property
 }
 
 const TransactionsPage: React.FC<TransactionsPageProps> = ({
@@ -48,7 +49,8 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
   categories,
   currency,
   sortOption,
-  setSortOption
+  setSortOption,
+  accounts // Add accounts parameter
 }) => {
   const sortedAndFilteredTransactions = useMemo(() => {
     let filtered = transactions.filter(transaction => {
@@ -281,6 +283,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
           onDeleteTransaction={onDeleteTransaction}
           currency={currency}
           categories={categories}
+          accounts={accounts} // Pass accounts data
         />
       </motion.div>
 
@@ -297,6 +300,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
           onEditTransaction={onEditTransaction}
           onDeleteTransaction={onDeleteTransaction}
           currency={currency}
+          accounts={accounts} // Pass accounts data
         />
       </motion.div>
 
