@@ -3,6 +3,7 @@ import { Search, Calendar, Filter, X, Clock } from 'lucide-react';
 import AnimatedDropdown from '../Common/AnimatedDropdown';
 
 interface FilterBarProps {
+  transactionCount: number;
   searchTerm: string;
   onSearchChange: (value: string) => void;
   transactionType: string;
@@ -19,6 +20,7 @@ interface FilterBarProps {
 }
 
 const FilterBar: React.FC<FilterBarProps> = ({
+  transactionCount,
   searchTerm,
   onSearchChange,
   transactionType,
@@ -111,7 +113,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-[#888888]" />
             <input
               type="text"
-              placeholder="Search transactions..."
+              placeholder={`Search ${transactionCount} transactions...`}
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] placeholder-gray-400 dark:placeholder-[#888888] focus:outline-none focus:border-[#007BFF]"

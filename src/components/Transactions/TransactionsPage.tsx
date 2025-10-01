@@ -276,52 +276,58 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
       animate="animate"
       variants={staggerContainer}
     >
-      <motion.div 
+      {/* Responsive Header */}
+      <motion.div
         className="flex items-center justify-between"
         variants={fadeInVariants}
         initial="initial"
         animate="animate"
       >
-        <motion.h2 
-          className="text-xl font-semibold text-gray-900 dark:text-[#F5F5F5] min-w-max"
+        {/* Left side: Transaction count (subtle) */}
+        <motion.h2
+          className="hidden md:block text-sm font-normal text-gray-500 dark:text-gray-400 md:text-xl md:font-semibold md:text-gray-900 md:dark:text-[#F5F5F5]"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.1 }}
         >
           {transactions.length} Transaction{transactions.length !== 1 ? 's' : ''}
         </motion.h2>
-        <motion.div 
-          className="flex items-center justify-center space-x-4 flex-grow"
+
+        {/* Center: Month Navigator (prominent) */}
+        <motion.div
+          className="flex items-center justify-center space-x-2 md:space-x-4 flex-grow"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
         >
-          <motion.button 
-            onClick={handlePreviousMonth} 
+          <motion.button
+            onClick={handlePreviousMonth}
             className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             whileTap={{ scale: 0.9 }}
           >
             <ChevronLeft className="h-6 w-6 text-gray-600 dark:text-gray-300" />
           </motion.button>
-          <span className="text-lg font-bold text-gray-800 dark:text-gray-100 w-48 text-center">
+          <span className="text-base font-bold text-gray-800 dark:text-gray-100 md:text-lg w-36 md:w-48 text-center">
             {monthNavigatorText}
           </span>
-          <motion.button 
-            onClick={handleNextMonth} 
+          <motion.button
+            onClick={handleNextMonth}
             className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             whileTap={{ scale: 0.9 }}
           >
             <ChevronRight className="h-6 w-6 text-gray-600 dark:text-gray-300" />
           </motion.button>
         </motion.div>
+
+        {/* Right side: Manage Recurring button (compact) */}
         <motion.button
-            onClick={onOpenRecurringModal}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors flex items-center shadow-md hover:shadow-lg min-w-max"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
+          onClick={onOpenRecurringModal}
+          className="px-3 py-1 text-sm md:px-4 md:py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors flex items-center shadow-sm md:shadow-md hover:shadow-lg"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.1 }}
         >
-            Manage Recurring
+          Manage Recurring
         </motion.button>
       </motion.div>
 
@@ -332,6 +338,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
         transition={{ delay: 0.2 }}
       >
         <FilterBar
+          transactionCount={transactions.length}
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
           transactionType={transactionType}
