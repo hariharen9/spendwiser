@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Calendar, Filter, X, Clock } from 'lucide-react';
 import AnimatedDropdown from '../Common/AnimatedDropdown';
 
@@ -58,8 +58,13 @@ const FilterBar: React.FC<FilterBarProps> = ({
         end = today;
         break;
       case 'this-week':
-        start = new Date(today.setDate(today.getDate() - today.getDay()));
-        end = new Date(today.setDate(today.getDate() - today.getDay() + 6));
+        const weekStart = new Date(today);
+        weekStart.setDate(today.getDate() - today.getDay());
+        start = new Date(weekStart);
+        
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6);
+        end = new Date(weekEnd);
         break;
       case 'this-month':
         start = new Date(today.getFullYear(), today.getMonth(), 1);

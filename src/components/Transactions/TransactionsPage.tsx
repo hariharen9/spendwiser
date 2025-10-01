@@ -1,10 +1,11 @@
-import React, { useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import FilterBar from './FilterBar';
 import TransactionTable from './TransactionTable';
 import MobileTransactionList from './MobileTransactionList';
 import TransactionSummary from './TransactionSummary';
 import { Transaction, Account } from '../../types/types';
 import { motion } from 'framer-motion';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { fadeInVariants, staggerContainer } from '../../components/Common/AnimationVariants';
 
 interface TransactionsPageProps {
@@ -52,6 +53,61 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
   setSortOption,
   accounts // Add accounts parameter
 }) => {
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [monthNavigatorText, setMonthNavigatorText] = useState('');
+
+  const formatDate = (date: Date) => date.toISOString().split('T')[0];
+
+  const setMonth = (date: Date) => {
+    const year = date.getUTCFullYear();
+    const month = date.getUTCMonth();
+    const firstDay = new Date(Date.UTC(year, month, 1));
+    const lastDay = new Date(Date.UTC(year, month + 1, 0));
+    setStartDate(firstDay.toISOString().split('T')[0]);
+    setEndDate(lastDay.toISOString().split('T')[0]);
+    setCurrentMonth(date);
+    // Use UTC month for toLocaleString to avoid timezone issues
+    const monthName = date.toLocaleString('default', { month: 'long', timeZone: 'UTC' });
+    const yearNum = date.getUTCFullYear();
+    setMonthNavigatorText(`${monthName} ${yearNum}`);
+  };
+
+  useEffect(() => {
+    setMonth(new Date());
+  }, []);
+
+  useEffect(() => {
+    if (!startDate || !endDate) {
+      setMonthNavigatorText('Custom Range');
+      return;
+    }
+
+    try {
+      const start = new Date(startDate + 'T00:00:00Z');
+      const end = new Date(endDate + 'T00:00:00Z');
+
+      const firstDayOfMonth = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), 1));
+      const lastDayOfMonth = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 0));
+
+      if (start.getTime() !== firstDayOfMonth.getTime() || end.getTime() !== lastDayOfMonth.getTime()) {
+        setMonthNavigatorText('Custom Range');
+      }
+    } catch (e) {
+      setMonthNavigatorText('Custom Range');
+    }
+  }, [startDate, endDate]);
+
+  const handlePreviousMonth = () => {
+    const newDate = new Date(currentMonth);
+    newDate.setMonth(newDate.getMonth() - 1);
+    setMonth(newDate);
+  };
+
+  const handleNextMonth = () => {
+    const newDate = new Date(currentMonth);
+    newDate.setMonth(newDate.getMonth() + 1);
+    setMonth(newDate);
+  };
   const sortedAndFilteredTransactions = useMemo(() => {
     let filtered = transactions.filter(transaction => {
       const matchesSearch = searchTerm === '' || transaction.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -227,16 +283,40 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
         animate="animate"
       >
         <motion.h2 
-          className="text-xl font-semibold text-gray-900 dark:text-[#F5F5F5]"
+          className="text-xl font-semibold text-gray-900 dark:text-[#F5F5F5] min-w-max"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.1 }}
         >
           {transactions.length} Transaction{transactions.length !== 1 ? 's' : ''}
         </motion.h2>
+        <motion.div 
+          className="flex items-center justify-center space-x-4 flex-grow"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          <motion.button 
+            onClick={handlePreviousMonth} 
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            whileTap={{ scale: 0.9 }}
+          >
+            <ChevronLeft className="h-6 w-6 text-gray-600 dark:text-gray-300" />
+          </motion.button>
+          <span className="text-lg font-bold text-gray-800 dark:text-gray-100 w-48 text-center">
+            {monthNavigatorText}
+          </span>
+          <motion.button 
+            onClick={handleNextMonth} 
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            whileTap={{ scale: 0.9 }}
+          >
+            <ChevronRight className="h-6 w-6 text-gray-600 dark:text-gray-300" />
+          </motion.button>
+        </motion.div>
         <motion.button
             onClick={onOpenRecurringModal}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors flex items-center shadow-md hover:shadow-lg"
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors flex items-center shadow-md hover:shadow-lg min-w-max"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
