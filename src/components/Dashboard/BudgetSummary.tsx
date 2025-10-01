@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Budget, Transaction, TotalBudget } from '../../types/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cardHoverVariants } from '../../components/Common/AnimationVariants';
@@ -17,16 +17,19 @@ const BudgetSummary: React.FC<BudgetSummaryProps> = ({ budgets, transactions, to
   const [showDetailedView, setShowDetailedView] = useState(false);
   const [showAllBudgets, setShowAllBudgets] = useState(false);
 
+  // Use useMemo to ensure calculations are only re-run when dependencies change
+  const currentMonth = useMemo(() => {
+    return new Date().toISOString().slice(0, 7);
+  }, []);
+
   const getSpentAmount = (category: string) => {
     return transactions
       .filter(t => t.category === category && t.type === 'expense')
       .reduce((sum, t) => sum + Math.abs(t.amount), 0);
   };
 
-  const calculateMonthlyExpenses = () => {
-    if (!totalBudget) return 0;
-    
-    const currentMonth = new Date().toISOString().slice(0, 7);
+  // Memoize monthly expenses calculation to ensure it updates when transactions change
+  const monthlyExpenses = useMemo(() => {
     return transactions
       .filter(t => {
         const txDate = new Date(t.date);
@@ -34,7 +37,18 @@ const BudgetSummary: React.FC<BudgetSummaryProps> = ({ budgets, transactions, to
                txDate.toISOString().slice(0, 7) === currentMonth;
       })
       .reduce((sum, t) => sum + Math.abs(t.amount), 0);
-  };
+  }, [transactions, currentMonth]);
+
+  // Memoize the budgets with their spent amounts to ensure they update when transactions change
+  const budgetsWithSpent = useMemo(() => {
+    return budgets.map(budget => {
+      const spent = getSpentAmount(budget.category);
+      return {
+        ...budget,
+        spent
+      };
+    });
+  }, [budgets, transactions]); // Depend on both budgets and transactions
 
   const toggleView = () => {
     setShowDetailedView(!showDetailedView);
@@ -70,7 +84,6 @@ const BudgetSummary: React.FC<BudgetSummaryProps> = ({ budgets, transactions, to
   const renderDetailedView = () => {
     if (!totalBudget) return null;
     
-    const monthlyExpenses = calculateMonthlyExpenses();
     const percentageUsed = totalBudget.limit > 0 ? (monthlyExpenses / totalBudget.limit) * 100 : 0;
     const remaining = totalBudget.limit - monthlyExpenses;
     
@@ -199,10 +212,9 @@ const BudgetSummary: React.FC<BudgetSummaryProps> = ({ budgets, transactions, to
           </div>
         ) : (
           <div className="space-y-3">
-            {(showAllBudgets ? budgets : budgets.slice(0, 6)).map((budget, index) => {
-              const spent = getSpentAmount(budget.category);
-              const percentage = budget.limit > 0 ? (spent / budget.limit) * 100 : 0;
-              const remaining = budget.limit - spent;
+            {(showAllBudgets ? budgetsWithSpent : budgetsWithSpent.slice(0, 6)).map((budget, index) => {
+              const percentage = budget.limit > 0 ? (budget.spent / budget.limit) * 100 : 0;
+              const remaining = budget.limit - budget.spent;
               
               let status = 'good';
               let statusIcon = FiCheckCircle;
@@ -239,7 +251,7 @@ const BudgetSummary: React.FC<BudgetSummaryProps> = ({ budgets, transactions, to
                     </div>
                     <div className="text-right">
                       <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                        {currency}{spent.toLocaleString()}
+                        {currency}{budget.spent.toLocaleString()}
                       </span>
                       <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">
                         / {currency}{budget.limit.toLocaleString()}
