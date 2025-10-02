@@ -37,7 +37,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
 }) => {
   const [showDateInputs, setShowDateInputs] = useState(false);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
-  const [selectedPreset, setSelectedPreset] = useState('custom');
+  const [selectedPreset, setSelectedPreset] = useState('this-month');
 
   const clearDateRange = () => {
     onStartDateChange('');

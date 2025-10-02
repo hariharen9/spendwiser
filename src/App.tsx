@@ -109,8 +109,16 @@ function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [transactionType, setTransactionType] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState(() => {
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+    return firstDay.toISOString().split('T')[0];
+  });
+  const [endDate, setEndDate] = useState(() => {
+    const today = new Date();
+    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    return lastDay.toISOString().split('T')[0];
+  });
   const [sortOption, setSortOption] = useState('date');
 
   const [hasLoadedMockData, setHasLoadedMockData] = useState(false);

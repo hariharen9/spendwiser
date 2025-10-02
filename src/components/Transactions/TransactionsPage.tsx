@@ -59,43 +59,22 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
   const formatDate = (date: Date) => date.toISOString().split('T')[0];
 
   const setMonth = (date: Date) => {
-    const year = date.getUTCFullYear();
-    const month = date.getUTCMonth();
-    const firstDay = new Date(Date.UTC(year, month, 1));
-    const lastDay = new Date(Date.UTC(year, month + 1, 0));
-    setStartDate(firstDay.toISOString().split('T')[0]);
-    setEndDate(lastDay.toISOString().split('T')[0]);
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    setStartDate(formatDate(firstDay));
+    setEndDate(formatDate(lastDay));
     setCurrentMonth(date);
-    // Use UTC month for toLocaleString to avoid timezone issues
-    const monthName = date.toLocaleString('default', { month: 'long', timeZone: 'UTC' });
-    const yearNum = date.getUTCFullYear();
-    setMonthNavigatorText(`${monthName} ${yearNum}`);
   };
 
-  useEffect(() => {
-    setMonth(new Date());
-  }, []);
+
 
   useEffect(() => {
-    if (!startDate || !endDate) {
-      setMonthNavigatorText('Custom Range');
-      return;
-    }
-
-    try {
-      const start = new Date(startDate + 'T00:00:00Z');
-      const end = new Date(endDate + 'T00:00:00Z');
-
-      const firstDayOfMonth = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), 1));
-      const lastDayOfMonth = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 0));
-
-      if (start.getTime() !== firstDayOfMonth.getTime() || end.getTime() !== lastDayOfMonth.getTime()) {
-        setMonthNavigatorText('Custom Range');
-      }
-    } catch (e) {
-      setMonthNavigatorText('Custom Range');
-    }
-  }, [startDate, endDate]);
+    const monthName = currentMonth.toLocaleString('default', { month: 'long' });
+    const yearNum = currentMonth.getFullYear();
+    setMonthNavigatorText(`${monthName} ${yearNum}`);
+  }, [currentMonth]);
 
   const handlePreviousMonth = () => {
     const newDate = new Date(currentMonth);
@@ -115,8 +94,11 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
       const matchesCategory = selectedCategory === '' || transaction.category === selectedCategory;
 
       const transactionDate = new Date(transaction.date);
+      transactionDate.setMinutes(transactionDate.getMinutes() + transactionDate.getTimezoneOffset());
       const start = startDate ? new Date(startDate) : null;
+      if(start) start.setMinutes(start.getMinutes() + start.getTimezoneOffset());
       const end = endDate ? new Date(endDate) : null;
+      if(end) end.setMinutes(end.getMinutes() + end.getTimezoneOffset());
 
       const matchesDate = (!start || transactionDate >= start) && (!end || transactionDate <= end);
 
