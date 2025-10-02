@@ -56,6 +56,9 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [monthNavigatorText, setMonthNavigatorText] = useState('');
   const [selectedTransactions, setSelectedTransactions] = useState<string[]>([]); // For bulk operations
+  const [minAmount, setMinAmount] = useState(''); // For amount range filtering
+  const [maxAmount, setMaxAmount] = useState(''); // For amount range filtering
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]); // For multiple category selection
 
   const formatDate = (date: Date) => date.toISOString().split('T')[0];
 
@@ -89,20 +92,41 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
   
   const sortedAndFilteredTransactions = useMemo(() => {
     let filtered = transactions.filter(transaction => {
+      // Text search filter
       const matchesSearch = searchTerm === '' || transaction.name.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      // Transaction type filter
       const matchesType = transactionType === 'all' || transaction.type === transactionType;
-      const matchesCategory = selectedCategory === '' || transaction.category === selectedCategory;
-
+      
+      // Category filter (single or multiple)
+      let matchesCategory = true;
+      if (selectedCategories.length > 0) {
+        matchesCategory = selectedCategories.includes(transaction.category);
+      } else if (selectedCategory) {
+        matchesCategory = transaction.category === selectedCategory;
+      }
+      
+      // Amount range filter
+      let matchesAmount = true;
+      const amount = Math.abs(transaction.amount);
+      if (minAmount && amount < parseFloat(minAmount)) {
+        matchesAmount = false;
+      }
+      if (maxAmount && amount > parseFloat(maxAmount)) {
+        matchesAmount = false;
+      }
+      
+      // Date filter
       const transactionDate = new Date(transaction.date);
       transactionDate.setMinutes(transactionDate.getMinutes() + transactionDate.getTimezoneOffset());
       const start = startDate ? new Date(startDate) : null;
       if(start) start.setMinutes(start.getMinutes() + start.getTimezoneOffset());
       const end = endDate ? new Date(endDate) : null;
       if(end) end.setMinutes(end.getMinutes() + end.getTimezoneOffset());
-
+      
       const matchesDate = (!start || transactionDate >= start) && (!end || transactionDate <= end);
-
-      return matchesSearch && matchesType && matchesCategory && matchesDate;
+      
+      return matchesSearch && matchesType && matchesCategory && matchesAmount && matchesDate;
     });
 
 
@@ -194,7 +218,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
     }
 
     return filtered;
-  }, [transactions, searchTerm, transactionType, selectedCategory, startDate, endDate, sortOption]);
+  }, [transactions, searchTerm, transactionType, selectedCategory, selectedCategories, minAmount, maxAmount, startDate, endDate, sortOption]);
 
   const summary = useMemo(() => {
     const incomeTransactions = sortedAndFilteredTransactions.filter(t => t.type === 'income');
@@ -350,6 +374,12 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
           onEndDateChange={setEndDate}
           sortOption={sortOption}
           onSortChange={setSortOption}
+          minAmount={minAmount}
+          maxAmount={maxAmount}
+          onMinAmountChange={setMinAmount}
+          onMaxAmountChange={setMaxAmount}
+          selectedCategories={selectedCategories}
+          onSelectedCategoriesChange={setSelectedCategories}
         />
       </motion.div>
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Calendar, Filter, X, Clock } from 'lucide-react';
+import { Search, Calendar, Filter, X, Clock, DollarSign } from 'lucide-react';
 import AnimatedDropdown from '../Common/AnimatedDropdown';
 
 interface FilterBarProps {
@@ -17,6 +17,12 @@ interface FilterBarProps {
   onEndDateChange: (date: string) => void;
   sortOption: string;
   onSortChange: (value: string) => void;
+  minAmount: string; // New prop for amount range
+  maxAmount: string; // New prop for amount range
+  onMinAmountChange: (value: string) => void; // New prop for amount range
+  onMaxAmountChange: (value: string) => void; // New prop for amount range
+  selectedCategories: string[]; // New prop for multiple categories
+  onSelectedCategoriesChange: (categories: string[]) => void; // New prop for multiple categories
 }
 
 const FilterBar: React.FC<FilterBarProps> = ({
@@ -33,16 +39,28 @@ const FilterBar: React.FC<FilterBarProps> = ({
   onStartDateChange,
   onEndDateChange,
   sortOption,
-  onSortChange
+  onSortChange,
+  minAmount, // New prop for amount range
+  maxAmount, // New prop for amount range
+  onMinAmountChange, // New prop for amount range
+  onMaxAmountChange, // New prop for amount range
+  selectedCategories, // New prop for multiple categories
+  onSelectedCategoriesChange // New prop for multiple categories
 }) => {
   const [showDateInputs, setShowDateInputs] = useState(false);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState('this-month');
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false); // For advanced filters toggle
 
   const clearDateRange = () => {
     onStartDateChange('');
     onEndDateChange('');
     setSelectedPreset('custom');
+  };
+
+  const clearAmountRange = () => {
+    onMinAmountChange('');
+    onMaxAmountChange('');
   };
 
   const formatDate = (date: Date) => {
@@ -92,6 +110,15 @@ const FilterBar: React.FC<FilterBarProps> = ({
       handleDatePresetChange('custom');
     } else {
       handleDatePresetChange(preset);
+    }
+  };
+
+  // Handle multiple category selection
+  const handleCategoryToggle = (category: string) => {
+    if (selectedCategories.includes(category)) {
+      onSelectedCategoriesChange(selectedCategories.filter(c => c !== category));
+    } else {
+      onSelectedCategoriesChange([...selectedCategories, category]);
     }
   };
 
@@ -200,7 +227,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
         )}
       </div>
 
-      {/* Desktop Filter Bar - Unchanged */}
+      {/* Desktop Filter Bar - Updated with Advanced Search */}
       <div className="hidden md:block bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           {/* Search */}
@@ -222,12 +249,26 @@ const FilterBar: React.FC<FilterBarProps> = ({
             onChange={onTransactionTypeChange}
           />
 
-          {/* Category Dropdown */}
-          <AnimatedDropdown
-            selectedValue={selectedCategory}
-            options={[{value: '', label: 'All Categories'}, ...categories.map(c => ({value: c, label: c}))]}
-            onChange={onCategoryChange}
-          />
+          {/* Category Dropdown - Updated to show "Multiple" when multiple categories selected */}
+          <div className="relative">
+            <select
+              value={selectedCategory}
+              onChange={(e) => onCategoryChange(e.target.value)}
+              className="w-full px-4 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF] appearance-none"
+            >
+              <option value="">All Categories</option>
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+            {selectedCategories.length > 1 && (
+              <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-xs text-blue-500">
+                +{selectedCategories.length - 1} more
+              </div>
+            )}
+          </div>
 
           {/* Sort By Dropdown */}
           <AnimatedDropdown
@@ -244,61 +285,167 @@ const FilterBar: React.FC<FilterBarProps> = ({
           />
         </div>
 
+        {/* Advanced Search Toggle and Quick Select */}
         <div className="flex justify-between items-center mt-4">
-            <div className="flex items-center justify-start space-x-2">
-                <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Quick Select:</span>
-                <div>
-                    <button 
-                        onClick={() => handlePillClick('today')} 
-                        className={`px-3 py-1 text-sm rounded-full transition-colors ${selectedPreset === 'today' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'}`}>
-                        Today
-                    </button>
-                </div>
-                <div>
-                    <button 
-                        onClick={() => handlePillClick('this-week')} 
-                        className={`px-3 py-1 text-sm rounded-full transition-colors ${selectedPreset === 'this-week' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'}`}>
-                        This Week
-                    </button>
-                </div>
-                <div>
-                    <button 
-                        onClick={() => handlePillClick('this-month')} 
-                        className={`px-3 py-1 text-sm rounded-full transition-colors ${selectedPreset === 'this-month' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'}`}>
-                        This Month
-                    </button>
-                </div>
+          <div className="flex items-center justify-start space-x-2">
+            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Quick Select:</span>
+            <div>
+              <button 
+                onClick={() => handlePillClick('today')} 
+                className={`px-3 py-1 text-sm rounded-full transition-colors ${selectedPreset === 'today' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'}`}>
+                Today
+              </button>
             </div>
-            <button onClick={() => setShowDateInputs(!showDateInputs)} className="flex items-center text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">
-                <Clock className="h-4 w-4 mr-1" />
-                {showDateInputs ? 'Hide Date Filters' : 'Filter by Date'}
-            </button>
+            <div>
+              <button 
+                onClick={() => handlePillClick('this-week')} 
+                className={`px-3 py-1 text-sm rounded-full transition-colors ${selectedPreset === 'this-week' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'}`}>
+                This Week
+              </button>
+            </div>
+            <div>
+              <button 
+                onClick={() => handlePillClick('this-month')} 
+                className={`px-3 py-1 text-sm rounded-full transition-colors ${selectedPreset === 'this-month' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'}`}>
+                This Month
+              </button>
+            </div>
+          </div>
+          <button 
+            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)} 
+            className="flex items-center text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">
+            <Filter className="h-4 w-4 mr-1" />
+            {showAdvancedFilters ? 'Hide Advanced Filters' : 'Show Advanced Filters'}
+          </button>
         </div>
 
-        {/* Date Inputs (Hidden by default) */}
-        {showDateInputs && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <AnimatedDropdown
-              selectedValue={selectedPreset}
-              options={datePresetOptions}
-              onChange={handleDatePresetChange}
-            />
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-[#888888]" />
-              <input type="date" value={startDate} onChange={(e) => { onStartDateChange(e.target.value); setSelectedPreset('custom'); }} className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]" placeholder="Start Date" />
-            </div>
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-[#888888]" />
-              <input type="date" value={endDate} onChange={(e) => { onEndDateChange(e.target.value); setSelectedPreset('custom'); }} className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]" placeholder="End Date" />
-            </div>
-            <div className="flex items-center">
-              <button
-                onClick={clearDateRange}
-                className="flex items-center justify-center w-full px-4 py-2 bg-gray-200 dark:bg-gray-600 hover:bg-red-500 dark:hover:bg-red-600 text-gray-900 dark:text-[#F5F5F5] hover:text-white dark:hover:text-white rounded-lg transition-colors"
-              >
-                <X className="h-4 w-4 mr-2" />
-                Clear Dates
-              </button>
+        {/* Advanced Filters - Amount Range, Multiple Categories, and Date Filters on same line */}
+        {showAdvancedFilters && (
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+              {/* Amount Range */}
+              <div className="md:col-span-4">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount Range</label>
+                <div className="flex items-center space-x-2">
+                  <div className="relative flex-1">
+                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-[#888888]" />
+                    <input
+                      type="number"
+                      placeholder="Min"
+                      value={minAmount}
+                      onChange={(e) => onMinAmountChange(e.target.value)}
+                      className="w-full pl-8 pr-4 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
+                    />
+                  </div>
+                  <span className="text-gray-500 dark:text-gray-400">to</span>
+                  <div className="relative flex-1">
+                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-[#888888]" />
+                    <input
+                      type="number"
+                      placeholder="Max"
+                      value={maxAmount}
+                      onChange={(e) => onMaxAmountChange(e.target.value)}
+                      className="w-full pl-8 pr-4 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
+                    />
+                  </div>
+                  {(minAmount || maxAmount) && (
+                    <button
+                      onClick={clearAmountRange}
+                      className="p-2 bg-gray-200 dark:bg-gray-600 hover:bg-red-500 dark:hover:bg-red-600 text-gray-900 dark:text-[#F5F5F5] hover:text-white dark:hover:text-white rounded-lg transition-colors"
+                      title="Clear amount range"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Multiple Category Selection */}
+              <div className="md:col-span-4">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Categories</label>
+                <div className="relative">
+                  <div className="bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg p-2 min-h-[42px] max-h-32 overflow-y-auto">
+                    <div className="flex flex-wrap gap-2">
+                      {categories.map((category) => (
+                        <button
+                          key={category}
+                          type="button"
+                          onClick={() => handleCategoryToggle(category)}
+                          className={`px-2 py-1 text-xs rounded-full transition-colors ${
+                            selectedCategories.includes(category)
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600'
+                          }`}
+                        >
+                          {category}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {selectedCategories.length > 0 && (
+                    <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      {selectedCategories.length} category{selectedCategories.length !== 1 ? 's' : ''} selected
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Date Filters */}
+              <div className="md:col-span-4">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date Range</label>
+                <div className="flex items-center space-x-2">
+                  <div className="relative flex-1">
+                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-[#888888]" />
+                    <input 
+                      type="date" 
+                      value={startDate} 
+                      onChange={(e) => { onStartDateChange(e.target.value); setSelectedPreset('custom'); }} 
+                      className="w-full pl-8 pr-4 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]" 
+                      placeholder="Start Date" 
+                    />
+                  </div>
+                  <span className="text-gray-500 dark:text-gray-400">to</span>
+                  <div className="relative flex-1">
+                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-[#888888]" />
+                    <input 
+                      type="date" 
+                      value={endDate} 
+                      onChange={(e) => { onEndDateChange(e.target.value); setSelectedPreset('custom'); }} 
+                      className="w-full pl-8 pr-4 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]" 
+                      placeholder="End Date" 
+                    />
+                  </div>
+                </div>
+                <div className="flex space-x-1 mt-2">
+                  <button 
+                    onClick={() => handleDatePresetChange('today')} 
+                    className={`px-2 py-1 text-xs rounded-full transition-colors ${selectedPreset === 'today' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'}`}>
+                    Today
+                  </button>
+                  <button 
+                    onClick={() => handleDatePresetChange('this-week')} 
+                    className={`px-2 py-1 text-xs rounded-full transition-colors ${selectedPreset === 'this-week' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'}`}>
+                    Week
+                  </button>
+                  <button 
+                    onClick={() => handleDatePresetChange('this-month')} 
+                    className={`px-2 py-1 text-xs rounded-full transition-colors ${selectedPreset === 'this-month' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'}`}>
+                    Month
+                  </button>
+                </div>
+                {(startDate || endDate) && (
+                  <div className="mt-2">
+                    <button
+                      onClick={clearDateRange}
+                      className="flex items-center text-xs text-red-500 hover:text-red-700 dark:hover:text-red-400"
+                      title="Clear date range"
+                    >
+                      <X className="h-3 w-3 mr-1" />
+                      Clear dates
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
