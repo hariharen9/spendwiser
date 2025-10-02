@@ -5,7 +5,7 @@ import MobileTransactionList from './MobileTransactionList';
 import TransactionSummary from './TransactionSummary';
 import { Transaction, Account } from '../../types/types';
 import { motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 import { fadeInVariants, staggerContainer } from '../../components/Common/AnimationVariants';
 
 interface TransactionsPageProps {
@@ -55,6 +55,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
 }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [monthNavigatorText, setMonthNavigatorText] = useState('');
+  const [selectedTransactions, setSelectedTransactions] = useState<string[]>([]); // For bulk operations
 
   const formatDate = (date: Date) => date.toISOString().split('T')[0];
 
@@ -67,8 +68,6 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
     setEndDate(formatDate(lastDay));
     setCurrentMonth(date);
   };
-
-
 
   useEffect(() => {
     const monthName = currentMonth.toLocaleString('default', { month: 'long' });
@@ -87,6 +86,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
     newDate.setMonth(newDate.getMonth() + 1);
     setMonth(newDate);
   };
+  
   const sortedAndFilteredTransactions = useMemo(() => {
     let filtered = transactions.filter(transaction => {
       const matchesSearch = searchTerm === '' || transaction.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -251,6 +251,22 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
     };
   }, [sortedAndFilteredTransactions, startDate, endDate]);
 
+  // Bulk operations handlers
+  const handleSelectAll = () => {
+    if (selectedTransactions.length === sortedAndFilteredTransactions.length) {
+      setSelectedTransactions([]);
+    } else {
+      setSelectedTransactions(sortedAndFilteredTransactions.map(t => t.id));
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (window.confirm(`Are you sure you want to delete ${selectedTransactions.length} transaction(s)?`)) {
+      selectedTransactions.forEach(id => onDeleteTransaction(id));
+      setSelectedTransactions([]);
+    }
+  };
+
   return (
     <motion.div 
       className="space-y-6"
@@ -337,6 +353,39 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
         />
       </motion.div>
 
+      {/* Bulk Operations Toolbar - Desktop Only */}
+      {selectedTransactions.length > 0 && (
+        <motion.div 
+          className="hidden md:flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-800"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <div className="flex items-center space-x-4">
+            <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
+              {selectedTransactions.length} transaction{selectedTransactions.length !== 1 ? 's' : ''} selected
+            </span>
+            <button 
+              onClick={handleSelectAll}
+              className="text-sm text-blue-600 dark:text-blue-300 hover:underline"
+            >
+              {selectedTransactions.length === sortedAndFilteredTransactions.length ? 'Deselect all' : 'Select all'}
+            </button>
+          </div>
+          <div className="flex space-x-2">
+            <motion.button
+              onClick={handleBulkDelete}
+              className="flex items-center px-3 py-1.5 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Trash2 className="h-4 w-4 mr-1" />
+              Delete
+            </motion.button>
+          </div>
+        </motion.div>
+      )}
+
       {/* Desktop View */}
       <motion.div
         className="hidden md:block"
@@ -353,6 +402,8 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
           currency={currency}
           categories={categories}
           accounts={accounts} // Pass accounts data
+          selectedTransactions={selectedTransactions}
+          setSelectedTransactions={setSelectedTransactions}
         />
       </motion.div>
 

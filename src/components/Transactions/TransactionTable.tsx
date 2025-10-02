@@ -12,6 +12,8 @@ interface TransactionTableProps {
   currency: string;
   categories: string[];
   accounts: Account[]; // Add accounts property
+  selectedTransactions: string[]; // For bulk operations
+  setSelectedTransactions: React.Dispatch<React.SetStateAction<string[]>>; // For bulk operations
 }
 
 const TransactionTable: React.FC<TransactionTableProps> = ({
@@ -20,7 +22,10 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
   onSaveTransaction,
   onDeleteTransaction,
   currency,
-  accounts // Add accounts parameter
+  categories,
+  accounts, // Add accounts parameter
+  selectedTransactions, // Add bulk operations parameters
+  setSelectedTransactions // Add bulk operations parameters
 }) => {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [editingCellId, setEditingCellId] = useState<string | null>(null);
@@ -47,6 +52,15 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
       onSaveTransaction(transactionData, id);
     }
     handleCancel();
+  };
+
+  // Handle transaction selection for bulk operations
+  const handleSelectTransaction = (id: string) => {
+    setSelectedTransactions(prev => 
+      prev.includes(id) 
+        ? prev.filter(transactionId => transactionId !== id) 
+        : [...prev, id]
+    );
   };
 
   // Group transactions by date, sorted by transaction date first, then by creation time
@@ -109,6 +123,26 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
         <table className="w-full">
           <thead className="bg-gray-50 dark:bg-[#1A1A1A]">
             <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-[#888888] uppercase tracking-wider w-12">
+                <div
+                  onClick={() => {
+                    if (selectedTransactions.length === transactions.length) {
+                      setSelectedTransactions([]);
+                    } else {
+                      setSelectedTransactions(transactions.map(t => t.id));
+                    }
+                  }}
+                  className="flex items-center justify-center w-5 h-5 rounded-full border-2 border-gray-400 dark:border-gray-500 cursor-pointer hover:border-blue-500 transition-colors"
+                >
+                  {selectedTransactions.length > 0 && selectedTransactions.length === transactions.length && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="w-3 h-3 rounded-full bg-blue-500"
+                    />
+                  )}
+                </div>
+              </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-[#888888] uppercase tracking-wider">Date</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-[#888888] uppercase tracking-wider">Name</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-[#888888] uppercase tracking-wider">Category</th>
@@ -127,7 +161,7 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
               <React.Fragment key={date}>
                 {/* Date Header Row */}
                 <tr>
-                  <td colSpan={6} className="px-6 py-2 bg-gray-50 dark:bg-[#1A1A1A]">
+                  <td colSpan={7} className="px-6 py-2 bg-gray-50 dark:bg-[#1A1A1A]">
                     <div className="flex items-center">
                       <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                         {formatHeaderDate(date)}
@@ -140,16 +174,31 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
                 {dateTransactions.map((transaction) => {
                   const currentIndex = rowIndex++;
                   const creditCardInfo = getCreditCardInfo(transaction.accountId);
+                  const isSelected = selectedTransactions.includes(transaction.id);
                   return (
                     <React.Fragment key={transaction.id}>
                       <motion.tr
-                        className="hover:bg-gray-50 dark:hover:bg-[#1A1A1A] transition-colors"
+                        className={`hover:bg-gray-50 dark:hover:bg-[#1A1A1A] transition-colors ${isSelected ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
                         variants={fadeInVariants}
                         initial="initial"
                         animate="animate"
                         transition={{ delay: currentIndex * 0.05 }}
-                        whileHover={{ backgroundColor: "rgba(0, 0, 0, 0.02)" }}
+                        whileHover={{ backgroundColor: isSelected ? "rgba(59, 130, 246, 0.1)" : "rgba(0, 0, 0, 0.02)" }}
                       >
+                        <td className="px-6 py-4">
+                          <div
+                            onClick={() => handleSelectTransaction(transaction.id)}
+                            className="flex items-center justify-center w-5 h-5 rounded-full border-2 border-gray-400 dark:border-gray-500 cursor-pointer hover:border-blue-500 transition-colors"
+                          >
+                            {isSelected && (
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className="w-3 h-3 rounded-full bg-blue-500"
+                              />
+                            )}
+                          </div>
+                        </td>
                         <td className="px-6 py-4 text-sm text-gray-900 dark:text-[#F5F5F5]">
                           {new Date(transaction.date).toLocaleDateString()}
                         </td>
@@ -234,78 +283,78 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
                               onClick={() => onEditTransaction(transaction)}
                               className="p-2 text-gray-500 dark:text-[#888888] hover:text-blue-500 dark:hover:text-blue-400 rounded-lg hover:bg-gray-100 dark:hover:bg-[#2A2A2A] transition-all duration-200"
                               variants={buttonHoverVariants}
-                              whileHover="hover"
-                              whileTap="tap"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </motion.button>
-                            <motion.button
-                              onClick={() => setDeleteConfirmId(transaction.id)}
-                              className="p-2 text-gray-500 dark:text-[#888888] hover:text-red-500 dark:hover:text-red-400 rounded-lg hover:bg-gray-100 dark:hover:bg-[#2A2A2A] transition-all duration-200"
-                              variants={buttonHoverVariants}
-                              whileHover="hover"
-                              whileTap="tap"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </motion.button>
-                          </div>
-                          {deleteConfirmId === transaction.id && (
-                            <motion.div 
-                              className="absolute right-0 top-full mt-2 w-auto bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg p-3 z-20"
-                              initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                              animate={{ opacity: 1, scale: 1, y: 0 }}
-                              exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                              transition={{ duration: 0.2 }}
-                            >
-                              <p className="text-sm text-gray-800 dark:text-gray-200 mb-3 text-center">Are you sure?</p>
-                              <div className="flex justify-center space-x-3">
-                                <motion.button
-                                  onClick={() => setDeleteConfirmId(null)}
-                                  className="px-4 py-1 text-xs font-semibold rounded-md text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 transition-all duration-200"
-                                  variants={buttonHoverVariants}
-                                  whileHover="hover"
-                                  whileTap="tap"
-                                >
-                                  Cancel
-                                </motion.button>
-                                <motion.button
-                                  onClick={() => {
-                                    onDeleteTransaction(transaction.id);
-                                    setDeleteConfirmId(null);
-                                  }}
-                                  className="px-4 py-1 text-xs font-semibold rounded-md text-white bg-red-500 hover:bg-red-600 transition-all duration-200"
-                                  variants={buttonHoverVariants}
-                                  whileHover="hover"
-                                  whileTap="tap"
-                                >
-                                  Delete
-                                </motion.button>
-                              </div>
-                            </motion.div>
-                          )}
-                        </td>
-                      </motion.tr>
-                      {expandedTransactionId === transaction.id && transaction.comments && (
-                        <motion.tr
-                          initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 10 }}
-                        >
-                          <td colSpan={6} className="px-6 py-2 bg-gray-50 dark:bg-[#1A1A1A]">
-                            <p className="text-sm text-gray-500 dark:text-[#888888]">{transaction.comments}</p>
+                                whileHover="hover"
+                                whileTap="tap"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </motion.button>
+                              <motion.button
+                                onClick={() => setDeleteConfirmId(transaction.id)}
+                                className="p-2 text-gray-500 dark:text-[#888888] hover:text-red-500 dark:hover:text-red-400 rounded-lg hover:bg-gray-100 dark:hover:bg-[#2A2A2A] transition-all duration-200"
+                                variants={buttonHoverVariants}
+                                whileHover="hover"
+                                whileTap="tap"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </motion.button>
+                            </div>
+                            {deleteConfirmId === transaction.id && (
+                              <motion.div 
+                                className="absolute right-0 top-full mt-2 w-auto bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg p-3 z-20"
+                                initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                                transition={{ duration: 0.2 }}
+                              >
+                                <p className="text-sm text-gray-800 dark:text-gray-200 mb-3 text-center">Are you sure?</p>
+                                <div className="flex justify-center space-x-3">
+                                  <motion.button
+                                    onClick={() => setDeleteConfirmId(null)}
+                                    className="px-4 py-1 text-xs font-semibold rounded-md text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 transition-all duration-200"
+                                    variants={buttonHoverVariants}
+                                    whileHover="hover"
+                                    whileTap="tap"
+                                  >
+                                    Cancel
+                                  </motion.button>
+                                  <motion.button
+                                    onClick={() => {
+                                      onDeleteTransaction(transaction.id);
+                                      setDeleteConfirmId(null);
+                                    }}
+                                    className="px-4 py-1 text-xs font-semibold rounded-md text-white bg-red-500 hover:bg-red-600 transition-all duration-200"
+                                    variants={buttonHoverVariants}
+                                    whileHover="hover"
+                                    whileTap="tap"
+                                  >
+                                    Delete
+                                  </motion.button>
+                                </div>
+                              </motion.div>
+                            )}
                           </td>
                         </motion.tr>
-                      )}
-                    </React.Fragment>
-                  );
-                })}
-              </React.Fragment>
-            ))}
-          </motion.tbody>
-        </table>
-      </div>
-    </motion.div>
-  );
-};
+                        {expandedTransactionId === transaction.id && transaction.comments && (
+                          <motion.tr
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 10 }}
+                          >
+                            <td colSpan={7} className="px-6 py-2 bg-gray-50 dark:bg-[#1A1A1A]">
+                              <p className="text-sm text-gray-500 dark:text-[#888888]">{transaction.comments}</p>
+                            </td>
+                          </motion.tr>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+                </React.Fragment>
+              ))}
+            </motion.tbody>
+          </table>
+        </div>
+      </motion.div>
+    );
+  };
 
-export default TransactionTable;
+  export default TransactionTable;
