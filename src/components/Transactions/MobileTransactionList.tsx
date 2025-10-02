@@ -214,6 +214,14 @@ const MobileTransactionList: React.FC<MobileTransactionListProps> = ({
                               </p>
                             </div>
                           )}
+                          {transaction.comments && (
+                            <div className="col-span-2">
+                              <p className="text-gray-500 dark:text-[#888888]">Comments</p>
+                              <p className="font-medium text-gray-900 dark:text-[#F5F5F5]">
+                                {transaction.comments}
+                              </p>
+                            </div>
+                          )}
                         </div>
                         
                         <div className="flex space-x-2 pt-2">
