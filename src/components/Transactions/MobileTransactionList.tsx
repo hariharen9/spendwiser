@@ -52,7 +52,7 @@ const MobileTransactionList: React.FC<MobileTransactionListProps> = ({
       return 0;
     })
     .reduce((groups, transaction) => {
-      const date = transaction.date;
+      const date = transaction.date.split('T')[0];
       if (!groups[date]) {
         groups[date] = [];
       }
