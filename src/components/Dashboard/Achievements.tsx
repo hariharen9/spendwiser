@@ -311,8 +311,8 @@ const Achievements: React.FC<AchievementsProps> = ({ transactions, budgets, acco
           rarity: 'rare'
         },
         {
-          id: 'spendwise-veteran',
-          title: 'SpendWise Veteran',
+          id: 'spendwiser-veteran',
+          title: 'SpendWiser Veteran',
           description: 'Used SpendWiser for 30 days',
           icon: '🎖️',
           achieved: false,

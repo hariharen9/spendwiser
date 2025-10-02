@@ -227,7 +227,7 @@ SpendWiser is built with a focus on performance, real-time data synchronization,
 1.  **Clone the repository:**
     ```bash
     git clone https://github.com/hariharen9/spendwiser.git
-    cd spendwise/new-spendwise
+    cd spendwiser/
     ```
 
 2.  **Install dependencies:**

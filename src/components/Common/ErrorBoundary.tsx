@@ -37,7 +37,7 @@ class ErrorBoundary extends Component<Props, State> {
                 Try Again
               </button>
               <a
-                href="https://github.com/hariharen9/new-spendwise/issues/new" // GitHub issue link
+                href="https://github.com/hariharen9/spendwiser/issues/new" // GitHub issue link
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-6 py-2 text-white bg-gray-500 rounded hover:bg-gray-600 transition-colors"

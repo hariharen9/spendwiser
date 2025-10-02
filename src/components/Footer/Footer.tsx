@@ -7,7 +7,7 @@ const Footer = () => {
   return (
     <footer className="text-black dark:text-white py-8 sm:py-16 px-6">
       <CurvedLoop 
-        marqueeText="SPENDWISE ✦ Your ✦ Ultimate ✦ Expense ✦ Tracker ✦"
+        marqueeText="SpendWiser ✦ Your ✦ Ultimate ✦ Expense ✦ Tracker ✦"
         speed={1.8}
         curveAmount={700}
         direction="left"
@@ -136,7 +136,7 @@ const Footer = () => {
             <div className="mt-6 p-4 rounded-xl border border-slate-700">
               <div className="text-center">
                 <p className="text-sm text-gray-600 dark:text-slate-400 mb-3">
-                  💖 Love Spendwise? Consider supporting the development!
+                  💖 Love SpendWiser? Consider supporting the development!
                 </p>
                 <div className="flex justify-center gap-3">
                   <a 
@@ -170,7 +170,7 @@ const Footer = () => {
           transition={{ delay: 0.5 }}
         >
           <p className="text-gray-500 dark:text-slate-400 mb-4 md:mb-0">
-            © 2025 Spendwise. Built with 💜 by{' '}
+            © 2025 SpendWiser. Built with 💜 by{' '}
             <a 
               href="https://hariharen9.site" 
               target="_blank" 
