@@ -31,7 +31,7 @@ const BillSplittingSummary: React.FC<BillSplittingSummaryProps> = ({
     return () => unsubscribe();
   }, []);
 
-  // Calculate summary metrics
+  // Calculate summary metrics using the same logic as BillSplittingModal
   const { totalOwedToUser, totalOwedByUser, netBalance } = (() => {
     if (loading || participants.length === 0) {
       return { totalOwedToUser: 0, totalOwedByUser: 0, netBalance: 0 };
@@ -43,16 +43,19 @@ const BillSplittingSummary: React.FC<BillSplittingSummaryProps> = ({
       return { totalOwedToUser: 0, totalOwedByUser: 0, netBalance: 0 };
     }
 
-    // Calculate amounts based on what "You" are owed vs what you owe
-    const amountOwedToYou = youParticipant.amountOwed;
-    const amountYouOwe = youParticipant.amountPaid;
+    // Calculate balance using the same logic as SummaryView.tsx:
+    // const balance = participant.amountPaid - participant.amountOwed;
+    const balance = youParticipant.amountPaid - youParticipant.amountOwed;
     
-    // Net balance = what you're owed - what you owe
-    const netBalance = amountOwedToYou - amountYouOwe;
+    // If balance > 0, others owe you this amount
+    // If balance < 0, you owe others this amount (as positive value)
+    const totalOwedToUser = balance > 0 ? balance : 0;
+    const totalOwedByUser = balance < 0 ? Math.abs(balance) : 0;
+    const netBalance = balance;
     
     return {
-      totalOwedToUser: amountOwedToYou,
-      totalOwedByUser: amountYouOwe,
+      totalOwedToUser,
+      totalOwedByUser,
       netBalance
     };
   })();
