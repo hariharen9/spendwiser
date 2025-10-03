@@ -5,6 +5,7 @@ import { Expense, Participant, Group } from '../../types/types';
 import { User as FirebaseUser } from 'firebase/auth';
 import { addDoc, collection, Timestamp, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
+import AnimatedDropdown from '../Common/AnimatedDropdown';
 
 interface ExpenseFormProps {
   user: FirebaseUser | null;
@@ -50,14 +51,17 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
       
       // Populate expense splits
       const splits: Record<string, number> = {};
+      const manuallyEdited: Record<string, boolean> = {};
       editingExpense.splits.forEach(split => {
         if (editingExpense.splitType === 'percentage' && split.percentage !== undefined) {
           splits[split.participantId] = split.percentage;
+          manuallyEdited[split.participantId] = true; // Mark as manually edited since it has a value
         } else {
           splits[split.participantId] = split.amount;
         }
       });
       setExpenseSplits(splits);
+      setManuallyEditedParticipants(manuallyEdited);
     } else {
       // Reset form when not editing
       resetExpenseForm();
@@ -250,22 +254,12 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Group
         </label>
-        <select
-          value={newExpense.groupId}
-          onChange={(e) => setNewExpense({...newExpense, groupId: e.target.value})}
-          className="w-full px-3 py-2 bg-white dark:bg-[#242424] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
-          disabled={groups.length === 0}
-        >
-          <option value="">Please select a group</option>
-          {groups.map(group => (
-            <option key={group.id} value={group.id}>
-              {group.name}
-            </option>
-          ))}
-          {groups.length === 0 && (
-            <option disabled>No groups available, Add before proceeding</option>
-          )}
-        </select>
+        <AnimatedDropdown
+          selectedValue={newExpense.groupId}
+          options={[{value: '', label: 'Please select a group'}, ...groups.map(group => ({value: group.id, label: group.name}))]}
+          onChange={(value) => setNewExpense({...newExpense, groupId: value})}
+          placeholder="Please select a group"
+        />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
@@ -298,31 +292,23 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Paid By
           </label>
-          <select
-            value={newExpense.paidBy}
-            onChange={(e) => setNewExpense({...newExpense, paidBy: e.target.value})}
-            className="w-full px-3 py-2 bg-white dark:bg-[#242424] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
-          >
-            {participants.map(participant => (
-              <option key={participant.id} value={participant.id}>
-                {participant.name}
-              </option>
-            ))}
-          </select>
+          <AnimatedDropdown
+            selectedValue={newExpense.paidBy}
+            options={participants.map(participant => ({value: participant.id, label: participant.name}))}
+            onChange={(value) => setNewExpense({...newExpense, paidBy: value})}
+            placeholder="Select who paid"
+          />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Split Type
           </label>
-          <select
-            value={newExpense.splitType}
-            onChange={(e) => setNewExpense({...newExpense, splitType: e.target.value as any})}
-            className="w-full px-3 py-2 bg-white dark:bg-[#242424] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
-          >
-            <option value="equal">Equal Split</option>
-            <option value="unequal">Unequal Split</option>
-            <option value="percentage">Percentage Split</option>
-          </select>
+          <AnimatedDropdown
+            selectedValue={newExpense.splitType}
+            options={[{value: 'equal', label: 'Equal Split'}, {value: 'unequal', label: 'Unequal Split'}, {value: 'percentage', label: 'Percentage Split'}]}
+            onChange={(value) => setNewExpense({...newExpense, splitType: value as 'equal' | 'unequal' | 'percentage'})}
+            placeholder="Select split type"
+          />
         </div>
       </div>
 
@@ -331,6 +317,50 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
           <h4 className="font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
             {newExpense.splitType === 'percentage' ? 'Percentage Split' : 'Amount Split'}
           </h4>
+          
+          {/* Progress bar for percentage splits */}
+          {newExpense.splitType === 'percentage' && (
+            <div className="mb-4">
+              <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
+                <span>Allocation Progress</span>
+                <span>
+                  {Object.values(expenseSplits).reduce((sum, val) => sum + (parseFloat(val.toString()) || 0), 0).toFixed(1)}% of 100%
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                <div 
+                  className="bg-blue-600 h-2.5 rounded-full" 
+                  style={{ 
+                    width: `${Math.min(100, Object.values(expenseSplits).reduce((sum, val) => sum + (parseFloat(val.toString()) || 0), 0))}%` 
+                  }}
+                ></div>
+              </div>
+              {Object.values(expenseSplits).reduce((sum, val) => sum + (parseFloat(val.toString()) || 0), 0) > 100 && (
+                <div className="text-red-500 text-sm mt-1">
+                  Total exceeds 100%! Please adjust values.
+                </div>
+              )}
+            </div>
+          )}
+          
+          {/* Running totals for amount splits */}
+          {newExpense.splitType === 'unequal' && newExpense.amount && parseFloat(newExpense.amount) > 0 && (
+            <div className="mb-4">
+              <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
+                <span>Allocated: ₹{Object.values(expenseSplits).reduce((sum, val) => sum + (parseFloat(val.toString()) || 0), 0).toFixed(2)}</span>
+                <span>Remaining: ₹{(parseFloat(newExpense.amount) - Object.values(expenseSplits).reduce((sum, val) => sum + (parseFloat(val.toString()) || 0), 0)).toFixed(2)}</span>
+              </div>
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                <div 
+                  className="bg-green-600 h-2.5 rounded-full" 
+                  style={{ 
+                    width: `${Math.min(100, (Object.values(expenseSplits).reduce((sum, val) => sum + (parseFloat(val.toString()) || 0), 0) / parseFloat(newExpense.amount)) * 100)}%` 
+                  }}
+                ></div>
+              </div>
+            </div>
+          )}
+          
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             {(() => {
               const currentGroupId = newExpense.groupId || selectedGroup;
@@ -343,50 +373,53 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
                 );
               }
               
+              // Calculate suggested percentage for each participant
+              const calculateSuggestedPercentage = (participantId: string) => {
+                if (newExpense.splitType !== 'percentage') return '';
+                
+                // If this participant has a manually entered value, use that
+                if (manuallyEditedParticipants[participantId] || expenseSplits[participantId] !== undefined) {
+                  return expenseSplits[participantId]?.toString() || '';
+                }
+                
+                // Calculate suggested value based on remaining participants
+                const manuallyEditedIds = Object.keys(manuallyEditedParticipants)
+                  .filter(id => manuallyEditedParticipants[id]);
+                
+                const manuallyEditedTotal = manuallyEditedIds.reduce(
+                  (sum, id) => sum + (expenseSplits[id] || 0), 
+                  0
+                );
+                
+                const autoParticipants = participantsToShow.filter(
+                  p => !manuallyEditedParticipants[p.id]
+                );
+                
+                if (autoParticipants.length > 0) {
+                  const remaining = Math.max(0, 100 - manuallyEditedTotal);
+                  const equalShare = remaining / autoParticipants.length;
+                  
+                  if (autoParticipants.some(p => p.id === participantId)) {
+                    return equalShare.toFixed(1);
+                  }
+                }
+                
+                return '';
+              };
+              
               const handlePercentageChange = (participantId: string, value: string) => {
                 if (newExpense.splitType !== 'percentage') return;
                 
                 const newValue = parseFloat(value) || 0;
                 
+                // Mark this participant as manually edited
                 setManuallyEditedParticipants(prev => ({ ...prev, [participantId]: true }));
                 
-                const updatedSplits = { ...expenseSplits, [participantId]: newValue };
-                
-                const manuallyEditedIds = Object.keys(manuallyEditedParticipants)
-                  .filter(id => manuallyEditedParticipants[id] && id !== participantId);
-                
-                const manuallyEditedTotal = manuallyEditedIds.reduce(
-                  (sum, id) => sum + (updatedSplits[id] || 0), 
-                  0
-                );
-                
-                const totalWithCurrent = manuallyEditedTotal + newValue;
-                
-                const autoParticipants = participantsToShow.filter(
-                  p => p.id !== participantId && !manuallyEditedParticipants[p.id]
-                );
-                
-                if (autoParticipants.length > 0) {
-                  const remaining = Math.max(0, 100 - totalWithCurrent);
-                  const equalShare = remaining / autoParticipants.length;
-                  
-                  autoParticipants.forEach(p => {
-                    updatedSplits[p.id] = parseFloat(equalShare.toFixed(1));
-                  });
-                }
-                
-                const finalTotal = Object.values(updatedSplits).reduce((sum, val) => sum + val, 0);
-                if (finalTotal > 100) {
-                  const lastManuallyEdited = manuallyEditedIds[manuallyEditedIds.length - 1];
-                  if (lastManuallyEdited && lastManuallyEdited !== participantId) {
-                    const adjustment = finalTotal - 100;
-                    updatedSplits[lastManuallyEdited] = Math.max(0, 
-                      parseFloat((updatedSplits[lastManuallyEdited] - adjustment).toFixed(1))
-                    );
-                  }
-                }
-                
-                setExpenseSplits(updatedSplits);
+                // Update the expense splits
+                setExpenseSplits(prev => ({
+                  ...prev,
+                  [participantId]: newValue
+                }));
               };
               
               return participantsToShow.map(participant => (
@@ -410,7 +443,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
                       }
                     }}
                     className="flex-grow px-2 py-1 bg-white dark:bg-[#242424] border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
-                    placeholder={newExpense.splitType === 'percentage' ? '0%' : '0.00'}
+                    placeholder={newExpense.splitType === 'percentage' ? `${calculateSuggestedPercentage(participant.id)}%` : '0.00'}
                   />
                   {newExpense.splitType === 'percentage' && (
                     <span className="text-sm text-gray-500">%</span>

@@ -6,6 +6,7 @@ import { User as FirebaseUser } from 'firebase/auth';
 import { deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 import ConfirmationDialog from './ConfirmationDialog';
+import AnimatedDropdown from '../Common/AnimatedDropdown';
 
 interface HistoryViewProps {
   expenses: Expense[];
@@ -73,18 +74,14 @@ const HistoryView: React.FC<HistoryViewProps> = ({ expenses, groups, participant
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Filter by Group
           </label>
-          <select
-            value={selectedGroup || ''}
-            onChange={(e) => setSelectedGroup(e.target.value || null)}
-            className="w-full md:w-1/3 px-3 py-2 bg-white dark:bg-[#242424] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
-          >
-            <option value="">All Expenses</option>
-            {groups.map(group => (
-              <option key={group.id} value={group.id}>
-                {group.name}
-              </option>
-            ))}
-          </select>
+          <div className="w-full md:w-1/3">
+            <AnimatedDropdown
+              selectedValue={selectedGroup || ''}
+              options={[{value: '', label: 'All Expenses'}, ...groups.map(group => ({value: group.id, label: group.name}))]}
+              onChange={(value) => setSelectedGroup(value || null)}
+              placeholder="Filter by group"
+            />
+          </div>
         </div>
         
         <div>
