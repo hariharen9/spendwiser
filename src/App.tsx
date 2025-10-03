@@ -2413,6 +2413,18 @@ function App() {
           </motion.div>
         </motion.div>
         
+        {/* Version information */}
+        <motion.div 
+          className="absolute top-4 text-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+        >
+          <p className="text-sm text-[#888888]">
+            Version: {import.meta.env.VITE_APP_VERSION || 'development'}
+          </p>
+        </motion.div>
+        
         {/* Footer with attribution */}
         <motion.div 
           className="absolute bottom-4 text-center"
