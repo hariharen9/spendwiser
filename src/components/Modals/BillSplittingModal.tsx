@@ -55,43 +55,75 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
     setEditingExpense(null);
   };
 
-  const calculateSettlements = () => {
-    const balances = participants.map(p => ({
-      participant: p,
+  const calculateSettlementsWithSettled = (settledPayments: { from: string; to: string; amount: number }[] = []) => {
+    // Create a deep copy of participants with their current balances
+    const participantBalances = participants.map(p => ({
+      name: p.name,
       balance: p.amountPaid - p.amountOwed,
     }));
 
-    const debtors = balances.filter(item => item.balance < 0).map(item => ({...item}));
-    const creditors = balances.filter(item => item.balance > 0).map(item => ({...item}));
+    // Adjust balances based on settled payments
+    // For each settled payment, we reduce the debt between participants
+    settledPayments.forEach(settlement => {
+      const fromParticipant = participantBalances.find(p => p.name === settlement.from);
+      const toParticipant = participantBalances.find(p => p.name === settlement.to);
+      
+      if (fromParticipant && toParticipant) {
+        // When a payment is settled, we adjust the balances to reflect that
+        // the debt has been reduced by the settled amount
+        fromParticipant.balance += settlement.amount;  // From person now owes less
+        toParticipant.balance -= settlement.amount;    // To person is now owed less
+      }
+    });
+
+    // Filter out participants with zero balances (no debt)
+    const activeParticipants = participantBalances.filter(p => Math.abs(p.balance) > 0.01);
+
+    // Separate debtors (negative balance) and creditors (positive balance)
+    const debtors = activeParticipants
+      .filter(p => p.balance < -0.01)
+      .map(p => ({ name: p.name, balance: p.balance }))
+      .sort((a, b) => a.balance - b.balance);  // Most negative first
+
+    const creditors = activeParticipants
+      .filter(p => p.balance > 0.01)
+      .map(p => ({ name: p.name, balance: p.balance }))
+      .sort((a, b) => b.balance - a.balance);  // Most positive first
 
     const settlements: { from: string; to: string; amount: number }[] = [];
+    
+    // Work with copies so we don't modify the original arrays
+    let workingDebtors = [...debtors];
+    let workingCreditors = [...creditors];
 
-    while (debtors.length > 0 && creditors.length > 0) {
-      debtors.sort((a, b) => a.balance - b.balance);
-      creditors.sort((a, b) => b.balance - a.balance);
-
-      const debtor = debtors[0];
-      const creditor = creditors[0];
+    // Calculate settlements using the debt reduction algorithm
+    while (workingDebtors.length > 0 && workingCreditors.length > 0) {
+      const debtor = workingDebtors[0];
+      const creditor = workingCreditors[0];
+      
+      // The amount to settle is the minimum of what the debtor owes and what the creditor is owed
       const amountToSettle = Math.min(Math.abs(debtor.balance), creditor.balance);
 
       if (amountToSettle < 0.01) {
-          break;
+        break;
       }
 
       settlements.push({
-        from: debtor.participant.name,
-        to: creditor.participant.name,
+        from: debtor.name,
+        to: creditor.name,
         amount: amountToSettle,
       });
 
+      // Update balances
       debtor.balance += amountToSettle;
       creditor.balance -= amountToSettle;
 
+      // Remove participants who have settled their debts
       if (Math.abs(debtor.balance) < 0.01) {
-        debtors.shift();
+        workingDebtors.shift();
       }
-      if (creditor.balance < 0.01) {
-        creditors.shift();
+      if (Math.abs(creditor.balance) < 0.01) {
+        workingCreditors.shift();
       }
     }
 
@@ -236,7 +268,15 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
                   )}
 
                   {activeTab === 'summary' && (
-                    <SummaryView participants={participants} expenses={expenses} calculateSettlements={calculateSettlements} />
+                    <SummaryView 
+                      participants={participants} 
+                      expenses={expenses} 
+                      calculateSettlements={() => calculateSettlementsWithSettled([])} 
+                      calculateSettlementsWithSettled={calculateSettlementsWithSettled}
+                      user={user}
+                      groupId={selectedGroup || groups[0]?.id || ''}
+                      showToast={showLocalToast}
+                    />
                   )}
 
                   {activeTab === 'history' && (
