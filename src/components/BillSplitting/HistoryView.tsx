@@ -241,6 +241,11 @@ const HistoryView: React.FC<HistoryViewProps> = ({ expenses, groups, participant
                             </h4>
                             <p className="text-sm text-gray-500 dark:text-[#888888]">
                               Paid by {getPaidByName(expense.paidBy)} • {new Date(expense.date).toLocaleDateString()}
+                              {expense.category && (
+                                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200">
+                                  {expense.category}
+                                </span>
+                              )}
                               {expense.groupId && (
                                 <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">
                                   {groups.find(g => g.id === expense.groupId)?.name || 'Group'}

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Plus, Save } from 'lucide-react';
 import { Expense, Participant, Group } from '../../types/types';
 import { User as FirebaseUser } from 'firebase/auth';
-import { addDoc, collection, Timestamp, updateDoc, doc } from 'firebase/firestore';
+import { addDoc, collection, Timestamp, updateDoc, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 import AnimatedDropdown from '../Common/AnimatedDropdown';
 
@@ -35,9 +35,69 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
     splitType: 'equal' as 'equal' | 'unequal' | 'percentage',
     groupId: '' as string,
     date: new Date().toISOString().split('T')[0], // Add date field, default to today
+    category: '' as string, // Add category field
   });
   const [expenseSplits, setExpenseSplits] = useState<Record<string, number>>({});
   const [manuallyEditedParticipants, setManuallyEditedParticipants] = useState<Record<string, boolean>>({});
+  const [categories, setCategories] = useState<string[]>([]); // State for categories
+
+  // Fetch categories from Firestore
+  useEffect(() => {
+    const fetchCategories = async () => {
+      if (user) {
+        try {
+          const userDocRef = doc(db, 'spenders', user.uid);
+          const userDoc = await getDoc(userDocRef);
+          
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            if (userData.categories) {
+              setCategories(userData.categories);
+            } else {
+              // Default categories if none exist
+              setCategories([
+                "Food & Dining",
+                "Groceries",
+                "Transportation",
+                "Entertainment",
+                "Shopping",
+                "Personal",
+                "Utilities",
+                "Healthcare",
+                "Education",
+                "Bills",
+                "Rent & Housing",
+                "Investment",
+                "Travel",
+                "Other",
+              ]);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching categories:', error);
+          // Set default categories in case of error
+          setCategories([
+            "Food & Dining",
+            "Groceries",
+            "Transportation",
+            "Entertainment",
+            "Shopping",
+            "Personal",
+            "Utilities",
+            "Healthcare",
+            "Education",
+            "Bills",
+            "Rent & Housing",
+            "Investment",
+            "Travel",
+            "Other",
+          ]);
+        }
+      }
+    };
+
+    fetchCategories();
+  }, [user]);
 
   // Populate form when editingExpense changes
   useEffect(() => {
@@ -49,6 +109,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
         splitType: editingExpense.splitType,
         groupId: editingExpense.groupId || '',
         date: editingExpense.date || new Date().toISOString().split('T')[0], // Add date field
+        category: editingExpense.category || '', // Add category field
       });
       
       // Populate expense splits
@@ -82,6 +143,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
       splitType: 'equal',
       groupId: selectedGroup || '',
       date: new Date().toISOString().split('T')[0], // Reset to today's date
+      category: '', // Reset category
     });
     setExpenseSplits({});
     setManuallyEditedParticipants({});
@@ -144,6 +206,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
         splitType: newExpense.splitType,
         splits: splits,
         date: newExpense.date, // Use selected date instead of current date
+        category: newExpense.category, // Add category to expense data
         createdAt: Timestamp.now()
       };
       
@@ -223,6 +286,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
         splitType: newExpense.splitType,
         splits: splits,
         date: newExpense.date, // Use selected date instead of current date
+        category: newExpense.category, // Add category to expense data
         updatedAt: Timestamp.now()
       };
       
@@ -311,6 +375,17 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
             value={newExpense.date}
             onChange={(e) => setNewExpense({...newExpense, date: e.target.value})}
             className="w-full px-3 py-2 bg-white dark:bg-[#242424] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Category
+          </label>
+          <AnimatedDropdown
+            selectedValue={newExpense.category}
+            options={[{value: '', label: 'Select a category'}, ...categories.map(category => ({value: category, label: category}))]}
+            onChange={(value) => setNewExpense({...newExpense, category: value})}
+            placeholder="Select a category"
           />
         </div>
         <div>

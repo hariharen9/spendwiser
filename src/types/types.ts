@@ -136,4 +136,5 @@ export interface Expense {
   date: string;
   groupId?: string;
   createdAt?: Date;
+  category?: string; // Add category field
 }
