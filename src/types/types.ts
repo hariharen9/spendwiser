@@ -105,3 +105,35 @@ export interface Shortcut {
   type: 'income' | 'expense';
   accountId?: string;
 }
+
+export interface Participant {
+  id: string;
+  name: string;
+  avatar?: string;
+  amountOwed: number;
+  amountPaid: number;
+}
+
+export interface Group {
+  id: string;
+  name: string;
+  participantIds: string[];
+  createdAt?: Date;
+  currency?: string;
+}
+
+export interface Expense {
+  id: string;
+  description: string;
+  amount: number;
+  paidBy: string;
+  splitType: 'equal' | 'unequal' | 'percentage';
+  splits: {
+    participantId: string;
+    amount: number;
+    percentage?: number;
+  }[];
+  date: string;
+  groupId?: string;
+  createdAt?: Date;
+}
