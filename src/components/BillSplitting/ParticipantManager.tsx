@@ -3,9 +3,10 @@ import { motion } from 'framer-motion';
 import { Plus, Trash2, User, X, Check } from 'lucide-react';
 import { Participant } from '../../types/types';
 import { User as FirebaseUser } from 'firebase/auth';
-import { addDoc, collection, Timestamp, deleteDoc, doc } from 'firebase/firestore';
+import { addDoc, collection, Timestamp, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 import ConfirmationDialog from './ConfirmationDialog';
+import EditInput from './EditInput';
 
 interface ParticipantManagerProps {
   participants: Participant[];
@@ -75,6 +76,28 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
     }
   };
 
+  const updateParticipantName = async (id: string, newName: string) => {
+    if (!newName.trim() || !user) {
+      showToast('Participant name cannot be empty.', 'error');
+      return;
+    }
+
+    try {
+      await updateDoc(
+        doc(db, 'spenders', user.uid, 'billSplittingParticipants', id),
+        { name: newName.trim() }
+      );
+
+      setParticipants(participants.map(p => 
+        p.id === id ? { ...p, name: newName.trim() } : p
+      ));
+      showToast('Participant name updated!', 'success');
+    } catch (error) {
+      console.error('Error updating participant name:', error);
+      showToast('Error updating participant name.', 'error');
+    }
+  };
+
   return (
     <>
       <div className="bg-gray-50 dark:bg-[#1A1A1A] rounded-lg p-4">
@@ -136,9 +159,18 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                 <div className="bg-gray-200 dark:bg-gray-700 rounded-full p-2">
                   <User className="h-4 w-4 text-gray-600 dark:text-[#888888]" />
                 </div>
-                <span className="font-medium text-gray-900 dark:text-[#F5F5F5]">
-                  {participant.name}
-                </span>
+                {participant.id === '1' ? (
+                  <span className="font-medium text-gray-900 dark:text-[#F5F5F5]">
+                    {participant.name}
+                  </span>
+                ) : (
+                  <EditInput
+                    value={participant.name}
+                    onSave={(newName) => updateParticipantName(participant.id, newName)}
+                    placeholder="Participant name"
+                    className="flex-grow"
+                  />
+                )}
               </div>
               {participant.id !== '1' && (
                 <motion.button

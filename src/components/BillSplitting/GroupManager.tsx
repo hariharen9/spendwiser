@@ -6,6 +6,7 @@ import { User as FirebaseUser } from 'firebase/auth';
 import { addDoc, collection, Timestamp, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 import ConfirmationDialog from './ConfirmationDialog';
+import EditInput from './EditInput';
 
 interface GroupManagerProps {
   groups: Group[];
@@ -73,6 +74,27 @@ const GroupManager: React.FC<GroupManagerProps> = ({
       showToast('Error removing group.', 'error');
     } finally {
       setGroupToDelete(null);
+    }
+  };
+
+  const updateGroupName = async (id: string, newName: string) => {
+    if (!newName.trim() || !user) {
+      showToast('Group name cannot be empty.', 'error');
+      return;
+    }
+
+    try {
+      await updateDoc(
+        doc(db, 'spenders', user.uid, 'billSplittingGroups', id),
+        { name: newName.trim() }
+      );
+
+      // Update the groups in the UI
+      // Note: The groups are managed by the parent component through the useBillSplittingData hook
+      showToast('Group name updated!', 'success');
+    } catch (error) {
+      console.error('Error updating group name:', error);
+      showToast('Error updating group name.', 'error');
     }
   };
 
@@ -191,10 +213,15 @@ const GroupManager: React.FC<GroupManagerProps> = ({
             {groups.map((group) => (
               <div key={group.id} className="bg-white dark:bg-[#242424] rounded-lg p-3 border border-gray-200 dark:border-gray-700">
                 <div className="flex justify-between items-center mb-2">
-                  <h4 className="font-medium text-gray-900 dark:text-[#F5F5F5]">{group.name}</h4>
+                  <EditInput
+                    value={group.name}
+                    onSave={(newName) => updateGroupName(group.id, newName)}
+                    placeholder="Group name"
+                    className="flex-grow"
+                  />
                   <motion.button
                     onClick={() => confirmDeleteGroup(group.id)}
-                    className="text-red-500 hover:text-red-700"
+                    className="text-red-500 hover:text-red-700 ml-2"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                   >
