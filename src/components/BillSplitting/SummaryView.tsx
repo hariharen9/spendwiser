@@ -107,6 +107,23 @@ const SummaryView: React.FC<SummaryViewProps> = ({ participants, expenses, calcu
     }
   };
 
+  const getParticipantName = (id: string) => {
+    const participant = participants.find(p => p.id === id);
+    return participant ? participant.name : 'Unknown';
+  };
+
+  const truncateName = (name: string) => {
+    if (name.length >= 8) {
+      return name.substring(0, 6) + '..';
+    }
+    return name;
+  };
+
+  const getPaidByName = (id: string) => {
+    if (id === '1') return 'You';
+    return truncateName(getParticipantName(id));
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -150,8 +167,8 @@ const SummaryView: React.FC<SummaryViewProps> = ({ participants, expenses, calcu
                     <User className="h-4 w-4 text-gray-600 dark:text-[#888888]" />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900 dark:text-[#F5F5F5]">
-                      {participant.name}
+                    <p className="font-medium text-gray-900 dark:text-[#F5F5F5] truncate max-w-[150px]" title={participant.name}>
+                      {participant.name.length >= 8 ? participant.name.substring(0, 6) + '..' : participant.name}
                     </p>
                     <p className="text-sm text-gray-500 dark:text-[#888888]">
                       Paid: ₹{participant.amountPaid.toFixed(2)} | Owed: ₹{participant.amountOwed.toFixed(2)}
@@ -181,7 +198,7 @@ const SummaryView: React.FC<SummaryViewProps> = ({ participants, expenses, calcu
               return (
                 <div 
                   key={index} 
-                  className={`flex items-center justify-between p-3 rounded-lg border text-sm ${
+                  className={`flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-lg border text-sm space-y-2 sm:space-y-0 ${
                     isSettled 
                       ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' 
                       : 'bg-white dark:bg-[#242424] border-gray-200 dark:border-gray-700'
@@ -191,17 +208,23 @@ const SummaryView: React.FC<SummaryViewProps> = ({ participants, expenses, calcu
                     <div className="bg-red-100 dark:bg-red-900/30 rounded-full p-1.5">
                       <User className="h-4 w-4 text-red-600 dark:text-red-300" />
                     </div>
-                    <span className="font-medium text-gray-900 dark:text-[#F5F5F5]">{from}</span>
+                    <span className="font-medium text-gray-900 dark:text-[#F5F5F5] truncate max-w-[120px]" title={from}>
+                      {from.length >= 8 ? from.substring(0, 6) + '..' : from}
+                    </span>
                   </div>
-                  <div className="flex items-center space-x-2 font-medium text-gray-500 dark:text-[#888888]">
+                  <div className="flex items-center justify-center sm:justify-start space-x-2 font-medium text-gray-500 dark:text-[#888888]">
                     <span>pays</span>
                     <span className="font-bold text-base text-gray-800 dark:text-gray-200">₹{amount.toFixed(2)}</span>
                     <span>to</span>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <span className="font-medium text-gray-900 dark:text-[#F5F5F5]">{to}</span>
-                    <div className="bg-green-100 dark:bg-green-900/30 rounded-full p-1.5">
-                      <User className="h-4 w-4 text-green-600 dark:text-green-300" />
+                  <div className="flex items-center justify-between sm:justify-end space-x-2">
+                    <div className="flex items-center space-x-2">
+                      <span className="font-medium text-gray-900 dark:text-[#F5F5F5] truncate max-w-[120px]" title={to}>
+                        {to.length >= 8 ? to.substring(0, 6) + '..' : to}
+                      </span>
+                      <div className="bg-green-100 dark:bg-green-900/30 rounded-full p-1.5">
+                        <User className="h-4 w-4 text-green-600 dark:text-green-300" />
+                      </div>
                     </div>
                     {isSettled ? (
                       <button

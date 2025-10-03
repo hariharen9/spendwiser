@@ -160,8 +160,8 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({ participants, s
                   <User className="h-4 w-4 text-gray-600 dark:text-[#888888]" />
                 </div>
                 {participant.id === '1' ? (
-                  <span className="font-medium text-gray-900 dark:text-[#F5F5F5]">
-                    {participant.name}
+                  <span className="font-medium text-gray-900 dark:text-[#F5F5F5] truncate max-w-[150px]" title={participant.name}>
+                    {participant.name.length >= 8 ? participant.name.substring(0, 6) + '..' : participant.name}
                   </span>
                 ) : (
                   <EditInput

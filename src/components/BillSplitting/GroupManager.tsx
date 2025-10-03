@@ -237,8 +237,9 @@ const GroupManager: React.FC<GroupManagerProps> = ({
                         <span 
                           key={participant.id} 
                           className="inline-flex items-center bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full text-xs"
+                          title={participant.name}
                         >
-                          {participant.name}
+                          {participant.name.length >= 8 ? participant.name.substring(0, 6) + '..' : participant.name}
                           <button 
                             onClick={() => removeParticipantFromGroup(group.id, participant.id)}
                             className="ml-1 text-blue-800 dark:text-blue-200 hover:text-red-500"
@@ -261,12 +262,13 @@ const GroupManager: React.FC<GroupManagerProps> = ({
                         <motion.button
                           key={participant.id}
                           onClick={() => addParticipantToGroup(group.id, participant.id)}
-                          className="inline-flex items-center bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-[#F5F5F5] px-2 py-1 rounded-full text-xs hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                          className="inline-flex items-center bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 px-2 py-1 rounded-full text-xs mr-2 mb-2 hover:bg-green-200 dark:hover:bg-green-800 transition-colors"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
+                          title={participant.name}
                         >
                           <Plus className="h-3 w-3 mr-1" />
-                          {participant.name}
+                          {participant.name.length >= 8 ? participant.name.substring(0, 6) + '..' : participant.name}
                         </motion.button>
                       ))}
                     </div>

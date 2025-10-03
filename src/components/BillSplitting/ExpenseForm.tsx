@@ -513,8 +513,8 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
               
               return participantsToShow.map(participant => (
                 <div key={participant.id} className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-700 dark:text-gray-300 w-20 truncate">
-                    {participant.name}
+                  <span className="text-sm text-gray-700 dark:text-gray-300 w-20 truncate" title={participant.name}>
+                    {participant.name.length >= 8 ? participant.name.substring(0, 6) + '..' : participant.name}
                   </span>
                   <input
                     type="number"

@@ -257,8 +257,11 @@ const HistoryView: React.FC<HistoryViewProps> = ({ expenses, groups, participant
                                 <span 
                                   key={split.participantId} 
                                   className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full"
+                                  title={getParticipantName(split.participantId)}
                                 >
-                                  {getParticipantName(split.participantId)}: ₹{split.amount.toFixed(2)}
+                                  {getParticipantName(split.participantId).length >= 8 
+                                    ? getParticipantName(split.participantId).substring(0, 6) + '..' 
+                                    : getParticipantName(split.participantId)}: ₹{split.amount.toFixed(2)}
                                   {expense.splitType === 'percentage' && split.percentage && ` (${split.percentage.toFixed(1)}%)`}
                                 </span>
                               ))}
