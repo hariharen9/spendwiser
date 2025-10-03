@@ -6,6 +6,7 @@ import { modalVariants } from '../Common/AnimationVariants';
 import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where, Timestamp } from 'firebase/firestore';
 import { db, auth } from '../../firebaseConfig';
 import { User as FirebaseUser } from 'firebase/auth';
+import { useToast } from '../../hooks/useToast';
 
 interface Participant {
   id: string;
@@ -52,6 +53,7 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
   isMobile = false,
   onBack 
 }) => {
+  const { addToast } = useToast();
   const [user, setUser] = useState<FirebaseUser | null>(null); // Use Firebase User type
   const [activeTab, setActiveTab] = useState<'expenses' | 'summary' | 'history'>('expenses');
   const [participants, setParticipants] = useState<Participant[]>([
@@ -70,14 +72,22 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
   const [expenseSplits, setExpenseSplits] = useState<Record<string, number>>({});
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const [showAddParticipant, setShowAddParticipant] = useState(false);
+// Add this new state for tracking manual edits
+  const [manuallyEditedParticipants, setManuallyEditedParticipants] = useState<Record<string, boolean>>({});
 
   const [groups, setGroups] = useState<Group[]>([]);
   const [newGroupName, setNewGroupName] = useState('');
   const [showAddGroup, setShowAddGroup] = useState(false);
-  const [selectedGroup, setSelectedGroup] = useState<string | null>(null); // ID of the selected group
+  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [groupParticipants, setGroupParticipants] = useState<Record<string, string[]>>({}); // Group ID -> participant IDs
   const [loading, setLoading] = useState(true); // Add loading state
+  const [localToast, setLocalToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
   const expenseListenersRef = React.useRef<Record<string, () => void>>({});
+
+  const showLocalToast = (message: string, type: 'success' | 'error') => {
+    setLocalToast({ message, type });
+    setTimeout(() => setLocalToast(null), 3000);
+  };
 
   // Set up auth state listener
   useEffect(() => {
@@ -215,7 +225,10 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
   }, [expenses]);
 
   const addParticipant = async () => {
-    if (!newParticipantName.trim() || !user) return;
+    if (!newParticipantName.trim() || !user) {
+      showLocalToast('Participant name cannot be empty.', 'error');
+      return;
+    }
 
     try {
       // Add participant to Firestore at the global level
@@ -238,8 +251,10 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
       setParticipants([...participants, newParticipant]);
       setNewParticipantName('');
       setShowAddParticipant(false);
+      showLocalToast('Participant added!', 'success');
     } catch (error) {
       console.error('Error adding participant:', error);
+      showLocalToast('Error adding participant.', 'error');
     }
   };
 
@@ -271,14 +286,19 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
         });
         return updated;
       });
+      showLocalToast('Participant removed.', 'success');
     } catch (error) {
       console.error('Error removing participant:', error);
+      showLocalToast('Error removing participant.', 'error');
     }
   };
 
   // Group management functions
   const addGroup = async () => {
-    if (!newGroupName.trim() || !user) return;
+    if (!newGroupName.trim() || !user) {
+      showLocalToast('Group name cannot be empty.', 'error');
+      return;
+    }
     
     try {
       // Add group to Firestore
@@ -304,8 +324,10 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
       setGroups([...groups, newGroup]);
       setNewGroupName('');
       setShowAddGroup(false);
+      showLocalToast('Group added successfully!', 'success');
     } catch (error) {
       console.error('Error adding group:', error);
+      showLocalToast('Error adding group.', 'error');
     }
   };
 
@@ -325,8 +347,10 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
       if (selectedGroup === id) {
         setSelectedGroup(null);
       }
+      showLocalToast('Group removed.', 'success');
     } catch (error) {
       console.error('Error removing group:', error);
+      showLocalToast('Error removing group.', 'error');
     }
   };
 
@@ -349,9 +373,11 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
           ...groupParticipants,
           [groupId]: [...currentParticipants, participantId]
         });
+        showLocalToast('Participant added to group.', 'success');
       }
     } catch (error) {
       console.error('Error adding participant to group:', error);
+      showLocalToast('Error adding participant to group.', 'error');
     }
   };
 
@@ -375,8 +401,10 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
         ...groupParticipants,
         [groupId]: updatedParticipants
       });
+      showLocalToast('Participant removed from group.', 'success');
     } catch (error) {
       console.error('Error removing participant from group:', error);
+      showLocalToast('Error removing participant from group.', 'error');
     }
   };
 
@@ -393,13 +421,19 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
   };
 
   const addExpense = async () => {
-    if (!newExpense.description || !newExpense.amount || parseFloat(newExpense.amount) <= 0 || !user) return;
+    if (!newExpense.description || !newExpense.amount || parseFloat(newExpense.amount) <= 0) {
+      showLocalToast('Please fill out the description and amount.', 'error');
+      return;
+    }
+    if (!user) {
+      showLocalToast('You must be logged in to add an expense.', 'error');
+      return;
+    }
 
     // Check if a group is selected
     const currentGroupId = newExpense.groupId || selectedGroup;
     if (!currentGroupId || currentGroupId === '') {
-      console.error('Please select a group to add the expense to');
-      // Optionally, you could show a toast notification here
+      showLocalToast('Please select a group to add the expense to.', 'error');
       return;
     }
 
@@ -425,12 +459,17 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
       } else {
         // For unequal and percentage splits, we'll use the expenseSplits state
         splits = groupParticipantsList.map(participant => {
-          const splitAmount = expenseSplits[participant.id] || 0;
+          const splitValue = expenseSplits[participant.id] || 0;
+          // For percentage splits, calculate the actual amount from the percentage
+          const actualAmount = newExpense.splitType === 'percentage' ? 
+            (splitValue / 100) * amount : 
+            splitValue;
+            
           return {
             participantId: participant.id,
-            amount: splitAmount,
+            amount: actualAmount,
             percentage: newExpense.splitType === 'percentage' ? 
-              (splitAmount / amount) * 100 : undefined
+              splitValue : undefined
           };
         });
       }
@@ -447,30 +486,17 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
       };
       
       // Add expense to Firestore in the selected group's expenses collection
-      const expenseRef = await addDoc(
+      await addDoc(
         collection(db, 'spenders', user.uid, 'billSplittingGroups', currentGroupId, 'expenses'),
         expenseData
       );
 
-      // Update local state
-      const expense: Expense = {
-        id: expenseRef.id,
-        description: newExpense.description,
-        amount,
-        paidBy: newExpense.paidBy,
-        splitType: newExpense.splitType,
-        splits,
-        date: new Date().toISOString().split('T')[0],
-        groupId: currentGroupId,
-        createdAt: new Date()
-      };
-
-      // The listener will automatically update the state.
-      // setExpenses([...expenses, expense]);
+      showLocalToast('Expense added successfully!', 'success');
       
       resetExpenseForm();
     } catch (error) {
       console.error('Error adding expense:', error);
+      showLocalToast('Error adding expense. Please try again.', 'error');
     }
   };
 
@@ -501,8 +527,10 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
       // Update local state
       // The listener will automatically update the state.
       // setExpenses(expenses.filter(expense => expense.id !== id));
+      showLocalToast('Expense removed.', 'success');
     } catch (error) {
       console.error('Error removing expense:', error);
+      showLocalToast('Error removing expense.', 'error');
     }
   };
 
@@ -606,9 +634,12 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
                   <div className="p-2 bg-[#007BFF] rounded-lg">
                     <Users className="h-5 w-5 text-white" />
                   </div>
-                  <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-[#F5F5F5]">
-                    Bill Splitting
-                  </h2>
+                  <div>
+                    <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-[#F5F5F5]">
+                      Bill Splitting
+                    </h2>
+                    <p className="text-sm text-blue-500 font-medium">*Split*wise within SpendWise 😉</p>
+                  </div>
                 </motion.div>
               </div>
               <div className="flex items-center space-x-2">
@@ -965,7 +996,7 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
                           {/* Group Selection */}
                           <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                              Group (Optional)
+                              Group
                             </label>
                             <select
                               value={newExpense.groupId}
@@ -973,48 +1004,129 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
                               className="w-full px-3 py-2 bg-white dark:bg-[#242424] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
                               disabled={groups.length === 0}
                             >
-                              <option value="">No Group</option>
+                              <option value="">Please select a group</option>
                               {groups.map(group => (
                                 <option key={group.id} value={group.id}>
                                   {group.name}
                                 </option>
                               ))}
                               {groups.length === 0 && (
-                                <option disabled>No groups available</option>
+                                <option disabled>No groups available, Add before proceeding</option>
                               )}
                             </select>
                           </div>
                         </div>
 
                         {/* Split Details */}
-                        {newExpense.splitType !== 'equal' && (
+                        {(newExpense.splitType === 'unequal' || newExpense.splitType === 'percentage') && (
                           <div className="mt-4">
                             <h4 className="font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
                               {newExpense.splitType === 'percentage' ? 'Percentage Split' : 'Amount Split'}
                             </h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                              {participants.map(participant => (
-                                <div key={participant.id} className="flex items-center space-x-2">
-                                  <span className="text-sm text-gray-700 dark:text-gray-300 w-20 truncate">
-                                    {participant.name}
-                                  </span>
-                                  <input
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    value={expenseSplits[participant.id] || ''}
-                                    onChange={(e) => setExpenseSplits({
-                                      ...expenseSplits,
-                                      [participant.id]: parseFloat(e.target.value) || 0
-                                    })}
-                                    className="flex-grow px-2 py-1 bg-white dark:bg-[#242424] border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
-                                    placeholder={newExpense.splitType === 'percentage' ? '0%' : '0.00'}
-                                  />
-                                  {newExpense.splitType === 'percentage' && (
-                                    <span className="text-sm text-gray-500">%</span>
-                                  )}
-                                </div>
-                              ))}
+                              {(() => {
+                                // Determine which participants to show based on group selection
+                                const currentGroupId = newExpense.groupId || selectedGroup;
+                                let participantsToShow = participants;
+                                
+                                // If a group is selected, filter participants to only show group members
+                                if (currentGroupId) {
+                                  const groupParticipantIds = groupParticipants[currentGroupId] || [];
+                                  participantsToShow = participants.filter(participant => 
+                                    participant.id === '1' || groupParticipantIds.includes(participant.id)
+                                  );
+                                }
+                                
+                                // Handle automatic percentage distribution
+                                const handlePercentageChange = (participantId: string, value: string) => {
+                                  if (newExpense.splitType !== 'percentage') return;
+                                  
+                                  const newValue = parseFloat(value) || 0;
+                                  
+                                  // Mark this participant as manually edited
+                                  setManuallyEditedParticipants(prev => ({
+                                    ...prev,
+                                    [participantId]: true
+                                  }));
+                                  
+                                  // Update the value for this participant
+                                  const updatedSplits = {
+                                    ...expenseSplits,
+                                    [participantId]: newValue
+                                  };
+                                  
+                                  // Calculate total of manually edited values
+                                  const manuallyEditedIds = Object.keys(manuallyEditedParticipants)
+                                    .filter(id => manuallyEditedParticipants[id] && id !== participantId);
+                                  
+                                  const manuallyEditedTotal = manuallyEditedIds.reduce(
+                                    (sum, id) => sum + (updatedSplits[id] || 0), 
+                                    0
+                                  );
+                                  
+                                  // Add the current edited value
+                                  const totalWithCurrent = manuallyEditedTotal + newValue;
+                                  
+                                  // Find participants that haven't been manually edited (excluding current)
+                                  const autoParticipants = participantsToShow.filter(
+                                    p => p.id !== participantId && !manuallyEditedParticipants[p.id]
+                                  );
+                                  
+                                  // Distribute remaining percentage among auto participants
+                                  if (autoParticipants.length > 0) {
+                                    const remaining = Math.max(0, 100 - totalWithCurrent);
+                                    const equalShare = remaining / autoParticipants.length;
+                                    
+                                    autoParticipants.forEach(p => {
+                                      updatedSplits[p.id] = parseFloat(equalShare.toFixed(1));
+                                    });
+                                  }
+                                  
+                                  // Adjust if total exceeds 100
+                                  const finalTotal = Object.values(updatedSplits).reduce((sum, val) => sum + val, 0);
+                                  if (finalTotal > 100) {
+                                    // Find the last manually edited participant (other than current) to adjust
+                                    const lastManuallyEdited = manuallyEditedIds[manuallyEditedIds.length - 1];
+                                    if (lastManuallyEdited && lastManuallyEdited !== participantId) {
+                                      const adjustment = finalTotal - 100;
+                                      updatedSplits[lastManuallyEdited] = Math.max(0, 
+                                        parseFloat((updatedSplits[lastManuallyEdited] - adjustment).toFixed(1))
+                                      );
+                                    }
+                                  }
+                                  
+                                  setExpenseSplits(updatedSplits);
+                                };
+                                
+                                return participantsToShow.map(participant => (
+                                  <div key={participant.id} className="flex items-center space-x-2">
+                                    <span className="text-sm text-gray-700 dark:text-gray-300 w-20 truncate">
+                                      {participant.name}
+                                    </span>
+                                    <input
+                                      type="number"
+                                      step="0.1"
+                                      min="0"
+                                      value={expenseSplits[participant.id] || ''}
+                                      onChange={(e) => {
+                                        if (newExpense.splitType === 'percentage') {
+                                          handlePercentageChange(participant.id, e.target.value);
+                                        } else {
+                                          setExpenseSplits({
+                                            ...expenseSplits,
+                                            [participant.id]: parseFloat(e.target.value) || 0
+                                          });
+                                        }
+                                      }}
+                                      className="flex-grow px-2 py-1 bg-white dark:bg-[#242424] border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
+                                      placeholder={newExpense.splitType === 'percentage' ? '0%' : '0.00'}
+                                    />
+                                    {newExpense.splitType === 'percentage' && (
+                                      <span className="text-sm text-gray-500">%</span>
+                                    )}
+                                  </div>
+                                ));
+                              })()}
                             </div>
                           </div>
                         )}
@@ -1260,6 +1372,19 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
                 </div>
               </div>
             </div>
+
+            <AnimatePresence>
+              {localToast && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 20, scale: 0.9 }}
+                  className={`absolute bottom-20 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full text-white text-sm font-medium shadow-lg
+                    ${localToast.type === 'success' ? 'bg-green-500' : 'bg-red-500'}`}>
+                  {localToast.message}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         </motion.div>
       )}
