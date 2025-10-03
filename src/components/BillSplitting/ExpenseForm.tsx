@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus } from 'lucide-react';
+import { Plus, Save } from 'lucide-react';
 import { Expense, Participant, Group } from '../../types/types';
 import { User as FirebaseUser } from 'firebase/auth';
-import { addDoc, collection, Timestamp } from 'firebase/firestore';
+import { addDoc, collection, Timestamp, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 
 interface ExpenseFormProps {
@@ -14,6 +13,8 @@ interface ExpenseFormProps {
   groupParticipants: Record<string, string[]>;
   selectedGroup: string | null;
   showToast: (message: string, type: 'success' | 'error') => void;
+  editingExpense: Expense | null;
+  resetEditingExpense: () => void;
 }
 
 const ExpenseForm: React.FC<ExpenseFormProps> = ({ 
@@ -22,7 +23,9 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
   groups, 
   groupParticipants, 
   selectedGroup, 
-  showToast 
+  showToast,
+  editingExpense,
+  resetEditingExpense
 }) => {
   const [newExpense, setNewExpense] = useState({
     description: '',
@@ -32,8 +35,34 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
     groupId: '' as string,
   });
   const [expenseSplits, setExpenseSplits] = useState<Record<string, number>>({});
-  const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const [manuallyEditedParticipants, setManuallyEditedParticipants] = useState<Record<string, boolean>>({});
+
+  // Populate form when editingExpense changes
+  useEffect(() => {
+    if (editingExpense) {
+      setNewExpense({
+        description: editingExpense.description,
+        amount: editingExpense.amount.toString(),
+        paidBy: editingExpense.paidBy,
+        splitType: editingExpense.splitType,
+        groupId: editingExpense.groupId || '',
+      });
+      
+      // Populate expense splits
+      const splits: Record<string, number> = {};
+      editingExpense.splits.forEach(split => {
+        if (editingExpense.splitType === 'percentage' && split.percentage !== undefined) {
+          splits[split.participantId] = split.percentage;
+        } else {
+          splits[split.participantId] = split.amount;
+        }
+      });
+      setExpenseSplits(splits);
+    } else {
+      // Reset form when not editing
+      resetExpenseForm();
+    }
+  }, [editingExpense]);
 
   useEffect(() => {
     setNewExpense(prev => ({ ...prev, groupId: selectedGroup || '' }));
@@ -124,10 +153,98 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
     }
   };
 
+  const updateExpense = async () => {
+    if (!editingExpense || !editingExpense.id || !editingExpense.groupId) {
+      showToast('No expense to update.', 'error');
+      return;
+    }
+    
+    if (!newExpense.description || !newExpense.amount || parseFloat(newExpense.amount) <= 0) {
+      showToast('Please fill out the description and amount.', 'error');
+      return;
+    }
+    
+    if (!user) {
+      showToast('You must be logged in to update an expense.', 'error');
+      return;
+    }
+
+    const currentGroupId = newExpense.groupId || selectedGroup;
+    if (!currentGroupId || currentGroupId === '') {
+      showToast('Please select a group to update the expense in.', 'error');
+      return;
+    }
+
+    try {
+      const amount = parseFloat(newExpense.amount);
+      let splits: Expense['splits'] = [];
+
+      const groupParticipantIds = groupParticipants[currentGroupId] || [];
+      const groupParticipantsList = participants.filter(p => 
+        p.id === '1' || groupParticipantIds.includes(p.id)
+      );
+
+      if (newExpense.splitType === 'equal') {
+        const participantCount = groupParticipantsList.length;
+        if (participantCount > 0) {
+          const equalAmount = amount / participantCount;
+          splits = groupParticipantsList.map(participant => ({
+            participantId: participant.id,
+            amount: equalAmount,
+          }));
+        }
+      } else {
+        splits = groupParticipantsList.map(participant => {
+          const splitValue = expenseSplits[participant.id] || 0;
+          const actualAmount = newExpense.splitType === 'percentage' ? 
+            (splitValue / 100) * amount : 
+            splitValue;
+            
+          return {
+            participantId: participant.id,
+            amount: actualAmount,
+            percentage: newExpense.splitType === 'percentage' ? 
+              splitValue : undefined
+          };
+        });
+      }
+
+      const expenseData = {
+        description: newExpense.description,
+        amount: amount,
+        paidBy: newExpense.paidBy,
+        splitType: newExpense.splitType,
+        splits: splits,
+        date: new Date().toISOString().split('T')[0],
+        updatedAt: Timestamp.now()
+      };
+      
+      await updateDoc(
+        doc(db, 'spenders', user.uid, 'billSplittingGroups', currentGroupId, 'expenses', editingExpense.id),
+        expenseData
+      );
+
+      showToast('Expense updated successfully!', 'success');
+      resetEditingExpense();
+      resetExpenseForm();
+    } catch (error) {
+      console.error('Error updating expense:', error);
+      showToast('Error updating expense. Please try again.', 'error');
+    }
+  };
+
+  const handleSubmit = () => {
+    if (editingExpense) {
+      updateExpense();
+    } else {
+      addExpense();
+    }
+  };
+
   return (
     <div className="bg-gray-50 dark:bg-[#1A1A1A] rounded-lg p-4">
       <h3 className="font-semibold text-gray-900 dark:text-[#F5F5F5] mb-3">
-        {editingExpenseId ? 'Edit Expense' : 'Add New Expense'}
+        {editingExpense ? 'Edit Expense' : 'Add New Expense'}
       </h3>
       <div className='mb-4'>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -306,9 +423,9 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
       )}
 
       <div className="mt-4 flex justify-end space-x-2">
-        {editingExpenseId && (
+        {editingExpense && (
           <motion.button
-            onClick={() => setEditingExpenseId(null)}
+            onClick={resetEditingExpense}
             className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-[#F5F5F5] rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -317,13 +434,22 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
           </motion.button>
         )}
         <motion.button
-          onClick={addExpense}
+          onClick={handleSubmit}
           className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          <Plus className="h-4 w-4 mr-1" />
-          {editingExpenseId ? 'Update' : 'Add'} Expense
+          {editingExpense ? (
+            <>
+              <Save className="h-4 w-4 mr-1" />
+              Update Expense
+            </>
+          ) : (
+            <>
+              <Plus className="h-4 w-4 mr-1" />
+              Add Expense
+            </>
+          )}
         </motion.button>
       </div>
     </div>

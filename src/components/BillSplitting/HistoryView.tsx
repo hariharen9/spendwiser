@@ -1,7 +1,6 @@
-
 import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { History, Trash2 } from 'lucide-react';
+import { History, Trash2, Edit3 } from 'lucide-react';
 import { Expense, Group, Participant } from '../../types/types';
 import { User as FirebaseUser } from 'firebase/auth';
 import { deleteDoc, doc } from 'firebase/firestore';
@@ -15,10 +14,10 @@ interface HistoryViewProps {
   showToast: (message: string, type: 'success' | 'error') => void;
   selectedGroup: string | null;
   setSelectedGroup: (groupId: string | null) => void;
+  onEditExpense?: (expense: Expense) => void; // Add this prop
 }
 
-const HistoryView: React.FC<HistoryViewProps> = ({ expenses, groups, participants, user, showToast, selectedGroup, setSelectedGroup }) => {
-
+const HistoryView: React.FC<HistoryViewProps> = ({ expenses, groups, participants, user, showToast, selectedGroup, setSelectedGroup, onEditExpense }) => {
 
   const removeExpense = async (id: string) => {
     if (!user) return;
@@ -119,6 +118,16 @@ const HistoryView: React.FC<HistoryViewProps> = ({ expenses, groups, participant
                     </div>
                   </div>
                   <div className="flex space-x-2">
+                    {onEditExpense && (
+                      <motion.button
+                        onClick={() => onEditExpense(expense)}
+                        className="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full"
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        <Edit3 className="h-4 w-4" />
+                      </motion.button>
+                    )}
                     <motion.button
                       onClick={() => removeExpense(expense.id)}
                       className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full"

@@ -11,6 +11,7 @@ import GroupManager from '../BillSplitting/GroupManager';
 import ExpenseForm from '../BillSplitting/ExpenseForm';
 import SummaryView from '../BillSplitting/SummaryView';
 import HistoryView from '../BillSplitting/HistoryView';
+import { Expense } from '../../types/types';
 
 interface BillSplittingModalProps {
   isOpen: boolean;
@@ -29,6 +30,7 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
   const [activeTab, setActiveTab] = useState<'expenses' | 'summary' | 'history'>('expenses');
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [localToast, setLocalToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((authUser) => {
@@ -42,6 +44,15 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
   const showLocalToast = (message: string, type: 'success' | 'error') => {
     setLocalToast({ message, type });
     setTimeout(() => setLocalToast(null), 3000);
+  };
+
+  const handleEditExpense = (expense: Expense) => {
+    setEditingExpense(expense);
+    setActiveTab('expenses');
+  };
+
+  const resetEditingExpense = () => {
+    setEditingExpense(null);
   };
 
   const calculateSettlements = () => {
@@ -211,7 +222,16 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
                     >
                       <ParticipantManager participants={participants} setParticipants={setParticipants} user={user} showToast={showLocalToast} />
                       <GroupManager groups={groups} participants={participants} groupParticipants={groupParticipants} setGroupParticipants={setGroupParticipants} user={user} showToast={showLocalToast} />
-                      <ExpenseForm user={user} participants={participants} groups={groups} groupParticipants={groupParticipants} selectedGroup={selectedGroup} showToast={showLocalToast} />
+                      <ExpenseForm 
+                        user={user} 
+                        participants={participants} 
+                        groups={groups} 
+                        groupParticipants={groupParticipants} 
+                        selectedGroup={selectedGroup} 
+                        showToast={showLocalToast} 
+                        editingExpense={editingExpense}
+                        resetEditingExpense={resetEditingExpense}
+                      />
                     </motion.div>
                   )}
 
@@ -220,7 +240,16 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
                   )}
 
                   {activeTab === 'history' && (
-                    <HistoryView expenses={expenses} groups={groups} participants={participants} user={user} showToast={showLocalToast} selectedGroup={selectedGroup} setSelectedGroup={setSelectedGroup} />
+                    <HistoryView 
+                      expenses={expenses} 
+                      groups={groups} 
+                      participants={participants} 
+                      user={user} 
+                      showToast={showLocalToast} 
+                      selectedGroup={selectedGroup} 
+                      setSelectedGroup={setSelectedGroup} 
+                      onEditExpense={handleEditExpense}
+                    />
                   )}
                 </>
               )}
