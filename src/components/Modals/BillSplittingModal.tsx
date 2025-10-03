@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { modalVariants } from '../Common/AnimationVariants';
 import { auth } from '../../firebaseConfig';
 import { User as FirebaseUser } from 'firebase/auth';
+import { Account, Transaction } from '../../types/types';
 
 import { useBillSplittingData } from '../../hooks/useBillSplittingData';
 import ParticipantManager from '../BillSplitting/ParticipantManager';
@@ -18,13 +19,21 @@ interface BillSplittingModalProps {
   onClose: () => void;
   isMobile?: boolean;
   onBack?: () => void;
+  accounts?: Account[];
+  creditCards?: Account[];
+  defaultAccountId?: string | null;
+  onAddTransaction?: (transaction: Omit<Transaction, 'id'>) => void;
 }
 
 const BillSplittingModal: React.FC<BillSplittingModalProps> = ({ 
   isOpen, 
   onClose, 
   isMobile = false,
-  onBack 
+  onBack,
+  accounts = [],
+  creditCards = [],
+  defaultAccountId,
+  onAddTransaction
 }) => {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [activeTab, setActiveTab] = useState<'expenses' | 'summary' | 'history'>('expenses');
@@ -263,6 +272,10 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
                         showToast={showLocalToast} 
                         editingExpense={editingExpense}
                         resetEditingExpense={resetEditingExpense}
+                        accounts={accounts}
+                        creditCards={creditCards}
+                        defaultAccountId={defaultAccountId}
+                        onAddTransaction={onAddTransaction}
                       />
                     </motion.div>
                   )}

@@ -3,7 +3,7 @@ import { DollarSign, TrendingUp, TrendingDown, Edit3, Save, X, Download, Grid3X3
 import MetricCard from './MetricCard';
 import SpendingChart from './SpendingChart';
 import RecentTransactions from './RecentTransactions';
-import { Transaction, RecurringTransaction, Account, Budget, TotalBudget, Loan } from '../../types/types';
+import { Transaction, RecurringTransaction, Account, Budget, TotalBudget, Loan, Goal } from '../../types/types';
 import NetWorthWidget from './NetWorthWidget';
 import IncomeVsExpenseChart from './IncomeVsExpenseChart';
 import BudgetSummary from './BudgetSummary';
@@ -21,6 +21,7 @@ import WidgetLibraryModal from './WidgetLibraryModal';
 import DashboardContainer from './DashboardContainer';
 import FinancialGoalsWidget from './FinancialGoalsWidget';
 import DebtPaydownWidget from './DebtPaydownWidget';
+import BillSplittingSummary from './BillSplittingSummary';
 import './Dashboard.css';
 import { motion, Transition } from 'framer-motion';
 import { fadeInVariants, staggerContainer, buttonHoverVariants } from '../../components/Common/AnimationVariants';
@@ -49,6 +50,8 @@ interface DashboardPageProps {
   setCurrentScreen: (screen: string) => void;
   onSaveTransaction: (transaction: Omit<Transaction, 'id'>, id?: string) => void;
   categories: string[];
+  creditCards?: Account[];
+  defaultAccountId?: string | null;
 }
 
 // Widget layout interface
@@ -76,6 +79,7 @@ const DEFAULT_WIDGET_LAYOUT: WidgetLayout[] = [
   { id: 'SubscriptionTracker', column: 1, order: 5 },
   { id: 'FinancialGoalsWidget', column: 0, order: 5 },
   { id: 'DebtPaydownWidget', column: 2, order: 4 },
+  { id: 'BillSplittingSummary', column: 2, order: 5 }, // Add BillSplittingSummary widget
 ];
 
 // Widget layout storage keys
@@ -85,7 +89,7 @@ const STORAGE_KEYS = {
   WIDGET_LAYOUT: 'dashboardWidgetLayout'
 };
 
-const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, recurringTransactions, accounts, budgets, loans, goals, totalBudget, onViewAllTransactions, currency, onExportDashboard, setCurrentScreen, onSaveTransaction, categories }) => {
+const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, recurringTransactions, accounts, budgets, loans, goals, totalBudget, onViewAllTransactions, currency, onExportDashboard, setCurrentScreen, onSaveTransaction, categories, creditCards = [], defaultAccountId }) => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [timeRange, setTimeRange] = useState<'month' | 'quarter' | 'year'>('month');
   const [isWidgetLibraryOpen, setIsWidgetLibraryOpen] = useState(false);
@@ -246,6 +250,13 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, recurringTr
         return <FinancialGoalsWidget goals={goals} currency={currency} />;
       case 'DebtPaydownWidget':
         return <DebtPaydownWidget loans={loans} currency={currency} />;
+      case 'BillSplittingSummary': // Add BillSplittingSummary component
+        return <BillSplittingSummary 
+          accounts={accounts} 
+          creditCards={creditCards} 
+          defaultAccountId={defaultAccountId} 
+          onAddTransaction={onSaveTransaction} 
+        />;
       default:
         return null;
     }
@@ -264,7 +275,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, recurringTr
         };
       })
       .filter(widget => widget.component !== null);
-  }, [visibleWidgets, widgetLayout, transactions, accounts, budgets, totalBudget, currency, timeRange]);
+  }, [visibleWidgets, widgetLayout, transactions, accounts, budgets, totalBudget, currency, timeRange, creditCards, defaultAccountId]);
 
   // Toggle edit mode
   const toggleEditMode = () => {

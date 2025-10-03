@@ -40,7 +40,8 @@ import {
   Clock,
   Activity,
   GripVertical,
-  Landmark
+  Landmark,
+  Users
 } from 'lucide-react';
 import { modalVariants, fadeInVariants, buttonHoverVariants } from '../Common/AnimationVariants';
 
@@ -289,6 +290,14 @@ const WIDGET_CONFIGS: WidgetConfig[] = [
     icon: <Landmark size={20} />,
     category: 'Financial',
     color: 'bg-orange-500'
+  },
+  {
+    id: 'BillSplittingSummary',
+    name: 'Bill Splitting',
+    description: 'Track shared expenses and see who owes whom',
+    icon: <Users size={20} />,
+    category: 'Financial',
+    color: 'bg-blue-500'
   }
 ];
 
