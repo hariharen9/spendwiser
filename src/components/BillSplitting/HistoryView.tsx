@@ -22,6 +22,10 @@ interface HistoryViewProps {
 const HistoryView: React.FC<HistoryViewProps> = ({ expenses, groups, participants, user, showToast, selectedGroup, setSelectedGroup, onEditExpense }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [expenseToDelete, setExpenseToDelete] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [showDateFilters, setShowDateFilters] = useState(false);
 
   const confirmDeleteExpense = (id: string) => {
     setExpenseToDelete(id);
@@ -48,9 +52,32 @@ const HistoryView: React.FC<HistoryViewProps> = ({ expenses, groups, participant
   };
 
   const filteredExpenses = useMemo(() => {
-    if (!selectedGroup) return expenses;
-    return expenses.filter(expense => expense.groupId === selectedGroup);
-  }, [expenses, selectedGroup]);
+    let result = expenses;
+    
+    // Apply group filter
+    if (selectedGroup) {
+      result = result.filter(expense => expense.groupId === selectedGroup);
+    }
+    
+    // Apply search filter
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      result = result.filter(expense => 
+        expense.description.toLowerCase().includes(term)
+      );
+    }
+    
+    // Apply date filters
+    if (dateFrom) {
+      result = result.filter(expense => expense.date >= dateFrom);
+    }
+    
+    if (dateTo) {
+      result = result.filter(expense => expense.date <= dateTo);
+    }
+    
+    return result;
+  }, [expenses, selectedGroup, searchTerm, dateFrom, dateTo]);
 
   const getParticipantName = (id: string) => {
     const participant = participants.find(p => p.id === id);
@@ -70,18 +97,86 @@ const HistoryView: React.FC<HistoryViewProps> = ({ expenses, groups, participant
         exit={{ opacity: 0, y: -20 }}
         className="space-y-6 min-h-[500px]"
       >
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Filter by Group
-          </label>
-          <div className="w-full md:w-1/3">
-            <AnimatedDropdown
-              selectedValue={selectedGroup || ''}
-              options={[{value: '', label: 'All Expenses'}, ...groups.map(group => ({value: group.id, label: group.name}))]}
-              onChange={(value) => setSelectedGroup(value || null)}
-              placeholder="Filter by group"
-            />
+        {/* Search and Filters Section */}
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Search Bar */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Search Expenses
+              </label>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search by description..."
+                className="w-full px-3 py-2 bg-white dark:bg-[#242424] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
+              />
+            </div>
+            
+            {/* Group Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Filter by Group
+              </label>
+              <AnimatedDropdown
+                selectedValue={selectedGroup || ''}
+                options={[{value: '', label: 'All Expenses'}, ...groups.map(group => ({value: group.id, label: group.name}))]}
+                onChange={(value) => setSelectedGroup(value || null)}
+                placeholder="Filter by group"
+              />
+            </div>
+            
+            {/* Date Filters Toggle */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Date Range
+              </label>
+              <button 
+                onClick={() => setShowDateFilters(!showDateFilters)}
+                className="w-full px-3 py-2 bg-white dark:bg-[#242424] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF] text-left"
+              >
+                {showDateFilters ? 'Hide Date Range' : 'Show Date Range'}
+              </button>
+            </div>
           </div>
+          
+          {/* Date Filters - Collapsible */}
+          {showDateFilters && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <div>
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">From</label>
+                <input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  className="w-full px-3 py-2 bg-white dark:bg-[#242424] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">To</label>
+                <input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  className="w-full px-3 py-2 bg-white dark:bg-[#242424] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
+                />
+              </div>
+              {(dateFrom || dateTo) && (
+                <div className="md:col-span-2 flex justify-end">
+                  <button 
+                    onClick={() => {
+                      setDateFrom('');
+                      setDateTo('');
+                    }}
+                    className="text-sm text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 flex items-center"
+                  >
+                    Clear Dates
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
         
         <div>
