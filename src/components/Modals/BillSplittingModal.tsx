@@ -6,7 +6,6 @@ import { modalVariants } from '../Common/AnimationVariants';
 import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where, Timestamp } from 'firebase/firestore';
 import { db, auth } from '../../firebaseConfig';
 import { User as FirebaseUser } from 'firebase/auth';
-import { useToast } from '../../hooks/useToast';
 
 interface Participant {
   id: string;
@@ -53,7 +52,6 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
   isMobile = false,
   onBack 
 }) => {
-  const { addToast } = useToast();
   const [user, setUser] = useState<FirebaseUser | null>(null); // Use Firebase User type
   const [activeTab, setActiveTab] = useState<'expenses' | 'summary' | 'history'>('expenses');
   const [participants, setParticipants] = useState<Participant[]>([
@@ -733,7 +731,7 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -20 }}
-                      className="space-y-6"
+                      className="space-y-6 min-h-[500px]"
                     >
                       {/* Participants Section */}
                       <div className="bg-gray-50 dark:bg-[#1A1A1A] rounded-lg p-4">
@@ -935,7 +933,30 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
                         <h3 className="font-semibold text-gray-900 dark:text-[#F5F5F5] mb-3">
                           {editingExpenseId ? 'Edit Expense' : 'Add New Expense'}
                         </h3>
+                        {/* Group Selection */}
+                          <div className='mb-4'>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                              Group
+                            </label>
+                            <select
+                              value={newExpense.groupId}
+                              onChange={(e) => setNewExpense({...newExpense, groupId: e.target.value})}
+                              className="w-full px-3 py-2 bg-white dark:bg-[#242424] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
+                              disabled={groups.length === 0}
+                            >
+                              <option value="">Please select a group</option>
+                              {groups.map(group => (
+                                <option key={group.id} value={group.id}>
+                                  {group.name}
+                                </option>
+                              ))}
+                              {groups.length === 0 && (
+                                <option disabled>No groups available, Add before proceeding</option>
+                              )}
+                            </select>
+                          </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            
                           <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                               Description
@@ -993,28 +1014,7 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
                             </select>
                           </div>
                                           
-                          {/* Group Selection */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                              Group
-                            </label>
-                            <select
-                              value={newExpense.groupId}
-                              onChange={(e) => setNewExpense({...newExpense, groupId: e.target.value})}
-                              className="w-full px-3 py-2 bg-white dark:bg-[#242424] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
-                              disabled={groups.length === 0}
-                            >
-                              <option value="">Please select a group</option>
-                              {groups.map(group => (
-                                <option key={group.id} value={group.id}>
-                                  {group.name}
-                                </option>
-                              ))}
-                              {groups.length === 0 && (
-                                <option disabled>No groups available, Add before proceeding</option>
-                              )}
-                            </select>
-                          </div>
+                          
                         </div>
 
                         {/* Split Details */}
@@ -1166,7 +1166,7 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
                                       initial={{ opacity: 0, y: 20 }}
                                       animate={{ opacity: 1, y: 0 }}
                                       exit={{ opacity: 0, y: -20 }}
-                                      className="space-y-6"
+                                      className="space-y-6 min-h-[500px]"
                                     >
                                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
@@ -1266,7 +1266,7 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -20 }}
-                      className="space-y-6"
+                      className="space-y-6 min-h-[500px]"
                     >
                       {/* Group Filter */}
                       <div className="mb-4">
