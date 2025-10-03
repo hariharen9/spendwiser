@@ -34,6 +34,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
     paidBy: '1',
     splitType: 'equal' as 'equal' | 'unequal' | 'percentage',
     groupId: '' as string,
+    date: new Date().toISOString().split('T')[0], // Add date field, default to today
   });
   const [expenseSplits, setExpenseSplits] = useState<Record<string, number>>({});
   const [manuallyEditedParticipants, setManuallyEditedParticipants] = useState<Record<string, boolean>>({});
@@ -47,6 +48,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
         paidBy: editingExpense.paidBy,
         splitType: editingExpense.splitType,
         groupId: editingExpense.groupId || '',
+        date: editingExpense.date || new Date().toISOString().split('T')[0], // Add date field
       });
       
       // Populate expense splits
@@ -79,6 +81,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
       paidBy: participants[0]?.id || '1',
       splitType: 'equal',
       groupId: selectedGroup || '',
+      date: new Date().toISOString().split('T')[0], // Reset to today's date
     });
     setExpenseSplits({});
     setManuallyEditedParticipants({});
@@ -140,7 +143,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
         paidBy: newExpense.paidBy,
         splitType: newExpense.splitType,
         splits: splits,
-        date: new Date().toISOString().split('T')[0],
+        date: newExpense.date, // Use selected date instead of current date
         createdAt: Timestamp.now()
       };
       
@@ -219,7 +222,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
         paidBy: newExpense.paidBy,
         splitType: newExpense.splitType,
         splits: splits,
-        date: new Date().toISOString().split('T')[0],
+        date: newExpense.date, // Use selected date instead of current date
         updatedAt: Timestamp.now()
       };
       
@@ -297,6 +300,17 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
             options={participants.map(participant => ({value: participant.id, label: participant.name}))}
             onChange={(value) => setNewExpense({...newExpense, paidBy: value})}
             placeholder="Select who paid"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Date
+          </label>
+          <input
+            type="date"
+            value={newExpense.date}
+            onChange={(e) => setNewExpense({...newExpense, date: e.target.value})}
+            className="w-full px-3 py-2 bg-white dark:bg-[#242424] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
           />
         </div>
         <div>

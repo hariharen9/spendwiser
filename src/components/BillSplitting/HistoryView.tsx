@@ -52,7 +52,10 @@ const HistoryView: React.FC<HistoryViewProps> = ({ expenses, groups, participant
   };
 
   const filteredExpenses = useMemo(() => {
-    let result = expenses;
+    let result = [...expenses].sort((a, b) => {
+      // Sort by date, newest first
+      return new Date(b.date).getTime() - new Date(a.date).getTime();
+    });
     
     // Apply group filter
     if (selectedGroup) {
@@ -78,6 +81,29 @@ const HistoryView: React.FC<HistoryViewProps> = ({ expenses, groups, participant
     
     return result;
   }, [expenses, selectedGroup, searchTerm, dateFrom, dateTo]);
+
+  // Group expenses by date
+  const groupedExpenses = useMemo(() => {
+    return filteredExpenses.reduce((groups, expense) => {
+      const date = expense.date;
+      if (!groups[date]) {
+        groups[date] = [];
+      }
+      groups[date].push(expense);
+      return groups;
+    }, {} as Record<string, Expense[]>);
+  }, [filteredExpenses]);
+
+  // Format date for display as header
+  const formatHeaderDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
 
   const getParticipantName = (id: string) => {
     const participant = participants.find(p => p.id === id);
@@ -188,63 +214,79 @@ const HistoryView: React.FC<HistoryViewProps> = ({ expenses, groups, participant
               <p className="text-sm mt-1">Add expenses to see your transaction history</p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {[...filteredExpenses].reverse().map((expense) => (
-                <motion.div
-                  key={expense.id}
-                  className="bg-white dark:bg-[#242424] rounded-lg p-4 border border-gray-200 dark:border-gray-700"
-                  whileHover={{ scale: 1.01 }}
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h4 className="font-medium text-gray-900 dark:text-[#F5F5F5]">
-                        {expense.description}
-                      </h4>
-                      <p className="text-sm text-gray-500 dark:text-[#888888]">
-                        Paid by {getPaidByName(expense.paidBy)} • {expense.date}
-                        {expense.groupId && (
-                          <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">
-                            {groups.find(g => g.id === expense.groupId)?.name || 'Group'}
-                          </span>
-                        )}
-                      </p>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {expense.splits.map((split: Expense['splits'][0]) => (
-                          <span 
-                            key={split.participantId} 
-                            className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full"
-                          >
-                            {getParticipantName(split.participantId)}: ₹{split.amount.toFixed(2)}
-                            {expense.splitType === 'percentage' && split.percentage && ` (${split.percentage.toFixed(1)}%)`}
-                          </span>
-                        ))}
+            <div className="space-y-0">
+              {Object.entries(groupedExpenses).map(([date, dateExpenses]) => (
+                <React.Fragment key={date}>
+                  {/* Date Header Row */}
+                  <div className="px-4 py-2">
+                    <div className="flex items-center">
+                      <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                        {formatHeaderDate(date)}
                       </div>
+                      <div className="flex-grow border-t border-gray-300 dark:border-gray-600 ml-4"></div>
                     </div>
-                    <div className="flex space-x-2">
-                      {onEditExpense && (
-                        <motion.button
-                          onClick={() => onEditExpense(expense)}
-                          className="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full"
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                        >
-                          <Edit3 className="h-4 w-4" />
-                        </motion.button>
-                      )}
-                      <motion.button
-                        onClick={() => confirmDeleteExpense(expense.id)}
-                        className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full"
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
+                  </div>
+                  {/* Expense Rows */}
+                  <div className="space-y-3 px-4 pb-4">
+                    {dateExpenses.map((expense) => (
+                      <motion.div
+                        key={expense.id}
+                        className="bg-white dark:bg-[#242424] rounded-lg p-4 border border-gray-200 dark:border-gray-700"
+                        whileHover={{ scale: 1.01 }}
                       >
-                        <Trash2 className="h-4 w-4" />
-                      </motion.button>
-                    </div>
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h4 className="font-medium text-gray-900 dark:text-[#F5F5F5]">
+                              {expense.description}
+                            </h4>
+                            <p className="text-sm text-gray-500 dark:text-[#888888]">
+                              Paid by {getPaidByName(expense.paidBy)} • {new Date(expense.date).toLocaleDateString()}
+                              {expense.groupId && (
+                                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">
+                                  {groups.find(g => g.id === expense.groupId)?.name || 'Group'}
+                                </span>
+                              )}
+                            </p>
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {expense.splits.map((split: Expense['splits'][0]) => (
+                                <span 
+                                  key={split.participantId} 
+                                  className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full"
+                                >
+                                  {getParticipantName(split.participantId)}: ₹{split.amount.toFixed(2)}
+                                  {expense.splitType === 'percentage' && split.percentage && ` (${split.percentage.toFixed(1)}%)`}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="flex space-x-2">
+                            {onEditExpense && (
+                              <motion.button
+                                onClick={() => onEditExpense(expense)}
+                                className="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full"
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                              >
+                                <Edit3 className="h-4 w-4" />
+                              </motion.button>
+                            )}
+                            <motion.button
+                              onClick={() => confirmDeleteExpense(expense.id)}
+                              className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full"
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </motion.button>
+                          </div>
+                        </div>
+                        <div className="mt-2 text-right font-semibold text-gray-900 dark:text-[#F5F5F5]">
+                          ₹{expense.amount.toFixed(2)}
+                        </div>
+                      </motion.div>
+                    ))}
                   </div>
-                  <div className="mt-2 text-right font-semibold text-gray-900 dark:text-[#F5F5F5]">
-                    ₹{expense.amount.toFixed(2)}
-                  </div>
-                </motion.div>
+                </React.Fragment>
               ))}
             </div>
           )}
