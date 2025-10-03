@@ -13,10 +13,12 @@ interface HistoryViewProps {
   participants: Participant[];
   user: FirebaseUser | null;
   showToast: (message: string, type: 'success' | 'error') => void;
+  selectedGroup: string | null;
+  setSelectedGroup: (groupId: string | null) => void;
 }
 
-const HistoryView: React.FC<HistoryViewProps> = ({ expenses, groups, participants, user, showToast }) => {
-  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
+const HistoryView: React.FC<HistoryViewProps> = ({ expenses, groups, participants, user, showToast, selectedGroup, setSelectedGroup }) => {
+
 
   const removeExpense = async (id: string) => {
     if (!user) return;

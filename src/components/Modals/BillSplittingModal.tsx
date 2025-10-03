@@ -6,7 +6,7 @@ import { auth } from '../../firebaseConfig';
 import { User as FirebaseUser } from 'firebase/auth';
 
 import { useBillSplittingData } from '../../hooks/useBillSplittingData';
-import ParticipantManager from '../BillSplitting/ParticipantManager.tsx';
+import ParticipantManager from '../BillSplitting/ParticipantManager';
 import GroupManager from '../BillSplitting/GroupManager';
 import ExpenseForm from '../BillSplitting/ExpenseForm';
 import SummaryView from '../BillSplitting/SummaryView';
@@ -27,6 +27,7 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
 }) => {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [activeTab, setActiveTab] = useState<'expenses' | 'summary' | 'history'>('expenses');
+  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [localToast, setLocalToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
 
   useEffect(() => {
@@ -210,7 +211,7 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
                     >
                       <ParticipantManager participants={participants} setParticipants={setParticipants} user={user} showToast={showLocalToast} />
                       <GroupManager groups={groups} participants={participants} groupParticipants={groupParticipants} setGroupParticipants={setGroupParticipants} user={user} showToast={showLocalToast} />
-                      <ExpenseForm user={user} participants={participants} groups={groups} groupParticipants={groupParticipants} selectedGroup={null} showToast={showLocalToast} />
+                      <ExpenseForm user={user} participants={participants} groups={groups} groupParticipants={groupParticipants} selectedGroup={selectedGroup} showToast={showLocalToast} />
                     </motion.div>
                   )}
 
@@ -219,7 +220,7 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
                   )}
 
                   {activeTab === 'history' && (
-                    <HistoryView expenses={expenses} groups={groups} participants={participants} user={user} showToast={showLocalToast} />
+                    <HistoryView expenses={expenses} groups={groups} participants={participants} user={user} showToast={showLocalToast} selectedGroup={selectedGroup} setSelectedGroup={setSelectedGroup} />
                   )}
                 </>
               )}

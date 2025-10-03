@@ -36,9 +36,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
   const [manuallyEditedParticipants, setManuallyEditedParticipants] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    if (selectedGroup) {
-      setNewExpense(prev => ({ ...prev, groupId: selectedGroup }));
-    }
+    setNewExpense(prev => ({ ...prev, groupId: selectedGroup || '' }));
   }, [selectedGroup]);
 
   const resetExpenseForm = () => {
