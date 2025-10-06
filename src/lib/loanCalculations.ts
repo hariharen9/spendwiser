@@ -69,6 +69,34 @@ export const calculateLoanSummary = (loan: Loan): LoanSummary => {
   return { totalInterestPaid, loanEndDate, amortizationSchedule };
 };
 
+export const calculateCurrentBalance = (loan: Loan): { currentBalance: number, percentagePaid: number } => {
+  const { loanAmount, startDate } = loan;
+  const start = new Date(startDate);
+  const today = new Date();
+
+  const monthsElapsed = (today.getFullYear() - start.getFullYear()) * 12 + (today.getMonth() - start.getMonth());
+
+  if (monthsElapsed <= 0) {
+    return { currentBalance: loanAmount, percentagePaid: 0 };
+  }
+
+  const summary = calculateLoanSummary(loan);
+  const lastPayment = summary.amortizationSchedule.find(entry => entry.month === monthsElapsed);
+
+  if (!lastPayment) {
+    // If months elapsed is beyond the loan tenure
+    if (monthsElapsed > summary.amortizationSchedule.length) {
+        return { currentBalance: 0, percentagePaid: 100 };
+    }
+    return { currentBalance: loanAmount, percentagePaid: 0 };
+  }
+
+  const currentBalance = lastPayment.endingBalance;
+  const percentagePaid = ((loanAmount - currentBalance) / loanAmount) * 100;
+
+  return { currentBalance, percentagePaid: Math.max(0, Math.min(100, percentagePaid)) };
+};
+
 export const applyPrepaymentStrategy = (
   loan: Loan,
   extraEmiPerYear: boolean,

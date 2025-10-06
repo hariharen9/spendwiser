@@ -81,6 +81,7 @@ export interface Loan {
   startDate: string;
   isMock?: boolean;
   tenureInMonths?: number; // New field to support months for small items
+  type?: 'home' | 'auto' | 'personal' | 'student' | 'other';
 }
 
 export interface RecurringTransaction {

@@ -21,6 +21,7 @@ const LoanModal: React.FC<LoanModalProps> = ({ isOpen, onClose, onSave, editingL
   const [emi, setEmi] = useState(0);
   const [startDate, setStartDate] = useState('');
   const [isCalculating, setIsCalculating] = useState(false);
+  const [type, setType] = useState<'home' | 'auto' | 'personal' | 'student' | 'other'>('other');
 
   // Calculate EMI based on loan amount, interest rate, and tenure
   const calculateEmi = (amount: number, rate: number, years: number, months: number = 0): number => {
@@ -59,6 +60,7 @@ const LoanModal: React.FC<LoanModalProps> = ({ isOpen, onClose, onSave, editingL
       setIsInMonths(editingLoan.tenureInMonths !== undefined && editingLoan.tenureInMonths > 0);
       setEmi(editingLoan.emi);
       setStartDate(editingLoan.startDate);
+      setType(editingLoan.type || 'other');
     } else {
       setName('');
       setLoanAmount(0);
@@ -68,6 +70,7 @@ const LoanModal: React.FC<LoanModalProps> = ({ isOpen, onClose, onSave, editingL
       setIsInMonths(false);
       setEmi(0);
       setStartDate('');
+      setType('other');
     }
   }, [editingLoan, isOpen]);
 
@@ -80,7 +83,8 @@ const LoanModal: React.FC<LoanModalProps> = ({ isOpen, onClose, onSave, editingL
       tenure: isInMonths ? 0 : tenure,
       tenureInMonths: isInMonths ? tenureInMonths : undefined,
       emi,
-      startDate
+      startDate,
+      type
     };
     onSave(loanData);
     onClose();
@@ -135,6 +139,27 @@ const LoanModal: React.FC<LoanModalProps> = ({ isOpen, onClose, onSave, editingL
                     placeholder="e.g., Home Loan, Car Loan"
                     required 
                   />
+                </div>
+
+                <div className="relative">
+                  <label htmlFor="loan-type" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center">
+                    <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2">
+                      <CreditCard className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    </span>
+                    Loan Type
+                  </label>
+                  <select 
+                    id="loan-type" 
+                    value={type} 
+                    onChange={(e) => setType(e.target.value as 'home' | 'auto' | 'personal' | 'student' | 'other')} 
+                    className="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-[#1A1A1A] dark:border-gray-600 dark:text-white py-3 px-4 transition-all"
+                  >
+                    <option value="other">Other</option>
+                    <option value="home">Home</option>
+                    <option value="auto">Auto</option>
+                    <option value="personal">Personal</option>
+                    <option value="student">Student</option>
+                  </select>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -245,7 +270,6 @@ const LoanModal: React.FC<LoanModalProps> = ({ isOpen, onClose, onSave, editingL
                       min="0"
                       step="0.01"
                       required 
-                      readOnly={!editingLoan}
                     />
                     {isCalculating && (
                       <div className="absolute inset-y-0 right-0 flex items-center pr-3">
