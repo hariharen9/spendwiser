@@ -59,6 +59,8 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
   const [minAmount, setMinAmount] = useState(''); // For amount range filtering
   const [maxAmount, setMaxAmount] = useState(''); // For amount range filtering
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]); // For multiple category selection
+  const [showOnlyCC, setShowOnlyCC] = useState(false);
+  const [showOnlyWithComments, setShowOnlyWithComments] = useState(false);
 
   const formatDate = (date: Date) => date.toISOString().split('T')[0];
 
@@ -125,8 +127,13 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
       if(end) end.setMinutes(end.getMinutes() + end.getTimezoneOffset());
       
       const matchesDate = (!start || transactionDate >= start) && (!end || transactionDate <= end);
+
+      const isCCTransaction = accounts.find(acc => acc.id === transaction.accountId)?.type === 'Credit Card';
+      const matchesCC = !showOnlyCC || isCCTransaction;
+
+      const matchesComments = !showOnlyWithComments || (transaction.comments && transaction.comments.trim() !== '');
       
-      return matchesSearch && matchesType && matchesCategory && matchesAmount && matchesDate;
+      return matchesSearch && matchesType && matchesCategory && matchesAmount && matchesDate && matchesCC && matchesComments;
     });
 
 
@@ -218,7 +225,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
     }
 
     return filtered;
-  }, [transactions, searchTerm, transactionType, selectedCategory, selectedCategories, minAmount, maxAmount, startDate, endDate, sortOption]);
+  }, [transactions, searchTerm, transactionType, selectedCategory, selectedCategories, minAmount, maxAmount, startDate, endDate, sortOption, showOnlyCC, showOnlyWithComments, accounts]);
 
   const summary = useMemo(() => {
     const incomeTransactions = sortedAndFilteredTransactions.filter(t => t.type === 'income');
@@ -380,6 +387,10 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
           onMaxAmountChange={setMaxAmount}
           selectedCategories={selectedCategories}
           onSelectedCategoriesChange={setSelectedCategories}
+          showOnlyCC={showOnlyCC}
+          onShowOnlyCCChange={setShowOnlyCC}
+          showOnlyWithComments={showOnlyWithComments}
+          onShowOnlyWithCommentsChange={setShowOnlyWithComments}
         />
       </motion.div>
 

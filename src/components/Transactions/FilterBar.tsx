@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Calendar, Filter, X, Clock, DollarSign } from 'lucide-react';
 import AnimatedDropdown from '../Common/AnimatedDropdown';
+import StyledCheckbox from '../Common/StyledCheckbox';
 
 interface FilterBarProps {
   transactionCount: number;
@@ -23,6 +24,10 @@ interface FilterBarProps {
   onMaxAmountChange: (value: string) => void; // New prop for amount range
   selectedCategories: string[]; // New prop for multiple categories
   onSelectedCategoriesChange: (categories: string[]) => void; // New prop for multiple categories
+  showOnlyCC: boolean;
+  onShowOnlyCCChange: (value: boolean) => void;
+  showOnlyWithComments: boolean;
+  onShowOnlyWithCommentsChange: (value: boolean) => void;
 }
 
 const FilterBar: React.FC<FilterBarProps> = ({
@@ -45,7 +50,11 @@ const FilterBar: React.FC<FilterBarProps> = ({
   onMinAmountChange, // New prop for amount range
   onMaxAmountChange, // New prop for amount range
   selectedCategories, // New prop for multiple categories
-  onSelectedCategoriesChange // New prop for multiple categories
+  onSelectedCategoriesChange, // New prop for multiple categories
+  showOnlyCC,
+  onShowOnlyCCChange,
+  showOnlyWithComments,
+  onShowOnlyWithCommentsChange
 }) => {
   const [showDateInputs, setShowDateInputs] = useState(false);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
@@ -223,6 +232,20 @@ const FilterBar: React.FC<FilterBarProps> = ({
                 </div>
               </div>
             )}
+            <div className="flex items-center space-x-4 pt-4">
+                <StyledCheckbox
+                    id="cc-filter-mobile"
+                    label="CC Only"
+                    checked={showOnlyCC}
+                    onChange={onShowOnlyCCChange}
+                />
+                <StyledCheckbox
+                    id="comments-filter-mobile"
+                    label="Has Comments"
+                    checked={showOnlyWithComments}
+                    onChange={onShowOnlyWithCommentsChange}
+                />
+            </div>
           </div>
         )}
       </div>
@@ -324,7 +347,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
           <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
               {/* Amount Range */}
-              <div className="md:col-span-4">
+              <div className="md:col-span-3">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount Range</label>
                 <div className="flex items-center space-x-2">
                   <div className="relative flex-1">
@@ -361,7 +384,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
               </div>
 
               {/* Multiple Category Selection */}
-              <div className="md:col-span-4">
+              <div className="md:col-span-3">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Categories</label>
                 <div className="relative">
                   <div className="bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg p-2 min-h-[42px] max-h-32 overflow-y-auto">
@@ -391,7 +414,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
               </div>
 
               {/* Date Filters */}
-              <div className="md:col-span-4">
+              <div className="md:col-span-6">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date Range</label>
                 <div className="flex items-center space-x-2">
                   <div className="relative flex-1">
@@ -400,7 +423,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
                       type="date" 
                       value={startDate} 
                       onChange={(e) => { onStartDateChange(e.target.value); setSelectedPreset('custom'); }} 
-                      className="w-full pl-8 pr-4 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]" 
+                      className="w-full pl-8 pr-2 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]" 
                       placeholder="Start Date" 
                     />
                   </div>
@@ -411,7 +434,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
                       type="date" 
                       value={endDate} 
                       onChange={(e) => { onEndDateChange(e.target.value); setSelectedPreset('custom'); }} 
-                      className="w-full pl-8 pr-4 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]" 
+                      className="w-full pl-8 pr-2 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]" 
                       placeholder="End Date" 
                     />
                   </div>
@@ -446,6 +469,26 @@ const FilterBar: React.FC<FilterBarProps> = ({
                   </div>
                 )}
               </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mt-4">
+                {/* New filters */}
+                <div className="md:col-span-4">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Other Filters</label>
+                    <div className="flex items-center space-x-4">
+                        <StyledCheckbox
+                            id="cc-filter"
+                            label="Credit Card Only"
+                            checked={showOnlyCC}
+                            onChange={onShowOnlyCCChange}
+                        />
+                        <StyledCheckbox
+                            id="comments-filter"
+                            label="Has Comments"
+                            checked={showOnlyWithComments}
+                            onChange={onShowOnlyWithCommentsChange}
+                        />
+                    </div>
+                </div>
             </div>
           </div>
         )}
