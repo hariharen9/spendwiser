@@ -17,9 +17,10 @@ interface HistoryViewProps {
   selectedGroup: string | null;
   setSelectedGroup: (groupId: string | null) => void;
   onEditExpense?: (expense: Expense) => void;
+  currency?: string; // Add currency prop
 }
 
-const HistoryView: React.FC<HistoryViewProps> = ({ expenses, groups, participants, user, showToast, selectedGroup, setSelectedGroup, onEditExpense }) => {
+const HistoryView: React.FC<HistoryViewProps> = ({ expenses, groups, participants, user, showToast, selectedGroup, setSelectedGroup, onEditExpense, currency = '₹' }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [expenseToDelete, setExpenseToDelete] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -261,7 +262,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ expenses, groups, participant
                                 >
                                   {getParticipantName(split.participantId).length >= 8 
                                     ? getParticipantName(split.participantId).substring(0, 6) + '..' 
-                                    : getParticipantName(split.participantId)}: ₹{split.amount.toFixed(2)}
+                                    : getParticipantName(split.participantId)}: {currency}{split.amount.toFixed(2)}
                                   {expense.splitType === 'percentage' && split.percentage && ` (${split.percentage.toFixed(1)}%)`}
                                 </span>
                               ))}
@@ -289,7 +290,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ expenses, groups, participant
                           </div>
                         </div>
                         <div className="mt-2 text-right font-semibold text-gray-900 dark:text-[#F5F5F5]">
-                          ₹{expense.amount.toFixed(2)}
+                          {currency}{expense.amount.toFixed(2)}
                         </div>
                       </motion.div>
                     ))}

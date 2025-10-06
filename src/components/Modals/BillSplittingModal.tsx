@@ -23,6 +23,7 @@ interface BillSplittingModalProps {
   creditCards?: Account[];
   defaultAccountId?: string | null;
   onAddTransaction?: (transaction: Omit<Transaction, 'id'>) => void;
+  currency?: string; // Add currency prop
 }
 
 const BillSplittingModal: React.FC<BillSplittingModalProps> = ({ 
@@ -33,7 +34,8 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
   accounts = [],
   creditCards = [],
   defaultAccountId,
-  onAddTransaction
+  onAddTransaction,
+  currency = '₹' // Default to ₹ if not provided
 }) => {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [activeTab, setActiveTab] = useState<'expenses' | 'summary' | 'history'>('expenses');
@@ -276,6 +278,7 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
                         creditCards={creditCards}
                         defaultAccountId={defaultAccountId}
                         onAddTransaction={onAddTransaction}
+                        currency={currency} // Pass currency to ExpenseForm
                       />
                     </motion.div>
                   )}
@@ -289,6 +292,7 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
                       user={user}
                       groupId={selectedGroup || groups[0]?.id || ''}
                       showToast={showLocalToast}
+                      currency={currency} // Pass currency to SummaryView
                     />
                   )}
 
@@ -302,6 +306,7 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
                       selectedGroup={selectedGroup} 
                       setSelectedGroup={setSelectedGroup} 
                       onEditExpense={handleEditExpense}
+                      currency={currency} // Pass currency to HistoryView
                     />
                   )}
                 </>

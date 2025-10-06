@@ -17,6 +17,7 @@ interface AddTransactionModalProps {
   defaultAccountId?: string | null;
   categories?: string[];
   shortcuts: Shortcut[];
+  currency?: string; // Add currency prop
 }
 
 // Category keywords mapping for auto-categorization
@@ -46,6 +47,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   defaultAccountId,
   categories = ['Salary', 'Freelance', 'Investment', 'Groceries', 'Food & Dining', 'Transportation', 'Entertainment', 'Shopping', 'Utilities', 'Healthcare', 'Education', 'Recharge & Bills', 'Other'],
   shortcuts,
+  currency = '₹', // Add currency prop with default value
 }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -598,6 +600,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
       <BillSplittingModal 
         isOpen={isBillSplittingOpen} 
         onClose={() => setIsBillSplittingOpen(false)} 
+        currency={currency} // Pass currency to BillSplittingModal
       />
     </>
   );

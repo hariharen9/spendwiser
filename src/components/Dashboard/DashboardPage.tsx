@@ -256,6 +256,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, recurringTr
           creditCards={creditCards} 
           defaultAccountId={defaultAccountId} 
           onAddTransaction={onSaveTransaction} 
+          currency={currency} // Pass currency to BillSplittingSummary
         />;
       default:
         return null;

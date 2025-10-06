@@ -12,13 +12,15 @@ interface BillSplittingSummaryProps {
   creditCards?: Account[];
   defaultAccountId?: string | null;
   onAddTransaction?: (transaction: Omit<Transaction, 'id'>) => void;
+  currency?: string; // Add currency prop
 }
 
 const BillSplittingSummary: React.FC<BillSplittingSummaryProps> = ({ 
   accounts,
   creditCards,
   defaultAccountId,
-  onAddTransaction
+  onAddTransaction,
+  currency = '₹' // Default to ₹ if not provided
 }) => {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -61,12 +63,12 @@ const BillSplittingSummary: React.FC<BillSplittingSummaryProps> = ({
   })();
 
   const formatCurrency = (amount: number) => {
-    return `₹${Math.abs(amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+    return `${currency}${Math.abs(amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
   };
 
   const getCurrencySymbol = () => {
-    // Default to ₹, but could be extended to support other currencies
-    return '₹';
+    // Use the passed currency symbol
+    return currency;
   };
 
   return (
@@ -162,6 +164,7 @@ const BillSplittingSummary: React.FC<BillSplittingSummaryProps> = ({
         creditCards={creditCards}
         defaultAccountId={defaultAccountId}
         onAddTransaction={onAddTransaction}
+        currency={currency} // Pass currency to BillSplittingModal
       />
     </div>
   );

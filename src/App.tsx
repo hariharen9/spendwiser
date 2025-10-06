@@ -2583,6 +2583,7 @@ function App() {
         defaultAccountId={defaultAccountId}
         categories={userCategories} // Pass user categories to the modal
         shortcuts={shortcuts}
+        currency={currency}
       />
 
       {/* Import CSV Modal */}

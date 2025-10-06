@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Save } from 'lucide-react';
-import { Expense, Participant, Group } from '../../types/types';
+import { Expense, Participant, Group, Account, Transaction } from '../../types/types';
 import { User as FirebaseUser } from 'firebase/auth';
 import { addDoc, collection, Timestamp, updateDoc, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
@@ -16,6 +16,11 @@ interface ExpenseFormProps {
   showToast: (message: string, type: 'success' | 'error') => void;
   editingExpense: Expense | null;
   resetEditingExpense: () => void;
+  accounts?: Account[];
+  creditCards?: Account[];
+  defaultAccountId?: string | null;
+  onAddTransaction?: (transaction: Omit<Transaction, 'id'>) => void;
+  currency?: string; // Add currency prop
 }
 
 const ExpenseForm: React.FC<ExpenseFormProps> = ({ 
@@ -26,7 +31,12 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
   selectedGroup, 
   showToast,
   editingExpense,
-  resetEditingExpense
+  resetEditingExpense,
+  accounts = [],
+  creditCards = [],
+  defaultAccountId,
+  onAddTransaction,
+  currency = '₹' // Default to ₹ if not provided
 }) => {
   const [newExpense, setNewExpense] = useState({
     description: '',
@@ -436,8 +446,8 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
           {newExpense.splitType === 'unequal' && newExpense.amount && parseFloat(newExpense.amount) > 0 && (
             <div className="mb-4">
               <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
-                <span>Allocated: ₹{Object.values(expenseSplits).reduce((sum, val) => sum + (parseFloat(val.toString()) || 0), 0).toFixed(2)}</span>
-                <span>Remaining: ₹{(parseFloat(newExpense.amount) - Object.values(expenseSplits).reduce((sum, val) => sum + (parseFloat(val.toString()) || 0), 0)).toFixed(2)}</span>
+                <span>Allocated: {currency}{Object.values(expenseSplits).reduce((sum, val) => sum + (parseFloat(val.toString()) || 0), 0).toFixed(2)}</span>
+                <span>Remaining: {currency}{(parseFloat(newExpense.amount) - Object.values(expenseSplits).reduce((sum, val) => sum + (parseFloat(val.toString()) || 0), 0)).toFixed(2)}</span>
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
                 <div 
