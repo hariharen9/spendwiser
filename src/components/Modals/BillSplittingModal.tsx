@@ -68,9 +68,11 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
 
   const calculateSettlementsWithSettled = (settledPayments: { from: string; to: string; amount: number }[] = []) => {
     // Create a deep copy of participants with their current balances
+    // Use participant IDs instead of names for more reliable identification
     const participantBalances = participants.map(p => ({
+      id: p.id,
       name: p.name,
-      balance: p.amountPaid - p.amountOwed,
+      balance: parseFloat((p.amountPaid - p.amountOwed).toFixed(2)), // Fix precision issues
     }));
 
     // Adjust balances based on settled payments
@@ -82,8 +84,9 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
       if (fromParticipant && toParticipant) {
         // When a payment is settled, we adjust the balances to reflect that
         // the debt has been reduced by the settled amount
-        fromParticipant.balance += settlement.amount;  // From person now owes less
-        toParticipant.balance -= settlement.amount;    // To person is now owed less
+        // Fix the logic: fromParticipant should pay less (balance increases), toParticipant should receive less (balance decreases)
+        fromParticipant.balance = parseFloat((fromParticipant.balance + settlement.amount).toFixed(2));
+        toParticipant.balance = parseFloat((toParticipant.balance - settlement.amount).toFixed(2));
       }
     });
 
@@ -93,12 +96,12 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
     // Separate debtors (negative balance) and creditors (positive balance)
     const debtors = activeParticipants
       .filter(p => p.balance < -0.01)
-      .map(p => ({ name: p.name, balance: p.balance }))
+      .map(p => ({ id: p.id, name: p.name, balance: p.balance }))
       .sort((a, b) => a.balance - b.balance);  // Most negative first
 
     const creditors = activeParticipants
       .filter(p => p.balance > 0.01)
-      .map(p => ({ name: p.name, balance: p.balance }))
+      .map(p => ({ id: p.id, name: p.name, balance: p.balance }))
       .sort((a, b) => b.balance - a.balance);  // Most positive first
 
     const settlements: { from: string; to: string; amount: number }[] = [];
@@ -113,7 +116,7 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
       const creditor = workingCreditors[0];
       
       // The amount to settle is the minimum of what the debtor owes and what the creditor is owed
-      const amountToSettle = Math.min(Math.abs(debtor.balance), creditor.balance);
+      const amountToSettle = parseFloat(Math.min(Math.abs(debtor.balance), creditor.balance).toFixed(2));
 
       if (amountToSettle < 0.01) {
         break;
@@ -126,8 +129,8 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
       });
 
       // Update balances
-      debtor.balance += amountToSettle;
-      creditor.balance -= amountToSettle;
+      debtor.balance = parseFloat((debtor.balance + amountToSettle).toFixed(2));
+      creditor.balance = parseFloat((creditor.balance - amountToSettle).toFixed(2));
 
       // Remove participants who have settled their debts
       if (Math.abs(debtor.balance) < 0.01) {
