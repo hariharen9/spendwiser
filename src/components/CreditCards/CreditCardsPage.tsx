@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { CreditCard as CreditCardIcon, TrendingUp, Plus, X, Edit, Trash2 } from 'lucide-react';
+import { CreditCard as CreditCardIcon, TrendingUp, Plus, X, Edit, Trash2, PlusCircle, List, Eye } from 'lucide-react';
 import { Account, Transaction } from '../../types/types';
 import MetricCard from '../Dashboard/MetricCard';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -13,9 +13,18 @@ interface CreditCardsPageProps {
   onEditAccount?: (accountData: Account) => void;
   onDeleteAccount?: (id: string) => void;
   currency: string;
+  onSaveTransaction?: (transaction: Omit<Transaction, 'id'>) => void;
 }
 
-const CreditCardsPage: React.FC<CreditCardsPageProps> = ({ accounts, transactions, onAddAccount, onEditAccount, onDeleteAccount, currency }) => {
+const CreditCardsPage: React.FC<CreditCardsPageProps> = ({ 
+  accounts, 
+  transactions, 
+  onAddAccount, 
+  onEditAccount, 
+  onDeleteAccount, 
+  currency,
+  onSaveTransaction
+}) => {
   // No need to filter credit cards here since they're already filtered in App.tsx
   const creditCards = accounts;
 
@@ -28,12 +37,30 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({ accounts, transaction
     name: '',
     limit: ''
   });
+  // Add state for transaction form
+  const [showAddTransactionModal, setShowAddTransactionModal] = useState(false);
+  const [transactionForm, setTransactionForm] = useState({
+    name: '',
+    amount: '',
+    date: new Date().toISOString().split('T')[0],
+    category: 'Food & Dining',
+    type: 'expense' as 'income' | 'expense',
+    comments: ''
+  });
+  // Add state for view mode
+  const [viewMode, setViewMode] = useState<'selected' | 'all'>('selected');
 
   const selectedCard = creditCards.find(card => card.id === selectedCardId);
 
   const cardTransactions = useMemo(() => 
     transactions.filter(t => t.accountId === selectedCardId), 
     [transactions, selectedCardId]
+  );
+
+  // All credit card transactions
+  const allCreditCardTransactions = useMemo(() => 
+    transactions.filter(t => creditCards.some(card => card.id === t.accountId)),
+    [transactions, creditCards]
   );
 
   // Calculate total spend dynamically based on transactions
@@ -68,6 +95,52 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({ accounts, transaction
     setShowEditCardModal(false);
     setEditingCard(null);
     setNewCardForm({ name: '', limit: '' });
+  };
+
+  // Transaction form handlers
+  const handleOpenAddTransactionModal = () => {
+    // Reset form with today's date and default category
+    setTransactionForm({
+      name: '',
+      amount: '',
+      date: new Date().toISOString().split('T')[0],
+      category: 'Food & Dining',
+      type: 'expense',
+      comments: ''
+    });
+    setShowAddTransactionModal(true);
+  };
+
+  const handleCloseAddTransactionModal = () => {
+    setShowAddTransactionModal(false);
+    setTransactionForm({
+      name: '',
+      amount: '',
+      date: new Date().toISOString().split('T')[0],
+      category: 'Food & Dining',
+      type: 'expense',
+      comments: ''
+    });
+  };
+
+  const handleSaveNewTransaction = () => {
+    if (onSaveTransaction && transactionForm.name && transactionForm.amount && selectedCardId) {
+      const amount = parseFloat(transactionForm.amount);
+      const finalAmount = transactionForm.type === 'expense' ? -amount : amount;
+      
+      const transactionData: Omit<Transaction, 'id'> = {
+        name: transactionForm.name,
+        amount: finalAmount,
+        date: transactionForm.date,
+        category: transactionForm.category,
+        type: transactionForm.type,
+        accountId: selectedCardId,
+        ...(transactionForm.comments && { comments: transactionForm.comments })
+      };
+      
+      onSaveTransaction(transactionData);
+      handleCloseAddTransactionModal();
+    }
   };
 
   const handleSaveNewCard = () => {
@@ -111,6 +184,19 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({ accounts, transaction
       }
     }
   };
+
+  // Get card name by ID for all transactions view
+  const getCardName = (accountId: string) => {
+    const card = creditCards.find(card => card.id === accountId);
+    return card ? card.name : 'Unknown Card';
+  };
+
+  // Default categories for transactions
+  const categories = [
+    'Food & Dining', 'Groceries', 'Transportation', 'Shopping', 
+    'Entertainment', 'Utilities', 'Healthcare', 'Travel', 
+    'Education', 'Personal', 'Other'
+  ];
 
   return (
     <div className="space-y-8">
@@ -200,18 +286,60 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({ accounts, transaction
 
           {/* Recent Transactions for Selected Card */}
           <div className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-6">
-              Recent {selectedCard.name} Transactions
-            </h3>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+              <div className="flex items-center space-x-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5]">
+                  {viewMode === 'selected' 
+                    ? `Recent ${selectedCard.name} Transactions` 
+                    : 'All Credit Card Transactions'}
+                </h3>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => setViewMode('selected')}
+                    className={`px-3 py-1 text-sm rounded-lg transition-all duration-200 ${
+                      viewMode === 'selected'
+                        ? 'bg-[#007BFF] text-white'
+                        : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-[#F5F5F5] hover:bg-gray-300 dark:hover:bg-gray-600'
+                    }`}
+                  >
+                    Selected Card
+                  </button>
+                  <button
+                    onClick={() => setViewMode('all')}
+                    className={`px-3 py-1 text-sm rounded-lg transition-all duration-200 ${
+                      viewMode === 'all'
+                        ? 'bg-[#007BFF] text-white'
+                        : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-[#F5F5F5] hover:bg-gray-300 dark:hover:bg-gray-600'
+                    }`}
+                  >
+                    All Cards
+                  </button>
+                </div>
+              </div>
+              <button
+                onClick={handleOpenAddTransactionModal}
+                className="flex items-center justify-center px-4 py-2 bg-[#007BFF] text-white rounded-lg font-medium hover:bg-[#0056b3] transition-all duration-200"
+              >
+                <PlusCircle className="h-4 w-4 mr-2" />
+                Add Transaction
+              </button>
+            </div>
             <div className="space-y-4">
-              {cardTransactions.slice(0, 5).map((transaction) => (
+              {(viewMode === 'selected' ? cardTransactions.slice(0, 5) : allCreditCardTransactions).map((transaction) => (
                 <div
                   key={transaction.id}
                   className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-[#1A1A1A] rounded-lg transition-all duration-200"
                 >
                   <div>
                     <p className="font-medium text-gray-900 dark:text-[#F5F5F5]">{transaction.name}</p>
-                    <p className="text-sm text-gray-500 dark:text-[#888888]">{transaction.category}</p>
+                    <div className="flex items-center space-x-2">
+                      <p className="text-sm text-gray-500 dark:text-[#888888]">{transaction.category}</p>
+                      {viewMode === 'all' && (
+                        <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full">
+                          {getCardName(transaction.accountId || '')}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-[#DC3545]">
@@ -550,6 +678,200 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({ accounts, transaction
                     whileTap={{ scale: 0.95 }}
                   >
                     Delete Card
+                  </motion.button>
+                </motion.div>
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Add Transaction Modal */}
+      <AnimatePresence>
+        {showAddTransactionModal && (
+          <motion.div 
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={handleCloseAddTransactionModal}
+          >
+            <motion.div
+              className="bg-white dark:bg-[#242424] rounded-lg border border-gray-200 dark:border-gray-700 w-full max-w-md"
+              variants={modalVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <motion.div 
+                className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+              >
+                <h2 className="text-xl font-bold text-gray-900 dark:text-[#F5F5F5]">
+                  Add Transaction for {selectedCard?.name}
+                </h2>
+                <motion.button
+                  onClick={handleCloseAddTransactionModal}
+                  className="text-gray-500 dark:text-[#888888] hover:text-gray-800 dark:hover:text-[#F5F5F5] transition-colors"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <X className="h-6 w-6" />
+                </motion.button>
+              </motion.div>
+              
+              <motion.div 
+                className="p-6 space-y-4"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
+                    Transaction Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={transactionForm.name}
+                    onChange={(e) => setTransactionForm({ ...transactionForm, name: e.target.value })}
+                    className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
+                    placeholder="e.g., Dinner at Restaurant"
+                  />
+                </motion.div>
+                
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
+                    Amount *
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={transactionForm.amount}
+                    onChange={(e) => setTransactionForm({ ...transactionForm, amount: e.target.value })}
+                    className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
+                    placeholder="0.00"
+                  />
+                </motion.div>
+                
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
+                    Date
+                  </label>
+                  <input
+                    type="date"
+                    value={transactionForm.date}
+                    onChange={(e) => setTransactionForm({ ...transactionForm, date: e.target.value })}
+                    className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
+                  />
+                </motion.div>
+                
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
+                >
+                  <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
+                    Category
+                  </label>
+                  <select
+                    value={transactionForm.category}
+                    onChange={(e) => setTransactionForm({ ...transactionForm, category: e.target.value })}
+                    className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
+                  >
+                    {categories.map(category => (
+                      <option key={category} value={category}>{category}</option>
+                    ))}
+                  </select>
+                </motion.div>
+                
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.7 }}
+                >
+                  <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
+                    Type
+                  </label>
+                  <div className="flex space-x-4">
+                    <label className="inline-flex items-center">
+                      <input
+                        type="radio"
+                        checked={transactionForm.type === 'expense'}
+                        onChange={() => setTransactionForm({ ...transactionForm, type: 'expense' })}
+                        className="text-[#007BFF] focus:ring-[#007BFF]"
+                      />
+                      <span className="ml-2 text-gray-900 dark:text-[#F5F5F5]">Expense</span>
+                    </label>
+                    <label className="inline-flex items-center">
+                      <input
+                        type="radio"
+                        checked={transactionForm.type === 'income'}
+                        onChange={() => setTransactionForm({ ...transactionForm, type: 'income' })}
+                        className="text-[#007BFF] focus:ring-[#007BFF]"
+                      />
+                      <span className="ml-2 text-gray-900 dark:text-[#F5F5F5]">Income</span>
+                    </label>
+                  </div>
+                </motion.div>
+                
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.8 }}
+                >
+                  <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
+                    Comments
+                  </label>
+                  <textarea
+                    value={transactionForm.comments}
+                    onChange={(e) => setTransactionForm({ ...transactionForm, comments: e.target.value })}
+                    className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
+                    placeholder="Add any notes about this transaction"
+                    rows={3}
+                  />
+                </motion.div>
+                
+                <motion.div 
+                  className="flex items-center justify-end space-x-4 pt-4"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.9 }}
+                >
+                  <motion.button
+                    onClick={handleCloseAddTransactionModal}
+                    className="px-4 py-2 text-gray-600 dark:text-[#888888] hover:text-gray-900 dark:hover:text-[#F5F5F5] transition-colors"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Cancel
+                  </motion.button>
+                  <motion.button
+                    onClick={handleSaveNewTransaction}
+                    disabled={!transactionForm.name || !transactionForm.amount}
+                    className={`px-6 py-2 rounded-lg font-medium transition-all duration-200 ${
+                      !transactionForm.name || !transactionForm.amount
+                        ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed'
+                        : 'bg-[#007BFF] text-white hover:bg-[#0056b3]'
+                    }`}
+                    whileHover={!transactionForm.name || !transactionForm.amount ? {} : { scale: 1.05 }}
+                    whileTap={!transactionForm.name || !transactionForm.amount ? {} : { scale: 0.95 }}
+                  >
+                    Add Transaction
                   </motion.button>
                 </motion.div>
               </motion.div>
