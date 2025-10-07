@@ -21,7 +21,7 @@ const FinancialGoalsWidget: React.FC<FinancialGoalsWidgetProps> = ({ goals, curr
       whileFocus="hover"
       layout
     >
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-4">Financial Goals</h3>
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-4 flex items-center"><Target className="w-5 h-5 mr-2" />Financial Goals</h3>
       {activeGoals.length > 0 ? (
         <div className="space-y-4">
           {activeGoals.map((goal, index) => {

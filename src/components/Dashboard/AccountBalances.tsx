@@ -3,6 +3,7 @@ import { Account } from '../../types/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cardHoverVariants } from '../../components/Common/AnimationVariants';
 import { FiCreditCard, FiDollarSign, FiTrendingUp, FiTrendingDown, FiEye, FiEyeOff, FiChevronRight } from 'react-icons/fi';
+import { Wallet } from 'lucide-react';
 
 interface AccountBalancesProps {
   accounts: Account[];
@@ -61,7 +62,7 @@ const AccountBalances: React.FC<AccountBalancesProps> = ({ accounts, currency })
       {/* Header with total and hide toggle */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5]">Accounts</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] flex items-center"><Wallet className="w-5 h-5 mr-2" />Accounts</h3>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Total: {hideBalances ? '••••••' : `${currency}${totalBalance.toLocaleString()}`}
           </p>

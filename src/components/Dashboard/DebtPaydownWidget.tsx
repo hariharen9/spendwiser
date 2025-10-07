@@ -60,7 +60,7 @@ const DebtPaydownWidget: React.FC<DebtPaydownWidgetProps> = ({ loans, currency }
       whileFocus="hover"
       layout
     >
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-4">Debt Paydown</h3>
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] mb-4 flex items-center"><Landmark className="w-5 h-5 mr-2" />Debt Paydown</h3>
       {activeLoans.length > 0 ? (
         <div className="space-y-4 overflow-y-auto max-h-[300px] pr-2">
           {activeLoans.map((loan, index) => {

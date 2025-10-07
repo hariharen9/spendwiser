@@ -4,6 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { motion, AnimatePresence } from 'framer-motion';
 import { cardHoverVariants } from '../../components/Common/AnimationVariants';
 import { FiTrendingUp, FiTrendingDown, FiDollarSign, FiBarChart2, FiActivity } from 'react-icons/fi';
+import { BarChart3 } from 'lucide-react';
 
 interface IncomeVsExpenseChartProps {
   transactions: Transaction[];
@@ -70,7 +71,7 @@ const IncomeVsExpenseChart: React.FC<IncomeVsExpenseChartProps> = ({ transaction
       {/* Header with controls */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5]">Income vs Expense</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] flex items-center"><BarChart3 className="w-5 h-5 mr-2" />Income vs Expense</h3>
           <p className="text-sm text-gray-500 dark:text-gray-400">Last 6 months</p>
         </div>
         <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">

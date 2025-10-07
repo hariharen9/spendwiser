@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Budget, Transaction, TotalBudget } from '../../types/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cardHoverVariants, buttonHoverVariants, modalVariants } from '../../components/Common/AnimationVariants';
-import { FlipHorizontal, Plus, Edit, Trash2, X } from 'lucide-react';
+import { FlipHorizontal, Plus, Edit, Trash2, X, Target } from 'lucide-react';
 
 interface BudgetSummaryProps {
   budgets: Budget[];
@@ -149,7 +149,8 @@ const BudgetSummary: React.FC<BudgetSummaryProps> = ({
         layout
       >
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5]">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] flex items-center">
+            <Target className="w-5 h-5 mr-2" />
             {showDetailedView ? 'Total Monthly Budget' : 'Budget Summary'}
           </h3>
           <button 
@@ -192,7 +193,7 @@ const BudgetSummary: React.FC<BudgetSummaryProps> = ({
         }}
       >
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5]">Total Monthly Budget</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] flex items-center"><Target className="w-5 h-5 mr-2" />Total Monthly Budget</h3>
           <button 
             onClick={toggleView}
             className="text-gray-500 dark:text-[#888888] hover:text-gray-800 dark:hover:text-[#F5F5F5] transition-transform duration-200 hover:scale-110"
@@ -283,7 +284,7 @@ const BudgetSummary: React.FC<BudgetSummaryProps> = ({
         }}
       >
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5]">Budget Summary</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] flex items-center"><Target className="w-5 h-5 mr-2" />Budget Summary</h3>
           {totalBudget && (
             <button 
               onClick={toggleView}

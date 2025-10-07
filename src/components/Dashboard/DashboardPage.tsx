@@ -22,6 +22,7 @@ import DashboardContainer from './DashboardContainer';
 import FinancialGoalsWidget from './FinancialGoalsWidget';
 import DebtPaydownWidget from './DebtPaydownWidget';
 import BillSplittingSummary from './BillSplittingSummary';
+import MonthlyBalanceWidget from './MonthlyBalanceWidget';
 import './Dashboard.css';
 import { motion, Transition } from 'framer-motion';
 import { fadeInVariants, staggerContainer, buttonHoverVariants } from '../../components/Common/AnimationVariants';
@@ -80,6 +81,7 @@ const DEFAULT_WIDGET_LAYOUT: WidgetLayout[] = [
   { id: 'FinancialGoalsWidget', column: 0, order: 5 },
   { id: 'DebtPaydownWidget', column: 2, order: 4 },
   { id: 'BillSplittingSummary', column: 2, order: 5 }, // Add BillSplittingSummary widget
+  { id: 'MonthlyBalanceWidget', column: 2, order: 6 },
 ];
 
 // Widget layout storage keys
@@ -258,6 +260,8 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, recurringTr
           onAddTransaction={onSaveTransaction} 
           currency={currency} // Pass currency to BillSplittingSummary
         />;
+      case 'MonthlyBalanceWidget':
+        return <MonthlyBalanceWidget accounts={accounts} transactions={transactions} currency={currency} />;
       default:
         return null;
     }

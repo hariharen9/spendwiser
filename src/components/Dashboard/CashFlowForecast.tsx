@@ -3,6 +3,7 @@ import { Transaction } from '../../types/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cardHoverVariants } from '../../components/Common/AnimationVariants';
 import { FiTrendingUp, FiTrendingDown, FiCalendar, FiDollarSign, FiInfo } from 'react-icons/fi';
+import { BarChart2 } from 'lucide-react';
 
 interface CashFlowForecastProps {
   transactions: Transaction[];
@@ -81,7 +82,8 @@ const CashFlowForecast: React.FC<CashFlowForecastProps> = ({ transactions, curre
       layout
     >
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5]">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] flex items-center">
+          <BarChart2 className="w-5 h-5 mr-2" />
           Cash Flow Forecast
         </h3>
         <div className="flex items-center space-x-2">

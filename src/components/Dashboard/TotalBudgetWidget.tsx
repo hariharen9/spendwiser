@@ -2,7 +2,7 @@ import React from 'react';
 import { TotalBudget, Transaction } from '../../types/types';
 import { motion } from 'framer-motion';
 import { cardHoverVariants } from '../../components/Common/AnimationVariants';
-import { TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
+import { TrendingUp, TrendingDown, AlertTriangle, PiggyBank } from 'lucide-react';
 
 interface TotalBudgetWidgetProps {
   totalBudget: TotalBudget | null;
@@ -75,7 +75,7 @@ const TotalBudgetWidget: React.FC<TotalBudgetWidgetProps> = ({ totalBudget, tran
       layout
     >
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5]">Monthly Budget</h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] flex items-center"><PiggyBank className="w-5 h-5 mr-2" />Monthly Budget</h3>
         <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-700">
           {statusIcon}
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{statusText}</span>

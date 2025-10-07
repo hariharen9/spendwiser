@@ -11,6 +11,7 @@ import {
   FiChevronDown, FiChevronUp, FiTarget, FiAlertTriangle, FiTrendingDown,
   FiActivity, FiCalendar, FiFilter, FiRefreshCw
 } from 'react-icons/fi';
+import { PieChart as PieChartIcon } from 'lucide-react';
 
 interface ChartData {
   name: string;
@@ -353,7 +354,7 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, currency, t
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-[#F5F5F5]">Spending Insights</h3>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-[#F5F5F5] flex items-center"><PieChartIcon className="w-5 h-5 mr-2" />Spending Insights</h3>
             <p className="text-sm text-gray-500 dark:text-[#888888] mt-1">
               {timeRange === 'month' && 'This month'}
               {timeRange === 'quarter' && 'This quarter'}

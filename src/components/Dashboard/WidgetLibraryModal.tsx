@@ -298,6 +298,14 @@ const WIDGET_CONFIGS: WidgetConfig[] = [
     icon: <Users size={20} />,
     category: 'Financial',
     color: 'bg-blue-500'
+  },
+  {
+    id: 'MonthlyBalanceWidget',
+    name: 'Monthly Balance',
+    description: 'Track balance changes from the start of the month to now.',
+    icon: <Landmark size={20} />,
+    category: 'Financial',
+    color: 'bg-sky-500'
   }
 ];
 

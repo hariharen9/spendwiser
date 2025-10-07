@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowUpRight, ArrowDownLeft, Eye } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, Eye, Clock } from 'lucide-react';
 import { Transaction } from '../../types/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cardHoverVariants } from '../../components/Common/AnimationVariants';
@@ -109,7 +109,7 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({ transactions, o
       layout
     >
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5]">Recent Transactions</h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5] flex items-center"><Clock className="w-5 h-5 mr-2" />Recent Transactions</h3>
         <button
           onClick={onViewAll}
           className="flex items-center space-x-2 text-[#007BFF] hover:text-[#0056b3] transition-colors"
