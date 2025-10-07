@@ -1567,7 +1567,7 @@ function App() {
                           }}
                           currency={currency}
                           transactions={transactions}
-                          accounts={accounts}
+                          accounts={accountsWithDynamicBalances}
                         />          </motion.div>
         );
       case 'loans':
@@ -1604,7 +1604,7 @@ function App() {
               user={user}
               darkMode={darkMode}
               onToggleDarkMode={onToggleDarkMode}
-              accounts={accounts}
+              accounts={accountsWithDynamicBalances}
               onAddAccount={handleAddAccount}
               onEditAccount={handleEditAccount}
               onDeleteAccount={handleDeleteAccount}
