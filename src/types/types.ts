@@ -11,6 +11,8 @@ export interface Transaction {
   comments?: string;
   isMock?: boolean;
   createdAt?: string;
+  isRecurring?: boolean;
+  recurringTransactionId?: string;
 }
 
 export interface Budget {
@@ -30,6 +32,7 @@ export type User = {
   currency?: string;
   themePreference?: 'dark' | 'light';
   fontPreference?: string;
+  timezone?: string;
   categories?: string[];
   feedbackStars?: number;
   feedbackText?: string;

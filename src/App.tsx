@@ -6,6 +6,7 @@ import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, getD
 import { categories, getDefaultCategories, mockTransactions, mockAccounts, mockBudgets, mockCreditCards, mockGoals, mockLoans } from './data/mockData';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { TimezoneManager } from './lib/timezone';
 
 // Components
 import LoginPage from './components/Login/LoginPage';
@@ -95,16 +96,19 @@ function App() {
   const [reauthPassword, setReauthPassword] = useState('');
   const [categoriesLoaded, setCategoriesLoaded] = useState(false);
   const [selectedFont, setSelectedFont] = useState<string>('Montserrat'); // Default font
+  const [userTimezone, setUserTimezone] = useState<string>('Asia/Kolkata'); // Default timezone
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [feedbackPromptTransactionCount, setFeedbackPromptTransactionCount] = useState(0);
   const [isFeedbackSubmitting, setIsFeedbackSubmitting] = useState(false);
-  
+  const [isProcessingRecurring, setIsProcessingRecurring] = useState(false);
+  const [lastProcessingTime, setLastProcessingTime] = useState(0);
+
   // Toast system
   const { toasts, showToast, removeToast } = useToast();
 
   // Analytics document reference
   const analyticsGlobalRef = doc(db, 'analytics', 'global');
-  
+
   // Transaction filter states
   const [searchTerm, setSearchTerm] = useState('');
   const [transactionType, setTransactionType] = useState('all');
@@ -221,6 +225,13 @@ function App() {
           } else {
             setSelectedFont('Montserrat'); // Default font for existing users
           }
+          if (userData.timezone) {
+            setUserTimezone(userData.timezone);
+            TimezoneManager.setUserTimezone(userData.timezone);
+          } else {
+            setUserTimezone('Asia/Kolkata'); // Default timezone for existing users
+            TimezoneManager.setUserTimezone('Asia/Kolkata');
+          }
           setThemeLoaded(true);
           // Load user categories if they exist, otherwise use default categories
           if (userData.categories) {
@@ -237,13 +248,16 @@ function App() {
             categories: defaultCategories,
             themePreference: 'dark', // Set dark theme for new users
             fontPreference: 'Montserrat', // Set default font for new users
+            timezone: 'Asia/Kolkata', // Set default timezone for new users
           });
           // Increment totalUsers analytics
           await updateDoc(analyticsGlobalRef, {
-              totalUsers: increment(1)
+            totalUsers: increment(1)
           });
           setUserCategories(defaultCategories);
           setDarkMode(true);
+          setUserTimezone('Asia/Kolkata');
+          TimezoneManager.setUserTimezone('Asia/Kolkata');
           setThemeLoaded(true);
         }
         setCategoriesLoaded(true);
@@ -292,6 +306,18 @@ function App() {
       });
       setSelectedFont(font);
       showToast('Font preference updated!', 'success');
+    }
+  };
+
+  const onUpdateTimezone = async (timezone: string) => {
+    if (user) {
+      const userDocRef = doc(db, 'spenders', user.uid);
+      await updateDoc(userDocRef, {
+        timezone: timezone,
+      });
+      setUserTimezone(timezone);
+      TimezoneManager.setUserTimezone(timezone);
+      showToast('Timezone updated!', 'success');
     }
   };
 
@@ -364,63 +390,109 @@ function App() {
   }, [user]);
 
   const processRecurringTransactions = async () => {
-    if (!user || !recurringTransactionsLoaded) return;
+    if (!user || !recurringTransactionsLoaded || isProcessingRecurring) return;
 
-    const batch = writeBatch(db);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); 
+    // Debounce: Don't process if we processed less than 5 seconds ago
+    const now = Date.now();
+    if (now - lastProcessingTime < 5000) {
+      return;
+    }
 
-    for (const rt of recurringTransactions) {
-      let lastProcessed = new Date(rt.lastProcessedDate);
-      lastProcessed.setHours(0, 0, 0, 0);
-      
-      let nextTransactionDate = new Date(lastProcessed);
+    setLastProcessingTime(now);
+    setIsProcessingRecurring(true);
 
-      while (nextTransactionDate < today) {
-        switch (rt.frequency) {
-          case 'daily':
-            nextTransactionDate.setDate(nextTransactionDate.getDate() + 1);
-            break;
-          case 'weekly':
-            nextTransactionDate.setDate(nextTransactionDate.getDate() + 7);
-            break;
-          case 'monthly':
-            nextTransactionDate.setMonth(nextTransactionDate.getMonth() + 1);
-            break;
-          case 'yearly':
-            nextTransactionDate.setFullYear(nextTransactionDate.getFullYear() + 1);
-            break;
+    try {
+      const batch = writeBatch(db);
+      const todayString = TimezoneManager.toDateString(TimezoneManager.today());
+      let hasUpdates = false;
+
+      for (const rt of recurringTransactions) {
+        // Use simple string comparison instead of complex date parsing
+        if (rt.lastProcessedDate === todayString) {
+          continue;
         }
 
-        if (nextTransactionDate < today && (!rt.endDate || nextTransactionDate < new Date(rt.endDate))) {
-          const newTransactionData = {
-            name: rt.name,
-            amount: rt.amount,
-            date: nextTransactionDate.toISOString().split('T')[0],
-            category: rt.category,
-            type: rt.type,
-            accountId: rt.accountId,
-          };
-          const newTransactionRef = doc(collection(db, 'spenders', user.uid, 'transactions'));
-          batch.set(newTransactionRef, newTransactionData);
+        const lastProcessed = TimezoneManager.parseDate(rt.lastProcessedDate);
+        let nextTransactionDate = TimezoneManager.getNextOccurrence(lastProcessed, rt.frequency);
+        let lastCreatedDate = lastProcessed;
+        const today = TimezoneManager.today();
+
+        // Create all missed transactions up to today
+        while (nextTransactionDate <= today) {
+          // Check if we haven't exceeded the end date
+          if (!rt.endDate || nextTransactionDate <= TimezoneManager.parseDate(rt.endDate)) {
+            const dateString = TimezoneManager.toDateString(nextTransactionDate);
+
+            const newTransactionData = {
+              name: rt.name,
+              amount: rt.amount,
+              date: dateString,
+              category: rt.category,
+              type: rt.type,
+              accountId: rt.accountId,
+              createdAt: new Date().toISOString(),
+              isRecurring: true,
+              recurringTransactionId: rt.id,
+            };
+
+            const newTransactionRef = doc(collection(db, 'spenders', user.uid, 'transactions'));
+            batch.set(newTransactionRef, newTransactionData);
+
+            lastCreatedDate = new Date(nextTransactionDate);
+            hasUpdates = true;
+          }
+
+          nextTransactionDate = TimezoneManager.getNextOccurrence(nextTransactionDate, rt.frequency);
+        }
+
+        // Update lastProcessedDate if we created transactions
+        if (lastCreatedDate.getTime() !== lastProcessed.getTime()) {
+          const newLastProcessedDate = TimezoneManager.toDateString(lastCreatedDate);
+
+          const recurringTransactionRef = doc(db, 'spenders', user.uid, 'recurring_transactions', rt.id);
+          batch.update(recurringTransactionRef, { lastProcessedDate: newLastProcessedDate });
+          hasUpdates = true;
         }
       }
 
-      const recurringTransactionRef = doc(db, 'spenders', user.uid, 'recurring_transactions', rt.id);
-      batch.update(recurringTransactionRef, { lastProcessedDate: today.toISOString().split('T')[0] });
-    }
-
-    try {
-      await batch.commit();
+      // Only commit if we have updates
+      if (hasUpdates) {
+        await batch.commit();
+      }
     } catch (error) {
       console.error("Error processing recurring transactions: ", error);
+    } finally {
+      setIsProcessingRecurring(false);
     }
   };
 
   useEffect(() => {
-    if(user && recurringTransactionsLoaded) {
-        processRecurringTransactions();
+    if (user && recurringTransactionsLoaded) {
+      processRecurringTransactions();
     }
+  }, [user, recurringTransactionsLoaded]);
+
+  // Also process recurring transactions when the app becomes visible/focused
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && user && recurringTransactionsLoaded) {
+        processRecurringTransactions();
+      }
+    };
+
+    const handleFocus = () => {
+      if (user && recurringTransactionsLoaded) {
+        processRecurringTransactions();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, [user, recurringTransactionsLoaded]);
 
   // Total budget listener
@@ -446,13 +518,13 @@ function App() {
         const monthlyExpenses = transactions
           .filter(t => {
             const txDate = new Date(t.date);
-            return t.type === 'expense' && 
-                   txDate.toISOString().slice(0, 7) === currentMonth;
+            return t.type === 'expense' &&
+              txDate.toISOString().slice(0, 7) === currentMonth;
           })
           .reduce((sum, t) => sum + Math.abs(t.amount), 0);
-        
+
         const percentageUsed = (monthlyExpenses / totalBudget.limit) * 100;
-        
+
         if (percentageUsed >= 90 && percentageUsed < 100) {
           showToast(
             `You've used ${Math.round(percentageUsed)}% of your monthly budget. ${Math.round(totalBudget.limit - monthlyExpenses)} ${currency} remaining.`,
@@ -468,8 +540,8 @@ function App() {
     const allDataLoaded = transactionsLoaded && accountsLoaded && budgetsLoaded && categoriesLoaded && goalsLoaded && loansLoaded;
 
     if (user && !loading && allDataLoaded && !hasLoadedMockData &&
-        transactions.length === 0 && accounts.length === 0 && budgets.length === 0 && goals.length === 0 && loans.length === 0) {
-      
+      transactions.length === 0 && accounts.length === 0 && budgets.length === 0 && goals.length === 0 && loans.length === 0) {
+
       const loadMockData = async () => {
         await handleLoadMockData();
         setHasLoadedMockData(true);
@@ -491,7 +563,7 @@ function App() {
     } else {
       document.documentElement.classList.remove('dark');
     }
-    
+
     // Save theme preference to Firebase
     if (user) {
       const userDocRef = doc(db, 'spenders', user.uid);
@@ -499,7 +571,7 @@ function App() {
     }
   }, [darkMode, user, themeLoaded]);
 
-  
+
 
   // Effect to show mock data reminder in settings
   useEffect(() => {
@@ -531,7 +603,7 @@ function App() {
           ...account,
           balance: totalSpend // For credit cards, balance represents total spend
         };
-      } 
+      }
       // For other account types, calculate balance based on income/expense transactions
       else {
         const accountTransactions = transactions.filter(t => t.accountId === account.id);
@@ -549,25 +621,25 @@ function App() {
   }, [accounts, transactions]);
 
   // Separate credit cards from other accounts
-  const creditCards = useMemo(() => 
-    accountsWithDynamicBalances.filter(acc => acc.type === 'Credit Card'), 
+  const creditCards = useMemo(() =>
+    accountsWithDynamicBalances.filter(acc => acc.type === 'Credit Card'),
     [accountsWithDynamicBalances]
   );
 
-  const regularAccounts = useMemo(() => 
-    accountsWithDynamicBalances.filter(acc => acc.type !== 'Credit Card'), 
+  const regularAccounts = useMemo(() =>
+    accountsWithDynamicBalances.filter(acc => acc.type !== 'Credit Card'),
     [accountsWithDynamicBalances]
   );
 
   const filteredTransactions = useMemo(() => {
     const filtered = transactions.filter(transaction => {
       const matchesSearch = transaction.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           transaction.category.toLowerCase().includes(searchTerm.toLowerCase());
-      
+        transaction.category.toLowerCase().includes(searchTerm.toLowerCase());
+
       const matchesType = transactionType === 'all' || transaction.type === transactionType;
-      
+
       const matchesCategory = selectedCategory === '' || transaction.category === selectedCategory;
-      
+
       // Date filtering
       let matchesDate = true;
       if (startDate && endDate) {
@@ -624,10 +696,10 @@ function App() {
     try {
       const transactionsRef = collection(db, 'spenders', user.uid, 'transactions');
       // Add createdAt timestamp for new transactions
-      const transactionWithTimestamp = id || editingTransaction ? 
-        transactionData : 
+      const transactionWithTimestamp = id || editingTransaction ?
+        transactionData :
         { ...transactionData, createdAt: new Date().toISOString() };
-      
+
       if (id) {
         const transactionDoc = doc(db, 'spenders', user.uid, 'transactions', id);
         await updateDoc(transactionDoc, transactionWithTimestamp);
@@ -642,9 +714,9 @@ function App() {
         showToast('Transaction added successfully!', 'success');
         // Increment global analytics
         await updateDoc(analyticsGlobalRef, {
-            totalTransactions: increment(1),
-            totalIncome: transactionWithTimestamp.type === 'income' ? increment(transactionWithTimestamp.amount) : increment(0),
-            totalExpenses: transactionWithTimestamp.type === 'expense' ? increment(Math.abs(transactionWithTimestamp.amount)) : increment(0),
+          totalTransactions: increment(1),
+          totalIncome: transactionWithTimestamp.type === 'income' ? increment(transactionWithTimestamp.amount) : increment(0),
+          totalExpenses: transactionWithTimestamp.type === 'expense' ? increment(Math.abs(transactionWithTimestamp.amount)) : increment(0),
         });
       }
     } catch (error) {
@@ -678,7 +750,7 @@ function App() {
       showToast('Account added successfully!', 'success');
       // Increment global analytics
       await updateDoc(analyticsGlobalRef, {
-          totalAccounts: increment(1)
+        totalAccounts: increment(1)
       });
     } catch (error) {
       console.error("Error adding account: ", error);
@@ -738,23 +810,23 @@ function App() {
     if (newCategory && newCategory !== oldCategory && user) {
       const updatedCategories = userCategories.map(cat => cat === oldCategory ? newCategory : cat);
       setUserCategories(updatedCategories);
-  
+
       const userDocRef = doc(db, 'spenders', user.uid);
       const transactionsRef = collection(db, 'spenders', user.uid, 'transactions');
-  
+
       try {
         const batch = writeBatch(db);
-  
+
         // Update categories array in user document
         batch.update(userDocRef, { categories: updatedCategories });
-  
+
         // Find all transactions with the old category and update them
         const transactionsToUpdate = transactions.filter(tx => tx.category === oldCategory);
         transactionsToUpdate.forEach(tx => {
           const transactionDocRef = doc(transactionsRef, tx.id);
           batch.update(transactionDocRef, { category: newCategory });
         });
-  
+
         await batch.commit();
         showToast('Category and associated transactions updated successfully!', 'success');
       } catch (error) {
@@ -830,7 +902,7 @@ function App() {
         showToast('Budget added successfully!', 'success');
         // Increment global analytics
         await updateDoc(analyticsGlobalRef, {
-            totalBudgets: increment(1)
+          totalBudgets: increment(1)
         });
       }
     } catch (error) {
@@ -858,17 +930,17 @@ function App() {
 
   const handleSaveTotalBudget = async (limit: number) => {
     if (!user) return;
-    
+
     try {
       const totalBudgetRef = doc(db, 'spenders', user.uid, 'totalBudget', 'current');
       const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
-      
+
       const totalBudgetData: Omit<TotalBudget, 'id'> = {
         limit,
         month: currentMonth,
         isMock: false
       };
-      
+
       await setDoc(totalBudgetRef, totalBudgetData);
       showToast('Total monthly budget set successfully!', 'success');
     } catch (error) {
@@ -879,7 +951,7 @@ function App() {
 
   const handleDeleteTotalBudget = async () => {
     if (!user) return;
-    
+
     try {
       const totalBudgetRef = doc(db, 'spenders', user.uid, 'totalBudget', 'current');
       await deleteDoc(totalBudgetRef);
@@ -899,7 +971,7 @@ function App() {
       showToast('Goal added successfully!', 'success');
       // Increment global analytics
       await updateDoc(analyticsGlobalRef, {
-          totalGoals: increment(1)
+        totalGoals: increment(1)
       });
     } catch (error) {
       console.error("Error adding goal: ", error);
@@ -962,13 +1034,13 @@ function App() {
       const filteredLoanData = Object.fromEntries(
         Object.entries(loanData).filter(([_, value]) => value !== undefined)
       );
-      
+
       const loansRef = collection(db, 'spenders', user.uid, 'loans');
       await addDoc(loansRef, filteredLoanData);
       showToast('Loan added successfully!', 'success');
       // Increment global analytics
       await updateDoc(analyticsGlobalRef, {
-          totalLoans: increment(1)
+        totalLoans: increment(1)
       });
     } catch (error) {
       console.error("Error adding loan: ", error);
@@ -1005,14 +1077,20 @@ function App() {
     if (!user) return;
     try {
       const recurringTransactionsRef = collection(db, 'spenders', user.uid, 'recurring_transactions');
+
+      // Set lastProcessedDate to one day before startDate so the first transaction gets created
+      const startDate = new Date(recurringTransactionData.startDate);
+      const lastProcessedDate = new Date(startDate);
+      lastProcessedDate.setDate(lastProcessedDate.getDate() - 1);
+
       await addDoc(recurringTransactionsRef, {
         ...recurringTransactionData,
-        lastProcessedDate: new Date().toISOString().split('T')[0],
+        lastProcessedDate: lastProcessedDate.toISOString().split('T')[0],
       });
       showToast('Recurring transaction added successfully!', 'success');
       // Increment global analytics
       await updateDoc(analyticsGlobalRef, {
-          totalRecurringTransactions: increment(1)
+        totalRecurringTransactions: increment(1)
       });
     } catch (error) {
       console.error("Error adding recurring transaction: ", error);
@@ -1110,22 +1188,22 @@ function App() {
 
   const handleImportCSV = async (transactions: Omit<Transaction, 'id'>[]) => {
     if (!user) return;
-    
+
     try {
       const transactionsRef = collection(db, 'spenders', user.uid, 'transactions');
       const batch = writeBatch(db);
-      
+
       // Add all transactions in a batch operation
       transactions.forEach(transaction => {
         const newTransactionRef = doc(transactionsRef);
         batch.set(newTransactionRef, transaction);
       });
-      
+
       await batch.commit();
       showToast(`${transactions.length} transactions imported successfully!`, 'success');
       // Increment global analytics
       await updateDoc(analyticsGlobalRef, {
-          totalCSVImports: increment(1)
+        totalCSVImports: increment(1)
       });
     } catch (error) {
       console.error("Error importing transactions: ", error);
@@ -1146,11 +1224,11 @@ function App() {
 
   const handleLoadMockData = async () => {
     if (!user) return;
-    
+
     try {
       // Clear existing mock data first
       await handleClearMockData();
-      
+
       // Add mock transactions
       const transactionsRef = collection(db, 'spenders', user.uid, 'transactions');
       const transactionBatch = writeBatch(db);
@@ -1159,7 +1237,7 @@ function App() {
         transactionBatch.set(newTransactionRef, transaction);
       });
       await transactionBatch.commit();
-      
+
       // Add mock accounts (including credit cards)
       const accountsRef = collection(db, 'spenders', user.uid, 'accounts');
       const accountBatch = writeBatch(db);
@@ -1168,7 +1246,7 @@ function App() {
         accountBatch.set(newAccountRef, account);
       });
       await accountBatch.commit();
-      
+
       // Add mock budgets
       const budgetsRef = collection(db, 'spenders', user.uid, 'budgets');
       const budgetBatch = writeBatch(db);
@@ -1177,7 +1255,7 @@ function App() {
         budgetBatch.set(newBudgetRef, budget);
       });
       await budgetBatch.commit();
-      
+
       // Add mock goals
       const goalsRef = collection(db, 'spenders', user.uid, 'goals');
       const goalBatch = writeBatch(db);
@@ -1195,7 +1273,7 @@ function App() {
         loanBatch.set(newLoanRef, loan);
       });
       await loanBatch.commit();
-      
+
       // Add mock total budget
       const totalBudgetRef = doc(db, 'spenders', user.uid, 'totalBudget', 'current');
       const mockTotalBudget: Omit<TotalBudget, 'id'> = {
@@ -1204,11 +1282,11 @@ function App() {
         isMock: true
       };
       await setDoc(totalBudgetRef, mockTotalBudget);
-      
+
       showToast('Mock data loaded successfully!', 'success');
       // Increment global analytics
       await updateDoc(analyticsGlobalRef, {
-          totalMockDataLoads: increment(1)
+        totalMockDataLoads: increment(1)
       });
 
       // After loading mock data, update transactionsAtLastFeedbackPrompt
@@ -1225,7 +1303,7 @@ function App() {
 
   const handleClearMockData = async () => {
     if (!user) return;
-    
+
     try {
       // Get references to all collections
       const transactionsRef = collection(db, 'spenders', user.uid, 'transactions');
@@ -1234,7 +1312,7 @@ function App() {
       const goalsRef = collection(db, 'spenders', user.uid, 'goals');
       const loansRef = collection(db, 'spenders', user.uid, 'loans');
       const totalBudgetRef = doc(db, 'spenders', user.uid, 'totalBudget', 'current');
-      
+
       // Get all documents in each collection
       const transactionsSnapshot = await getDocs(transactionsRef);
       const accountsSnapshot = await getDocs(accountsRef);
@@ -1242,7 +1320,7 @@ function App() {
       const goalsSnapshot = await getDocs(goalsRef);
       const loansSnapshot = await getDocs(loansRef);
       const totalBudgetSnapshot = await getDoc(totalBudgetRef);
-      
+
       // Delete only mock transactions
       const transactionBatch = writeBatch(db);
       transactionsSnapshot.docs.forEach(doc => {
@@ -1251,7 +1329,7 @@ function App() {
         }
       });
       await transactionBatch.commit();
-      
+
       // Delete only mock accounts
       const accountBatch = writeBatch(db);
       accountsSnapshot.docs.forEach(doc => {
@@ -1260,7 +1338,7 @@ function App() {
         }
       });
       await accountBatch.commit();
-      
+
       // Delete only mock budgets
       const budgetBatch = writeBatch(db);
       budgetsSnapshot.docs.forEach(doc => {
@@ -1269,7 +1347,7 @@ function App() {
         }
       });
       await budgetBatch.commit();
-      
+
       // Delete only mock goals
       const goalBatch = writeBatch(db);
       goalsSnapshot.docs.forEach(doc => {
@@ -1287,16 +1365,16 @@ function App() {
         }
       });
       await loanBatch.commit();
-      
+
       // Delete mock total budget if it exists
       if (totalBudgetSnapshot.exists() && totalBudgetSnapshot.data().isMock === true) {
         await deleteDoc(totalBudgetRef);
       }
-      
+
       showToast('Mock data cleared successfully!', 'success');
       // Increment global analytics
       await updateDoc(analyticsGlobalRef, {
-          totalMockDataClears: increment(1)
+        totalMockDataClears: increment(1)
       });
     } catch (error) {
       console.error("Error clearing mock data: ", error);
@@ -1454,16 +1532,16 @@ function App() {
             animate="animate"
             exit="exit"
           >
-            <DashboardPage 
-              transactions={transactions} 
+            <DashboardPage
+              transactions={transactions}
               recurringTransactions={recurringTransactions}
-              accounts={regularAccounts} 
-              budgets={budgets} 
+              accounts={regularAccounts}
+              budgets={budgets}
               loans={loans}
               goals={goals}
               totalBudget={totalBudget}
-              onViewAllTransactions={() => setCurrentScreen('transactions')} 
-              currency={currency} 
+              onViewAllTransactions={() => setCurrentScreen('transactions')}
+              currency={currency}
               setCurrentScreen={setCurrentScreen}
               onSaveTransaction={handleAddTransaction}
               categories={userCategories}
@@ -1531,8 +1609,8 @@ function App() {
             animate="animate"
             exit="exit"
           >
-            <BudgetsPage 
-              budgets={budgets} 
+            <BudgetsPage
+              budgets={budgets}
               transactions={transactions}
               totalBudget={totalBudget}
               onEditBudget={handleEditBudget}
@@ -1553,22 +1631,22 @@ function App() {
             animate="animate"
             exit="exit"
           >
-                          <GoalsPage
-                          goals={goals}
-                          onAddGoal={() => setIsGoalModalOpen(true)}
-                          onEditGoal={(goal) => {
-                            setEditingGoal(goal);
-                            setIsGoalModalOpen(true);
-                          }}
-                          onDeleteGoal={handleDeleteGoal}
-                          onAddFunds={(goal) => {
-                            setSelectedGoal(goal);
-                            setIsAddFundsModalOpen(true);
-                          }}
-                          currency={currency}
-                          transactions={transactions}
-                          accounts={accountsWithDynamicBalances}
-                        />          </motion.div>
+            <GoalsPage
+              goals={goals}
+              onAddGoal={() => setIsGoalModalOpen(true)}
+              onEditGoal={(goal) => {
+                setEditingGoal(goal);
+                setIsGoalModalOpen(true);
+              }}
+              onDeleteGoal={handleDeleteGoal}
+              onAddFunds={(goal) => {
+                setSelectedGoal(goal);
+                setIsAddFundsModalOpen(true);
+              }}
+              currency={currency}
+              transactions={transactions}
+              accounts={accountsWithDynamicBalances}
+            />          </motion.div>
         );
       case 'loans':
         return (
@@ -1579,7 +1657,7 @@ function App() {
             animate="animate"
             exit="exit"
           >
-            <LoansPage 
+            <LoansPage
               loans={loans}
               onAddLoan={() => setIsLoanModalOpen(true)}
               onEditLoan={(loan) => {
@@ -1635,6 +1713,8 @@ function App() {
                 setIsShortcutModalOpen(true);
               }}
               onOpenShortcutHelp={handleOpenShortcutHelp}
+              userTimezone={userTimezone}
+              onUpdateTimezone={onUpdateTimezone}
             />
           </motion.div>
         );
@@ -1647,16 +1727,16 @@ function App() {
             animate="animate"
             exit="exit"
           >
-            <DashboardPage 
-              transactions={transactions} 
+            <DashboardPage
+              transactions={transactions}
               recurringTransactions={recurringTransactions}
-              accounts={regularAccounts} 
-              budgets={budgets} 
+              accounts={regularAccounts}
+              budgets={budgets}
               loans={loans}
               goals={goals}
               totalBudget={totalBudget}
-              onViewAllTransactions={() => setCurrentScreen('transactions')} 
-              currency={currency} 
+              onViewAllTransactions={() => setCurrentScreen('transactions')}
+              currency={currency}
               setCurrentScreen={setCurrentScreen}
               onSaveTransaction={handleAddTransaction}
               categories={userCategories}
@@ -1701,7 +1781,7 @@ function App() {
     showToast('Data backup successful!', 'success');
     // Increment global analytics
     await updateDoc(analyticsGlobalRef, {
-        totalBackups: increment(1)
+      totalBackups: increment(1)
     });
   };
 
@@ -1732,7 +1812,7 @@ function App() {
 
     // Create a new PDF document
     const doc = new jsPDF();
-    
+
     // Set document properties
     doc.setProperties({
       title: `SpendWiser Backup - ${new Date().toISOString().split('T')[0]}`,
@@ -1746,40 +1826,40 @@ function App() {
     doc.setFontSize(22);
     doc.setTextColor(0, 123, 255); // Blue color
     doc.text('SpendWiser Financial Statement', 105, 20, { align: 'center' });
-    
+
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
     doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 30);
     doc.text(`User: ${user.email}`, 20, 37);
-    
+
     // Add a line separator
     doc.setDrawColor(0, 123, 255);
     doc.line(20, 42, 190, 42);
-    
+
     // Add summary section
     doc.setFontSize(16);
     doc.setTextColor(0, 123, 255);
     doc.text('Account Summary', 20, 52);
-    
+
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
-    
+
     let yPosition = 62;
-    
+
     // Add account information
     accounts.forEach((account, index) => {
       if (yPosition > 270) { // If we're near the bottom of the page, add a new page
         doc.addPage();
         yPosition = 20;
       }
-      
+
       doc.setFont('helvetica', 'bold');
       doc.text(`${account.name} (${account.type})`, 20, yPosition);
       doc.setFont('helvetica', 'normal');
       doc.text(`${currency}${account.balance.toLocaleString()}`, 180, yPosition, { align: 'right' });
       yPosition += 7;
     });
-    
+
     // Add budgets section
     if (yPosition > 250) {
       doc.addPage();
@@ -1787,21 +1867,21 @@ function App() {
     } else {
       yPosition += 10;
     }
-    
+
     doc.setFontSize(16);
     doc.setTextColor(0, 123, 255);
     doc.text('Budgets', 20, yPosition);
     yPosition += 10;
-    
+
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
-    
+
     // Add budgets table headers
     if (yPosition > 260) {
       doc.addPage();
       yPosition = 20;
     }
-    
+
     if (budgets.length > 0) {
       doc.setFont('helvetica', 'bold');
       doc.text('Category', 20, yPosition);
@@ -1810,17 +1890,17 @@ function App() {
       doc.text('Remaining', 160, yPosition, { align: 'right' });
       doc.setFont('helvetica', 'normal');
       yPosition += 5;
-      
+
       // Add a line under headers
       doc.line(20, yPosition, 190, yPosition);
       yPosition += 5;
-      
+
       // Add budgets
       budgets.forEach((budget, index) => {
         if (yPosition > 270) { // If we're near the bottom of the page, add a new page
           doc.addPage();
           yPosition = 20;
-          
+
           // Re-add headers on new page
           doc.setFont('helvetica', 'bold');
           doc.text('Category', 20, yPosition);
@@ -1832,19 +1912,19 @@ function App() {
           doc.line(20, yPosition, 190, yPosition);
           yPosition += 5;
         }
-        
+
         doc.text(budget.category, 20, yPosition);
         doc.text(`${currency}${budget.limit.toLocaleString()}`, 80, yPosition);
-        
+
         // Calculate spent amount for this budget
         const spent = transactions
           .filter(t => t.category === budget.category && t.type === 'expense')
           .reduce((sum, t) => sum + Math.abs(t.amount), 0);
         doc.text(`${currency}${spent.toLocaleString()}`, 120, yPosition);
-        
+
         const remaining = budget.limit - spent;
         doc.text(`${currency}${remaining.toLocaleString()}`, 160, yPosition, { align: 'right' });
-        
+
         yPosition += 7;
       });
     } else {
@@ -1853,7 +1933,7 @@ function App() {
       doc.setFont('helvetica', 'normal');
       yPosition += 7;
     }
-    
+
     // Add loans section
     if (yPosition > 250) {
       doc.addPage();
@@ -1861,21 +1941,21 @@ function App() {
     } else {
       yPosition += 10;
     }
-    
+
     doc.setFontSize(16);
     doc.setTextColor(0, 123, 255);
     doc.text('Loans', 20, yPosition);
     yPosition += 10;
-    
+
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
-    
+
     // Add loans table headers
     if (yPosition > 260) {
       doc.addPage();
       yPosition = 20;
     }
-    
+
     if (loans.length > 0) {
       doc.setFont('helvetica', 'bold');
       doc.text('Loan Name', 20, yPosition);
@@ -1885,17 +1965,17 @@ function App() {
       doc.text('Balance', 190, yPosition, { align: 'right' });
       doc.setFont('helvetica', 'normal');
       yPosition += 5;
-      
+
       // Add a line under headers
       doc.line(20, yPosition, 190, yPosition);
       yPosition += 5;
-      
+
       // Add loans
       loans.forEach((loan, index) => {
         if (yPosition > 270) { // If we're near the bottom of the page, add a new page
           doc.addPage();
           yPosition = 20;
-          
+
           // Re-add headers on new page
           doc.setFont('helvetica', 'bold');
           doc.text('Loan Name', 20, yPosition);
@@ -1908,13 +1988,13 @@ function App() {
           doc.line(20, yPosition, 190, yPosition);
           yPosition += 5;
         }
-        
+
         doc.text(loan.name, 20, yPosition);
         doc.text(`${currency}${loan.loanAmount.toLocaleString()}`, 70, yPosition);
         doc.text(`${loan.interestRate}%`, 110, yPosition);
         doc.text(`${loan.tenure} years`, 150, yPosition);
         doc.text(`${currency}${loan.emi.toLocaleString()}`, 190, yPosition, { align: 'right' });
-        
+
         yPosition += 7;
       });
     } else {
@@ -1923,7 +2003,7 @@ function App() {
       doc.setFont('helvetica', 'normal');
       yPosition += 7;
     }
-    
+
     // Add goals section
     if (yPosition > 250) {
       doc.addPage();
@@ -1931,21 +2011,21 @@ function App() {
     } else {
       yPosition += 10;
     }
-    
+
     doc.setFontSize(16);
     doc.setTextColor(0, 123, 255);
     doc.text('Financial Goals', 20, yPosition);
     yPosition += 10;
-    
+
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
-    
+
     // Add goals table headers
     if (yPosition > 260) {
       doc.addPage();
       yPosition = 20;
     }
-    
+
     if (goals.length > 0) {
       doc.setFont('helvetica', 'bold');
       doc.text('Goal Name', 20, yPosition);
@@ -1954,17 +2034,17 @@ function App() {
       doc.text('Progress', 160, yPosition, { align: 'right' });
       doc.setFont('helvetica', 'normal');
       yPosition += 5;
-      
+
       // Add a line under headers
       doc.line(20, yPosition, 190, yPosition);
       yPosition += 5;
-      
+
       // Add goals
       goals.forEach((goal, index) => {
         if (yPosition > 270) { // If we're near the bottom of the page, add a new page
           doc.addPage();
           yPosition = 20;
-          
+
           // Re-add headers on new page
           doc.setFont('helvetica', 'bold');
           doc.text('Goal Name', 20, yPosition);
@@ -1976,14 +2056,14 @@ function App() {
           doc.line(20, yPosition, 190, yPosition);
           yPosition += 5;
         }
-        
+
         doc.text(goal.name, 20, yPosition);
         doc.text(`${currency}${goal.targetAmount.toLocaleString()}`, 80, yPosition);
         doc.text(`${currency}${goal.currentAmount.toLocaleString()}`, 120, yPosition);
-        
+
         const progress = Math.round((goal.currentAmount / goal.targetAmount) * 100);
         doc.text(`${progress}%`, 160, yPosition, { align: 'right' });
-        
+
         yPosition += 7;
       });
     } else {
@@ -1992,7 +2072,7 @@ function App() {
       doc.setFont('helvetica', 'normal');
       yPosition += 7;
     }
-    
+
     // Add credit card transactions section
     const creditCardAccounts = accounts.filter(account => account.type === 'Credit Card');
     if (creditCardAccounts.length > 0) {
@@ -2002,21 +2082,21 @@ function App() {
       } else {
         yPosition += 10;
       }
-      
+
       doc.setFontSize(16);
       doc.setTextColor(0, 123, 255);
       doc.text('Credit Card Transactions', 20, yPosition);
       yPosition += 10;
-      
+
       doc.setFontSize(12);
       doc.setTextColor(0, 0, 0);
-      
+
       // Add table headers
       if (yPosition > 260) {
         doc.addPage();
         yPosition = 20;
       }
-      
+
       doc.setFont('helvetica', 'bold');
       doc.text('Date', 20, yPosition);
       doc.text('Description', 45, yPosition);
@@ -2025,16 +2105,16 @@ function App() {
       doc.text('Amount', 190, yPosition, { align: 'right' });
       doc.setFont('helvetica', 'normal');
       yPosition += 5;
-      
+
       // Add a line under headers
       doc.line(20, yPosition, 190, yPosition);
       yPosition += 5;
-      
+
       // Get credit card transactions
-      const creditCardTransactions = transactions.filter(transaction => 
+      const creditCardTransactions = transactions.filter(transaction =>
         creditCardAccounts.some(card => card.id === transaction.accountId)
       );
-      
+
       if (creditCardTransactions.length > 0) {
         // Add credit card transactions (limit to 50 for performance)
         const limitedCCTransactions = creditCardTransactions.slice(0, 50);
@@ -2042,7 +2122,7 @@ function App() {
           if (yPosition > 270) { // If we're near the bottom of the page, add a new page
             doc.addPage();
             yPosition = 20;
-            
+
             // Re-add headers on new page
             doc.setFont('helvetica', 'bold');
             doc.text('Date', 20, yPosition);
@@ -2055,20 +2135,20 @@ function App() {
             doc.line(20, yPosition, 190, yPosition);
             yPosition += 5;
           }
-          
+
           doc.text(transaction.date, 20, yPosition);
           doc.text(transaction.name.length > 15 ? transaction.name.substring(0, 15) + '...' : transaction.name, 45, yPosition);
-          
+
           const card = creditCardAccounts.find(c => c.id === transaction.accountId);
           doc.text(card ? card.name : 'Unknown Card', 100, yPosition);
-          
+
           doc.text(transaction.category, 130, yPosition);
-          
+
           // Color code amounts (expenses in red)
           doc.setTextColor(220, 53, 69); // Red for expenses
           doc.text(`${currency}${Math.abs(transaction.amount).toLocaleString()}`, 190, yPosition, { align: 'right' });
           doc.setTextColor(0, 0, 0); // Reset to black
-          
+
           yPosition += 7;
         });
       } else {
@@ -2078,7 +2158,7 @@ function App() {
         yPosition += 7;
       }
     }
-    
+
     // Add transactions section
     if (yPosition > 250) {
       doc.addPage();
@@ -2086,21 +2166,21 @@ function App() {
     } else {
       yPosition += 10;
     }
-    
+
     doc.setFontSize(16);
     doc.setTextColor(0, 123, 255);
     doc.text('All Transactions', 20, yPosition);
     yPosition += 10;
-    
+
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
-    
+
     // Add table headers
     if (yPosition > 260) {
       doc.addPage();
       yPosition = 20;
     }
-    
+
     doc.setFont('helvetica', 'bold');
     doc.text('Date', 20, yPosition);
     doc.text('Description', 45, yPosition);
@@ -2109,18 +2189,18 @@ function App() {
     doc.text('Amount', 180, yPosition, { align: 'right' });
     doc.setFont('helvetica', 'normal');
     yPosition += 5;
-    
+
     // Add a line under headers
     doc.line(20, yPosition, 190, yPosition);
     yPosition += 5;
-    
+
     // Add transactions (limit to 100 for performance)
     const limitedTransactions = transactions.slice(0, 100);
     limitedTransactions.forEach((transaction, index) => {
       if (yPosition > 270) { // If we're near the bottom of the page, add a new page
         doc.addPage();
         yPosition = 20;
-        
+
         // Re-add headers on new page
         doc.setFont('helvetica', 'bold');
         doc.text('Date', 20, yPosition);
@@ -2133,25 +2213,25 @@ function App() {
         doc.line(20, yPosition, 190, yPosition);
         yPosition += 5;
       }
-      
+
       doc.text(transaction.date, 20, yPosition);
       doc.text(transaction.name.length > 20 ? transaction.name.substring(0, 20) + '...' : transaction.name, 45, yPosition);
       doc.text(transaction.category, 100, yPosition);
       doc.text(transaction.type, 140, yPosition);
-      
+
       // Color code amounts
       if (transaction.type === 'income') {
         doc.setTextColor(40, 167, 69); // Green for income
       } else {
         doc.setTextColor(220, 53, 69); // Red for expenses
       }
-      
+
       doc.text(`${currency}${Math.abs(transaction.amount).toLocaleString()}`, 180, yPosition, { align: 'right' });
       doc.setTextColor(0, 0, 0); // Reset to black
-      
+
       yPosition += 7;
     });
-    
+
     // Add footer
     const pageCount = doc.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
@@ -2160,13 +2240,13 @@ function App() {
       doc.setTextColor(108, 117, 125);
       doc.text(`Page ${i} of ${pageCount}`, 105, 290, { align: 'center' });
     }
-    
+
     // Save the PDF
     doc.save(`spendwiser-statement-${new Date().toISOString().split('T')[0]}.pdf`);
     showToast('PDF export successful!', 'success');
     // Increment global analytics
     await updateDoc(analyticsGlobalRef, {
-        totalPDFExports: increment(1)
+      totalPDFExports: increment(1)
     });
   };
 
@@ -2198,7 +2278,7 @@ function App() {
       goalsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
       loansSnapshot.docs.forEach(doc => batch.delete(doc.ref));
       recurringTransactionsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
-      
+
       // Delete total budget if it exists
       batch.delete(totalBudgetRef);
 
@@ -2262,7 +2342,7 @@ function App() {
         setDefaultAccountId(data.settings.defaultAccountId);
         setSelectedFont(data.settings.fontPreference || 'Montserrat');
         const userDocRef = doc(db, 'spenders', user.uid);
-        await setDoc(userDocRef, { 
+        await setDoc(userDocRef, {
           themePreference: data.settings.darkMode ? 'dark' : 'light',
           currency: data.settings.currency,
           defaultAccountId: data.settings.defaultAccountId,
@@ -2285,7 +2365,7 @@ function App() {
       showToast('Data restored successfully!', 'success');
       // Increment global analytics
       await updateDoc(analyticsGlobalRef, {
-          totalRestores: increment(1)
+        totalRestores: increment(1)
       });
     } catch (error) {
       console.error("Error restoring data: ", error);
@@ -2321,7 +2401,7 @@ function App() {
       goalsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
       loansSnapshot.docs.forEach(doc => batch.delete(doc.ref));
       recurringTransactionsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
-      
+
       // Delete total budget if it exists
       batch.delete(totalBudgetRef);
 
@@ -2354,25 +2434,25 @@ function App() {
 
   if (loading) {
     return (
-      <motion.div 
+      <motion.div
         className="min-h-screen bg-[#1A1A1A] flex flex-col items-center justify-center"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
-        <motion.div 
+        <motion.div
           className="text-[#F5F5F5]"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <motion.div 
+          <motion.div
             className="flex items-center justify-center space-x-2"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.3 }}
           >
-            <motion.div 
+            <motion.div
               className="bg-[#007BFF] p-2 rounded-lg"
               animate={{
                 scale: [1, 1.1, 1],
@@ -2386,7 +2466,7 @@ function App() {
             >
               <img src="/icon-money.svg" alt="SpendWiser Logo" className="h-8 w-8" />
             </motion.div>
-            <motion.span 
+            <motion.span
               className="text-xl font-semibold"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -2395,13 +2475,13 @@ function App() {
               Loading SpendWiser...
             </motion.span>
           </motion.div>
-          <motion.div 
+          <motion.div
             className="mt-4 flex justify-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
           >
-            <motion.div 
+            <motion.div
               className="rounded-full h-8 w-8 border-b-2 border-[#007BFF]"
               animate={{ rotate: 360 }}
               transition={{
@@ -2412,9 +2492,9 @@ function App() {
             />
           </motion.div>
         </motion.div>
-        
+
         {/* Version information */}
-        <motion.div 
+        <motion.div
           className="absolute top-4 text-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -2424,9 +2504,9 @@ function App() {
             Version: {import.meta.env.VITE_APP_VERSION || 'development'}
           </p>
         </motion.div>
-        
+
         {/* Footer with attribution */}
-        <motion.div 
+        <motion.div
           className="absolute bottom-4 text-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -2465,7 +2545,7 @@ function App() {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             {/* <div className="bg-[#007BFF] p-2 rounded-lg"> */}
-              <img src="/icon-money.svg" alt="SpendWiser Logo" className="h-10 w-10" />
+            <img src="/icon-money.svg" alt="SpendWiser Logo" className="h-10 w-10" />
             {/* </div> */}
             <div>
               <a href="https://hariharen9.site" target="_blank" rel="noopener noreferrer">
@@ -2535,7 +2615,7 @@ function App() {
               {renderCurrentPage()}
             </AnimatePresence>
           </main>
-          
+
           {/* Footer with attribution */}
           {currentScreen !== 'settings' && (
             <footer className="py-4 text-center text-sm text-gray-500 dark:text-[#888888]">

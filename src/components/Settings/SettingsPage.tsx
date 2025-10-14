@@ -45,7 +45,9 @@ interface SettingsPageProps {
   shortcuts: Shortcut[];
   onOpenShortcutModal: () => void;
   onEditShortcut: (shortcut: Shortcut) => void;
-  onOpenShortcutHelp: () => void; // Add this new prop
+  onOpenShortcutHelp: () => void;
+  userTimezone: string;
+  onUpdateTimezone: (timezone: string) => void;
 }
 
 const SettingsPage: React.FC<SettingsPageProps> = (props) => {
@@ -64,6 +66,8 @@ const SettingsPage: React.FC<SettingsPageProps> = (props) => {
             onToggleDarkMode={props.onToggleDarkMode}
             selectedFont={props.selectedFont}
             onUpdateFont={props.onUpdateFont}
+            userTimezone={props.userTimezone}
+            onUpdateTimezone={props.onUpdateTimezone}
           />
           <FinancialSettings
             currency={props.currency}
@@ -78,7 +82,7 @@ const SettingsPage: React.FC<SettingsPageProps> = (props) => {
             onResetCategories={props.onResetCategories}
             onUpdateCategories={props.onUpdateCategories}
           />
-          <ShortcutsSettings 
+          <ShortcutsSettings
             shortcuts={props.shortcuts}
             onOpenShortcutModal={props.onOpenShortcutModal}
             onEditShortcut={props.onEditShortcut}
@@ -104,8 +108,8 @@ const SettingsPage: React.FC<SettingsPageProps> = (props) => {
             onClearMockData={props.onClearMockData}
           />
           <div className="lg:hidden">
-          <FeedbackAndSupport onOpenFeedbackModal={props.onOpenFeedbackModal} />
-        </div>
+            <FeedbackAndSupport onOpenFeedbackModal={props.onOpenFeedbackModal} />
+          </div>
           <SecuritySettings onDeleteUserAccount={props.onDeleteUserAccount} />
         </div>
       </motion.div>

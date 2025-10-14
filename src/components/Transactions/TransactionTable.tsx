@@ -224,6 +224,22 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
                                 )}
                               </div>
                             )}
+                            {transaction.isRecurring && (
+                              <div className="relative ml-2">
+                                <span 
+                                  className="px-2 py-1 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 text-xs font-medium rounded-full cursor-pointer"
+                                  onMouseEnter={() => setTooltipId(transaction.id)}
+                                  onMouseLeave={() => setTooltipId(null)}
+                                >
+                                  R
+                                </span>
+                                {tooltipId === transaction.id && (
+                                  <div className="absolute z-50 px-2 py-1 text-xs font-medium text-white bg-gray-900 rounded-md shadow-sm bottom-full left-1/2 transform -translate-x-1/2 -translate-y-2 whitespace-nowrap">
+                                    Recurring Transaction
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                           {editingCellId === transaction.id ? (
                             <div className='relative mt-2'>
@@ -306,7 +322,16 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
                                 exit={{ opacity: 0, scale: 0.9, y: 10 }}
                                 transition={{ duration: 0.2 }}
                               >
-                                <p className="text-sm text-gray-800 dark:text-gray-200 mb-3 text-center">Are you sure?</p>
+                                <div className="text-sm text-gray-800 dark:text-gray-200 mb-3 text-center">
+                                  {transaction.isRecurring ? (
+                                    <div>
+                                      <p className="font-medium text-red-600 dark:text-red-400 mb-1">⚠️ Recurring Transaction</p>
+                                      <p className="text-xs">This was created automatically. Deleting won't stop future occurrences.</p>
+                                    </div>
+                                  ) : (
+                                    <p>Are you sure?</p>
+                                  )}
+                                </div>
                                 <div className="flex justify-center space-x-3">
                                   <motion.button
                                     onClick={() => setDeleteConfirmId(null)}

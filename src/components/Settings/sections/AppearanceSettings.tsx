@@ -1,18 +1,28 @@
 
 import React from 'react';
-import { Moon, Type } from 'lucide-react';
+import { Moon, Type, Globe } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { fadeInVariants } from '../../Common/AnimationVariants';
 import AnimatedDropdown from '../../Common/AnimatedDropdown';
+import { TIMEZONES } from '../../../lib/timezone';
 
 interface AppearanceSettingsProps {
   darkMode: boolean;
   onToggleDarkMode: () => void;
   selectedFont: string;
   onUpdateFont: (font: string) => void;
+  userTimezone: string;
+  onUpdateTimezone: (timezone: string) => void;
 }
 
-const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({ darkMode, onToggleDarkMode, selectedFont, onUpdateFont }) => {
+const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({ 
+  darkMode, 
+  onToggleDarkMode, 
+  selectedFont, 
+  onUpdateFont, 
+  userTimezone, 
+  onUpdateTimezone 
+}) => {
   return (
     <motion.div
       className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700"
@@ -71,6 +81,27 @@ const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({ darkMode, onTog
               selectedValue={selectedFont}
               options={['Montserrat', 'Roboto', 'Poppins', 'Open Sans', 'Lato', 'Press Start 2P', 'Nunito Sans', 'Inter', 'Source Sans Pro', 'Work Sans', 'Rubik', 'Merriweather', 'IBM Plex Sans', 'Dancing Script', 'Pacifico', 'Caveat', 'Lobster']}
               onChange={onUpdateFont}
+            />
+          </div>
+        </motion.div>
+
+        <motion.div
+          className="flex items-center justify-between"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <div>
+            <p className="font-medium text-gray-900 dark:text-[#F5F5F5]">Timezone</p>
+            <p className="text-sm text-gray-500 dark:text-[#888888]">
+              {TIMEZONES.find(tz => tz.value === userTimezone)?.label || 'Unknown timezone'}
+            </p>
+          </div>
+          <div className="w-48">
+            <AnimatedDropdown
+              selectedValue={userTimezone}
+              options={TIMEZONES.map(tz => ({ value: tz.value, label: tz.label }))}
+              onChange={onUpdateTimezone}
             />
           </div>
         </motion.div>

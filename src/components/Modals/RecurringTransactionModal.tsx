@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { X, DollarSign, Calendar, Repeat, Tag, Briefcase, Trash2, Edit } from 'lucide-react';
+import { X, DollarSign, Calendar, Repeat, Tag, Briefcase, Trash2, Edit, Clock, Info } from 'lucide-react';
 import { RecurringTransaction, Account } from '../../types/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { modalVariants } from '../Common/AnimationVariants';
 import AnimatedDropdown from '../Common/AnimatedDropdown';
+import { TimezoneManager } from '../../lib/timezone';
 
 interface RecurringTransactionModalProps {
   isOpen: boolean;
@@ -35,7 +36,7 @@ const RecurringTransactionModal: React.FC<RecurringTransactionModalProps> = ({
     type: 'expense' as 'income' | 'expense',
     accountId: '',
     frequency: 'monthly' as 'daily' | 'weekly' | 'monthly' | 'yearly',
-    startDate: new Date().toISOString().split('T')[0],
+    startDate: TimezoneManager.getInputDate(),
     endDate: ''
   });
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -54,10 +55,29 @@ const RecurringTransactionModal: React.FC<RecurringTransactionModalProps> = ({
       type: 'expense',
       accountId: '',
       frequency: 'monthly',
-      startDate: new Date().toISOString().split('T')[0],
+      startDate: TimezoneManager.getInputDate(),
       endDate: ''
     });
     setEditingId(null);
+  };
+
+  const getNextETA = (rt: RecurringTransaction) => {
+    const today = TimezoneManager.today();
+    const lastProcessed = TimezoneManager.parseDate(rt.lastProcessedDate);
+    
+    // If already processed today, next occurrence is based on frequency
+    if (TimezoneManager.isSameDay(lastProcessed, today)) {
+      const nextDate = TimezoneManager.getNextOccurrence(today, rt.frequency);
+      return TimezoneManager.formatDate(nextDate);
+    } else {
+      // If not processed today, next occurrence could be today or later
+      const nextDate = TimezoneManager.getNextOccurrence(lastProcessed, rt.frequency);
+      if (nextDate <= today) {
+        return 'Due now';
+      } else {
+        return TimezoneManager.formatDate(nextDate);
+      }
+    }
   };
 
   const handleEditClick = (transaction: RecurringTransaction) => {
@@ -250,7 +270,7 @@ const RecurringTransactionModal: React.FC<RecurringTransactionModalProps> = ({
                   {recurringTransactions.length > 0 ? recurringTransactions.map(rt => (
                     <motion.div 
                         key={rt.id} 
-                        className="p-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-gray-700 rounded-lg flex justify-between items-center"
+                        className="p-4 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-gray-700 rounded-lg flex justify-between items-start"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, x: -10 }}
@@ -259,14 +279,24 @@ const RecurringTransactionModal: React.FC<RecurringTransactionModalProps> = ({
                         <div className={`mr-3 p-2 rounded-full ${rt.type === 'income' ? 'bg-green-100 dark:bg-green-900/50' : 'bg-red-100 dark:bg-red-900/50'}`}>
                             <DollarSign size={16} className={`${rt.type === 'income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`} />
                         </div>
-                        <div>
+                        <div className="flex-1">
                             <p className="font-semibold text-gray-800 dark:text-gray-200">{rt.name}</p>
                             <p className="text-sm text-gray-600 dark:text-gray-400 capitalize">
                             {currency}{Math.abs(rt.amount)} / {rt.frequency}
                             </p>
+                            <div className="flex items-center space-x-4 mt-1">
+                              <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
+                                <Clock size={12} />
+                                <span>Last: {TimezoneManager.formatDate(rt.lastProcessedDate)}</span>
+                              </div>
+                              <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
+                                <Calendar size={12} />
+                                <span>Next: {getNextETA(rt)}</span>
+                              </div>
+                            </div>
                         </div>
                       </div>
-                      <div className="flex space-x-2">
+                      <div className="flex space-x-2 mt-1">
                         <button onClick={() => handleEditClick(rt)} className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-full transition-colors"><Edit size={16} /></button>
                         <button onClick={() => onDelete(rt.id)} className="p-2 text-red-500 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full transition-colors"><Trash2 size={16} /></button>
                       </div>
