@@ -3,7 +3,7 @@ import { DollarSign, TrendingUp, TrendingDown, Edit3, Save, X, Download, Grid3X3
 import MetricCard from './MetricCard';
 import SpendingChart from './SpendingChart';
 import RecentTransactions from './RecentTransactions';
-import { Transaction, RecurringTransaction, Account, Budget, TotalBudget, Loan, Goal } from '../../types/types';
+import { Transaction, RecurringTransaction, Account, Budget, TotalBudget, Loan, Goal, Screen } from '../../types/types';
 import NetWorthWidget from './NetWorthWidget';
 import IncomeVsExpenseChart from './IncomeVsExpenseChart';
 import BudgetSummary from './BudgetSummary';
@@ -48,7 +48,7 @@ interface DashboardPageProps {
   onViewAllTransactions: () => void;
   currency: string;
   onExportDashboard?: () => void; // Add export function prop
-  setCurrentScreen: (screen: string) => void;
+  setCurrentScreen: (screen: Screen) => void;
   onSaveTransaction: (transaction: Omit<Transaction, 'id'>, id?: string) => void;
   categories: string[];
   creditCards?: Account[];

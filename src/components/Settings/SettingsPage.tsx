@@ -12,6 +12,7 @@ import {
   FeedbackAndSupport,
   ShortcutsSettings
 } from './sections';
+import OnboardingSettings from './sections/OnboardingSettings';
 import { Account, Shortcut } from '../../types/types';
 
 interface SettingsPageProps {
@@ -48,6 +49,9 @@ interface SettingsPageProps {
   onOpenShortcutHelp: () => void;
   userTimezone: string;
   onUpdateTimezone: (timezone: string) => void;
+  hasCompletedOnboarding: boolean;
+  onResetOnboarding: () => void;
+  onTriggerOnboarding: () => void;
 }
 
 const SettingsPage: React.FC<SettingsPageProps> = (props) => {
@@ -87,6 +91,11 @@ const SettingsPage: React.FC<SettingsPageProps> = (props) => {
             onOpenShortcutModal={props.onOpenShortcutModal}
             onEditShortcut={props.onEditShortcut}
             onOpenHelp={props.onOpenShortcutHelp} // Add this new prop
+          />
+          <OnboardingSettings
+            hasCompletedOnboarding={props.hasCompletedOnboarding}
+            onResetOnboarding={props.onResetOnboarding}
+            onTriggerOnboarding={props.onTriggerOnboarding}
           />
           <div className="hidden lg:block">
             <FeedbackAndSupport onOpenFeedbackModal={props.onOpenFeedbackModal} />

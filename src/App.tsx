@@ -38,6 +38,7 @@ import LoanModal from './components/Modals/LoanModal';
 import RecurringTransactionModal from './components/Modals/RecurringTransactionModal';
 import FeedbackModal from './components/Modals/FeedbackModal';
 import ShortcutModal from './components/Modals/ShortcutModal';
+import OnboardingWizard from './components/Onboarding/OnboardingWizard';
 
 // Icons
 import { LogOut, DollarSign, X, Sun, Moon } from 'lucide-react';
@@ -48,6 +49,7 @@ import { pageVariants, modalVariants } from './components/Common/AnimationVarian
 
 // Hooks
 import { useToast } from './hooks/useToast';
+import { useOnboarding } from './hooks/useOnboarding';
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -105,6 +107,15 @@ function App() {
 
   // Toast system
   const { toasts, showToast, removeToast } = useToast();
+
+  // Onboarding system
+  const {
+    hasCompletedOnboarding,
+    shouldShowOnboarding,
+    markOnboardingComplete,
+    resetOnboarding,
+    triggerOnboarding
+  } = useOnboarding();
 
   // Analytics document reference
   const analyticsGlobalRef = doc(db, 'analytics', 'global');
@@ -545,6 +556,8 @@ function App() {
       const loadMockData = async () => {
         await handleLoadMockData();
         setHasLoadedMockData(true);
+        // Trigger onboarding for first-time users with mock data
+        triggerOnboarding(true);
         showToast(
           'Welcome! We\'ve loaded some mock data to get you started. You can clear it from Settings.',
           'info'
@@ -1715,6 +1728,15 @@ function App() {
               onOpenShortcutHelp={handleOpenShortcutHelp}
               userTimezone={userTimezone}
               onUpdateTimezone={onUpdateTimezone}
+              hasCompletedOnboarding={hasCompletedOnboarding}
+              onResetOnboarding={() => {
+                resetOnboarding();
+                showToast('Onboarding status reset! The tour will show again for new users.', 'success');
+              }}
+              onTriggerOnboarding={() => {
+                triggerOnboarding(true, true); // Force show even if completed
+                showToast('Starting onboarding tour...', 'info');
+              }}
             />
           </motion.div>
         );
@@ -2936,6 +2958,14 @@ function App() {
         onClose={() => setIsFeedbackModalOpen(false)}
         onSubmit={handleFeedbackSubmit}
         isLoading={isFeedbackSubmitting}
+      />
+
+      {/* Onboarding Wizard */}
+      <OnboardingWizard
+        isOpen={shouldShowOnboarding}
+        onClose={() => triggerOnboarding(false, false)}
+        onComplete={markOnboardingComplete}
+        hasLoadedMockData={hasLoadedMockData}
       />
     </div>
   );
