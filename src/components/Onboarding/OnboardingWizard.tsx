@@ -65,71 +65,28 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onClose, on
       description: 'Your personal Financial Co-pilot is ready for takeoff',
       icon: Rocket,
       content: (
-        <div className="text-center space-y-4 md:space-y-6 px-2">
-          <motion.div
-            initial={{ scale: 0, rotate: -180 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="mx-auto w-24 h-24 md:w-32 md:h-32 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center relative overflow-hidden"
-          >
-            <motion.div
-              animate={{ 
-                scale: [1, 1.2, 1],
-                opacity: [0.5, 0.8, 0.5]
-              }}
-              transition={{ 
-                duration: 2, 
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-              className="absolute inset-0 bg-white rounded-full"
-            />
-            <Rocket className="w-12 h-12 md:w-16 md:h-16 text-white relative z-10" />
-          </motion.div>
-          
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="space-y-3 md:space-y-4"
-          >
-            <h3 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
-              Ready for Financial Clarity?
-            </h3>
-            <p className="text-gray-600 dark:text-gray-300 text-sm md:text-lg leading-relaxed max-w-2xl mx-auto">
-              {hasLoadedMockData 
-                ? "We've loaded sample data to help you explore. Let's take a quick tour of your new financial command center!"
-                : "Let's set up your financial dashboard and explore the powerful features that will transform how you manage money!"
-              }
-            </p>
-            <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400">
-              This tour will guide you through SpendWiser's key features in just a few minutes. You can skip or close at any time.
-            </p>
-          </motion.div>
+        <div className="text-center space-y-6">
+          <p className="text-gray-600 dark:text-gray-400 leading-relaxed max-w-md mx-auto">
+            {hasLoadedMockData 
+              ? "We've loaded sample data to help you explore. Let's take a quick tour!"
+              : "Let's explore the key features that will help you manage your finances better."
+            }
+          </p>
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.6 }}
-            className="grid grid-cols-3 gap-3 md:gap-4 mt-4 md:mt-6 max-w-md mx-auto"
-          >
+          <div className="grid grid-cols-3 gap-4 max-w-sm mx-auto">
             {[
-              { icon: DollarSign, label: 'Track', color: 'from-green-400 to-green-600' },
-              { icon: BarChart3, label: 'Analyze', color: 'from-blue-400 to-blue-600' },
-              { icon: Target, label: 'Achieve', color: 'from-purple-400 to-purple-600' }
-            ].map((item, index) => (
-              <motion.div
-                key={item.label}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.8 + index * 0.1 }}
-                className={`p-3 md:p-4 rounded-lg bg-gradient-to-br ${item.color} text-white text-center`}
-              >
-                <item.icon className="w-5 h-5 md:w-6 md:h-6 mx-auto mb-1" />
-                <span className="text-xs md:text-sm font-medium">{item.label}</span>
-              </motion.div>
+              { icon: DollarSign, label: 'Track', color: 'text-green-500' },
+              { icon: BarChart3, label: 'Analyze', color: 'text-blue-500' },
+              { icon: Target, label: 'Achieve', color: 'text-purple-500' }
+            ].map((item) => (
+              <div key={item.label} className="flex flex-col items-center space-y-2">
+                <div className={`w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center ${item.color}`}>
+                  <item.icon className="w-6 h-6" />
+                </div>
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{item.label}</span>
+              </div>
             ))}
-          </motion.div>
+          </div>
         </div>
       )
     },
@@ -607,68 +564,68 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onClose, on
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.8, opacity: 0, y: 50 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="bg-white dark:bg-gray-800 rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-4xl my-auto mx-auto border border-gray-200 dark:border-gray-700 flex flex-col max-h-[calc(100vh-1rem)] md:max-h-[calc(100vh-2rem)]"
+          className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl my-auto mx-auto border border-gray-200 dark:border-gray-700 flex flex-col max-h-[calc(100vh-1rem)] md:max-h-[calc(100vh-2rem)]"
           ref={modalRef}
         >
-          {/* Header with Enhanced Design */}
-          <div className="relative bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-4 md:p-8 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+          {/* Simplified Header */}
+          <div className="relative p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
             <motion.button
               onClick={handleSkip}
-              className="absolute top-4 right-4 md:top-6 md:right-6 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-all duration-200 rounded-full hover:bg-white/50 dark:hover:bg-gray-700/50 backdrop-blur-sm z-10"
+              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 z-10"
               aria-label="Skip onboarding"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               <X className="w-5 h-5" />
             </motion.button>
             
-            {/* Enhanced Progress Component */}
-            <div className="mb-6">
-              <GamifiedProgress
-                currentStep={currentStep}
-                totalSteps={steps.length}
-                stepTitles={stepTitles}
-              />
+            {/* Simple Progress Bar */}
+            <div className="mb-6 pr-12">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Step {currentStep + 1} of {steps.length}
+                </span>
+                <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                  {Math.round(progressPercentage)}%
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progressPercentage}%` }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                  className="bg-gradient-to-r from-blue-500 to-purple-500 h-1.5 rounded-full"
+                />
+              </div>
             </div>
 
             <motion.div
               key={currentStep}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
               className="text-center"
             >
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mb-4 shadow-lg"
-              >
-                {React.createElement(steps[currentStep].icon, { 
-                  className: "w-8 h-8 text-white" 
-                })}
-              </motion.div>
-              
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                 {steps[currentStep].title}
               </h2>
-              <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 {steps[currentStep].description}
               </p>
             </motion.div>
           </div>
 
-          {/* Enhanced Content Area - Scrollable */}
+          {/* Simplified Content Area */}
           <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
-            <div className="p-4 md:p-8 min-h-[300px] flex items-center justify-center">
+            <div className="p-6 min-h-[250px] flex items-center justify-center">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentStep}
-                  initial={{ opacity: 0, x: 30, scale: 0.95 }}
-                  animate={{ opacity: 1, x: 0, scale: 1 }}
-                  exit={{ opacity: 0, x: -30, scale: 0.95 }}
-                  transition={{ duration: 0.4, ease: "easeOut" }}
-                  className="w-full max-w-3xl"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                  className="w-full"
                 >
                   {steps[currentStep].content}
                 </motion.div>
@@ -676,89 +633,57 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onClose, on
             </div>
           </div>
 
-          {/* Enhanced Footer */}
-          <div className="bg-gray-50 dark:bg-gray-900/50 p-4 md:p-8 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
+          {/* Simplified Footer */}
+          <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
             <div className="flex justify-between items-center gap-4">
-              <motion.button
+              <button
                 onClick={handlePrevious}
                 disabled={currentStep === 0}
-                className="flex items-center space-x-1 md:space-x-2 px-3 md:px-6 py-2 md:py-3 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 rounded-lg hover:bg-white dark:hover:bg-gray-800"
-                whileHover={{ scale: currentStep === 0 ? 1 : 1.05 }}
-                whileTap={{ scale: currentStep === 0 ? 1 : 0.95 }}
+                className="flex items-center space-x-2 px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-sm font-medium"
               >
-                <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
-                <span className="font-medium text-sm md:text-base">Previous</span>
-              </motion.button>
+                <ChevronLeft className="w-4 h-4" />
+                <span>Back</span>
+              </button>
 
-              {/* Step Dots with Enhanced Animation */}
-              <div className="flex space-x-2 md:space-x-3">
+              {/* Simple Step Dots */}
+              <div className="flex space-x-2">
                 {steps.map((_, index) => (
-                  <motion.div
+                  <div
                     key={index}
-                    className={`relative rounded-full transition-all duration-300 ${
-                      index <= currentStep
-                        ? 'bg-gradient-to-r from-blue-500 to-purple-500 w-2.5 h-2.5 md:w-3 md:h-3'
-                        : 'bg-gray-300 dark:bg-gray-600 w-2 h-2'
+                    className={`h-2 rounded-full transition-all ${
+                      index === currentStep
+                        ? 'bg-blue-500 w-6'
+                        : index < currentStep
+                        ? 'bg-blue-300 dark:bg-blue-700 w-2'
+                        : 'bg-gray-300 dark:bg-gray-600 w-2'
                     }`}
-                    animate={{
-                      scale: index === currentStep ? 1.3 : 1,
-                      boxShadow: index === currentStep 
-                        ? '0 0 0 3px rgba(59, 130, 246, 0.2)'
-                        : '0 0 0 0px rgba(59, 130, 246, 0)'
-                    }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    {index <= currentStep && (
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="absolute inset-0 rounded-full bg-white/30"
-                      />
-                    )}
-                  </motion.div>
+                  />
                 ))}
               </div>
 
-              <motion.button
+              <button
                 onClick={handleNext}
                 disabled={isCompleting}
-                className={`flex items-center space-x-2 md:space-x-3 px-4 md:px-8 py-2 md:py-3 rounded-lg md:rounded-xl font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg ${
+                className={`flex items-center space-x-2 px-6 py-2 rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm ${
                   currentStep === steps.length - 1
-                    ? 'bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white shadow-green-500/25'
-                    : 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white shadow-blue-500/25'
+                    ? 'bg-green-500 hover:bg-green-600 text-white'
+                    : 'bg-blue-500 hover:bg-blue-600 text-white'
                 }`}
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
               >
-                <span className="text-sm md:text-lg">
-                  {currentStep === steps.length - 1 ? '🚀 Get Started' : 'Next'}
+                <span>
+                  {currentStep === steps.length - 1 ? 'Get Started' : 'Next'}
                 </span>
                 {isCompleting ? (
                   <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    className="w-4 h-4 md:w-5 md:h-5 border-2 border-white border-t-transparent rounded-full"
+                    className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
                   />
                 ) : (
-                  <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
+                  <ChevronRight className="w-4 h-4" />
                 )}
-              </motion.button>
-            </div>
-
-            {/* Skip Button */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1 }}
-              className="text-center mt-3 md:mt-4"
-            >
-              <button
-                onClick={handleSkip}
-                className="text-xs md:text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors underline px-2 py-1"
-              >
-                Skip tour and explore on my own
               </button>
-            </motion.div>
+            </div>
           </div>
         </motion.div>
       </motion.div>
