@@ -97,9 +97,6 @@ const SettingsPage: React.FC<SettingsPageProps> = (props) => {
             onResetOnboarding={props.onResetOnboarding}
             onTriggerOnboarding={props.onTriggerOnboarding}
           />
-          <div className="hidden lg:block">
-            <FeedbackAndSupport onOpenFeedbackModal={props.onOpenFeedbackModal} />
-          </div>
         </div>
         <div className="space-y-8">
           <AccountManagement
@@ -116,9 +113,7 @@ const SettingsPage: React.FC<SettingsPageProps> = (props) => {
             onLoadMockData={props.onLoadMockData}
             onClearMockData={props.onClearMockData}
           />
-          <div className="lg:hidden">
-            <FeedbackAndSupport onOpenFeedbackModal={props.onOpenFeedbackModal} />
-          </div>
+          <FeedbackAndSupport onOpenFeedbackModal={props.onOpenFeedbackModal} />
           <SecuritySettings onDeleteUserAccount={props.onDeleteUserAccount} />
         </div>
       </motion.div>
