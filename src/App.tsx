@@ -39,6 +39,7 @@ import RecurringTransactionModal from './components/Modals/RecurringTransactionM
 import FeedbackModal from './components/Modals/FeedbackModal';
 import ShortcutModal from './components/Modals/ShortcutModal';
 import OnboardingWizard from './components/Onboarding/OnboardingWizard';
+import ConfirmationDialog from './components/BillSplitting/ConfirmationDialog';
 
 // Icons
 import { LogOut, DollarSign, X, Sun, Moon } from 'lucide-react';
@@ -102,6 +103,7 @@ function App() {
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [feedbackPromptTransactionCount, setFeedbackPromptTransactionCount] = useState(0);
   const [isFeedbackSubmitting, setIsFeedbackSubmitting] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isProcessingRecurring, setIsProcessingRecurring] = useState(false);
   const [lastProcessingTime, setLastProcessingTime] = useState(0);
 
@@ -732,11 +734,16 @@ function App() {
   };
 
   const handleLogout = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const confirmLogout = () => {
     auth.signOut();
     setUser(null);
     setCurrentScreen('dashboard');
     setHasLoadedMockData(false);
     setHasShownMockDataReminder(false);
+    setShowLogoutConfirm(false);
   };
 
   const handleAddTransaction = async (transactionData: Omit<Transaction, 'id'>, id?: string) => {
@@ -3002,6 +3009,17 @@ function App() {
         onClose={() => triggerOnboarding(false, false)}
         onComplete={markOnboardingComplete}
         hasLoadedMockData={hasLoadedMockData}
+      />
+
+      {/* Logout Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={confirmLogout}
+        title="Confirm Logout"
+        message="Are you sure you want to logout? You'll need to sign in again to access your data."
+        confirmText="Logout"
+        cancelText="Cancel"
       />
     </div>
   );
