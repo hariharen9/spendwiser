@@ -142,3 +142,17 @@ export interface Expense {
   createdAt?: Date;
   category?: string; // Add category field
 }
+
+// Notification types
+export interface NotificationSettings {
+  enabled: boolean;
+  time: string; // "09:00" format (24-hour)
+  timezone: string;
+  frequency: 'daily' | 'weekdays' | 'weekends' | 'custom';
+  customDays: number[]; // [0,1,2,3,4,5,6] where 0=Sunday
+  lastNotified: string; // ISO date string
+  pushEnabled: boolean; // For push notifications via service worker
+  browserEnabled: boolean; // For browser notifications
+  reminderText: string; // Custom reminder message
+  snoozeMinutes: number; // How long to snooze (default 120 minutes)
+}

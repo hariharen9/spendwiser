@@ -1,8 +1,44 @@
 [build]
-  command = "git fetch --tags && export VITE_APP_VERSION=$(git describe --tags --long --abbrev=5 | sed 's/g//') && vite build"
   publish = "dist"
+  command = "git fetch --tags && export VITE_APP_VERSION=$(git describe --tags --long --abbrev=5 | sed 's/g//') && vite build"
 
+[build.environment]
+  NODE_VERSION = "18"
+
+# Redirect all routes to index.html for SPA
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Function settings
+[functions]
+  directory = "netlify/functions"
+
+# Scheduled functions configuration
+# Note: Netlify scheduled functions require a paid plan
+# For free tier, we'll use client-side scheduling with service worker backup
+
+# Environment variables (set these in Netlify dashboard)
+# VAPID_PUBLIC_KEY = "your-vapid-public-key"
+# VAPID_PRIVATE_KEY = "your-vapid-private-key"
+# VITE_VAPID_PUBLIC_KEY = "your-vapid-public-key"
+
+# Headers for PWA and security
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/manifest.json"
+  [headers.values]
+    Content-Type = "application/manifest+json"

@@ -13,6 +13,7 @@ import {
   ShortcutsSettings
 } from './sections';
 import OnboardingSettings from './sections/OnboardingSettings';
+import NotificationSettings from './sections/NotificationSettings';
 import { Account, Shortcut } from '../../types/types';
 
 interface SettingsPageProps {
@@ -52,6 +53,7 @@ interface SettingsPageProps {
   hasCompletedOnboarding: boolean;
   onResetOnboarding: () => void;
   onTriggerOnboarding: () => void;
+  onShowToast: (message: string, type: 'success' | 'error' | 'warning' | 'info') => void;
 }
 
 const SettingsPage: React.FC<SettingsPageProps> = (props) => {
@@ -96,6 +98,11 @@ const SettingsPage: React.FC<SettingsPageProps> = (props) => {
             hasCompletedOnboarding={props.hasCompletedOnboarding}
             onResetOnboarding={props.onResetOnboarding}
             onTriggerOnboarding={props.onTriggerOnboarding}
+          />
+          <NotificationSettings
+            userId={props.user?.uid || null}
+            userTimezone={props.userTimezone}
+            onShowToast={props.onShowToast}
           />
         </div>
         <div className="space-y-8">

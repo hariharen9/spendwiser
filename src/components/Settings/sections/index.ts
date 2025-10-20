@@ -6,3 +6,4 @@ export { default as AccountManagement } from './AccountManagement';
 export { default as SecuritySettings } from './SecuritySettings';
 export { default as ShortcutsSettings } from './ShortcutsSettings';
 export { default as FeedbackAndSupport } from './FeedbackAndSupport';
+export { default as NotificationSettings } from './NotificationSettings';

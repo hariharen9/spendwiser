@@ -12,6 +12,15 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+      strategies: 'injectManifest',
+      srcDir: 'public',
+      filename: 'sw.js',
+      injectManifest: {
+        swSrc: 'public/sw.js',
+        swDest: 'dist/sw.js',
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest}'],
+        maximumFileSizeToCacheInBytes: 5000000 // 5MB limit
+      },
       manifest: {
         name: 'SpendWiser by Hari',
         short_name: 'SpendWiser',
@@ -20,6 +29,8 @@ export default defineConfig({
         background_color: '#f8f9fa',
         display: 'standalone',
         orientation: 'portrait',
+        start_url: '/',
+        scope: '/',
         icons: [
           {
             src: '/icon-money.svg',
@@ -38,6 +49,10 @@ export default defineConfig({
       workbox: {
         maximumFileSizeToCacheInBytes: 5000000, // 5 MB - increased from default 2 MB
       },
+      devOptions: {
+        enabled: true,
+        type: 'module'
+      }
     }),
   ],
   optimizeDeps: {

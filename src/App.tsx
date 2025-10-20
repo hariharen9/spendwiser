@@ -108,6 +108,41 @@ function App() {
   // Toast system
   const { toasts, showToast, removeToast } = useToast();
 
+  // Handle URL parameters for notification actions
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const action = urlParams.get('action');
+    
+    if (action === 'add-transaction') {
+      // Open add transaction modal when coming from notification
+      setIsAddTransactionModalOpen(true);
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+
+  // Handle service worker messages
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        const { type, data } = event.data;
+        
+        if (type === 'SCHEDULE_SNOOZE') {
+          // Handle snooze scheduling from service worker
+          const { snoozeTime, message, userId } = data;
+          const delay = snoozeTime - Date.now();
+          
+          if (delay > 0) {
+            setTimeout(() => {
+              showToast(message, 'info');
+              setIsAddTransactionModalOpen(true);
+            }, delay);
+          }
+        }
+      });
+    }
+  }, [showToast]);
+
   // Onboarding system
   const {
     hasCompletedOnboarding,
@@ -1737,6 +1772,7 @@ function App() {
                 triggerOnboarding(true, true); // Force show even if completed
                 showToast('Starting onboarding tour...', 'info');
               }}
+              onShowToast={showToast}
             />
           </motion.div>
         );
