@@ -1,6 +1,6 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { RotateCcw, Play, CheckCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { RotateCcw, Play, CheckCircle, ChevronRight, GraduationCap } from 'lucide-react';
 
 interface OnboardingSettingsProps {
   hasCompletedOnboarding: boolean;
@@ -13,27 +13,56 @@ const OnboardingSettings: React.FC<OnboardingSettingsProps> = ({
   onResetOnboarding,
   onTriggerOnboarding
 }) => {
+  const [isCollapsed, setIsCollapsed] = useState(true); // Default to collapsed
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700"
+      className="bg-white dark:bg-[#242424] rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
     >
-      <div className="flex items-center space-x-3 mb-4">
-        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-          <Play className="w-5 h-5 text-white" />
+      {/* Collapsible Header */}
+      <button
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+      >
+        <div className="flex items-center space-x-3">
+          <GraduationCap className="w-6 h-6 text-purple-500" />
+          <div className="text-left">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5]">
+              Onboarding Tour
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {hasCompletedOnboarding ? 'Tour completed' : 'Welcome tour available'}
+            </p>
+          </div>
+          {hasCompletedOnboarding && (
+            <span className="px-2 py-1 text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full">
+              Completed
+            </span>
+          )}
         </div>
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Onboarding Tour
-          </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-300">
-            Manage your welcome tour experience
-          </p>
-        </div>
-      </div>
+        <motion.div
+          animate={{ rotate: isCollapsed ? 0 : 90 }}
+          transition={{ duration: 0.2 }}
+        >
+          <ChevronRight className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+        </motion.div>
+      </button>
 
-      <div className="space-y-4">
+      {/* Collapsible Content */}
+      <AnimatePresence>
+        {!isCollapsed && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            className="overflow-hidden"
+          >
+            <div className="px-6 pb-6 border-t border-gray-100 dark:border-gray-700">
+              <div className="pt-4 space-y-4">
+
+
         {/* Status */}
         <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
           <div className="flex items-center space-x-3">
@@ -85,7 +114,11 @@ const OnboardingSettings: React.FC<OnboardingSettingsProps> = ({
             It automatically shows for first-time users when sample data is loaded.
           </p>
         </div>
-      </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };

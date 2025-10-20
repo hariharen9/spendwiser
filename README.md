@@ -21,10 +21,15 @@
     <br>
     <img src="https://img.shields.io/github/repo-size/hariharen9/spendwiser?style=for-the-badge" alt="Repo Size">
     <a href="eslint.config.js">
-        <img src="https://img.shields.io/badge/code%20style-eslint-4B32C3?style=for-the-badge&logo=eslint" alt="Code Style: ESLint">
+      <img src="https://img.shields.io/badge/code%20style-eslint-4B32C3?style=for-the-badge&logo=eslint" alt="Code Style: ESLint">
+    </a>
+    <a href="https://app.netlify.com/projects/spenditwiser/deploys">
+      <img src="https://api.netlify.com/api/v1/badges/414059e8-62f2-4087-b285-9d18b76cb6cb/deploy-status" alt="Netlify Status">
     </a>
   </p>
+
 </div>
+
 
 ---
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Bell, 
   BellOff, 
@@ -10,7 +10,8 @@ import {
   TestTube,
   AlertCircle,
   CheckCircle,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  ChevronRight
 } from 'lucide-react';
 import { useNotifications } from '../../../hooks/useNotifications';
 
@@ -40,6 +41,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
   } = useNotifications(userId);
 
   const [isTestingNotification, setIsTestingNotification] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true); // Default to collapsed
 
   // Handle permission request
   const handleRequestPermission = async () => {
@@ -132,16 +134,44 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white dark:bg-[#242424] rounded-xl p-6 border border-gray-200 dark:border-gray-700"
+      className="bg-white dark:bg-[#242424] rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
     >
-      <div className="flex items-center space-x-3 mb-6">
-        <Bell className="w-6 h-6 text-blue-500" />
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5]">
-          Daily Reminders
-        </h3>
-      </div>
+      {/* Collapsible Header */}
+      <button
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+      >
+        <div className="flex items-center space-x-3">
+          <Bell className="w-6 h-6 text-blue-500" />
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5]">
+            Daily Reminders
+          </h3>
+          {settings.enabled && (
+            <span className="px-2 py-1 text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full">
+              Active
+            </span>
+          )}
+        </div>
+        <motion.div
+          animate={{ rotate: isCollapsed ? 0 : 90 }}
+          transition={{ duration: 0.2 }}
+        >
+          <ChevronRight className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+        </motion.div>
+      </button>
 
-      <div className="space-y-6">
+      {/* Collapsible Content */}
+      <AnimatePresence>
+        {!isCollapsed && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            className="overflow-hidden"
+          >
+            <div className="px-6 pb-6 border-t border-gray-100 dark:border-gray-700">
+              <div className="pt-4 space-y-6">
         {/* Permission Status */}
         <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
           <div className="flex items-center space-x-3">
@@ -387,7 +417,11 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
             </button>
           </>
         )}
-      </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
