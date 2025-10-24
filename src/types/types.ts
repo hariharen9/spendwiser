@@ -99,6 +99,7 @@ export interface RecurringTransaction {
   lastProcessedDate: string;
   accountId?: string;
   isMock?: boolean;
+  isPaused?: boolean;
 }
 
 export interface Shortcut {

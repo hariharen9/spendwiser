@@ -455,6 +455,11 @@ function App() {
       let hasUpdates = false;
 
       for (const rt of recurringTransactions) {
+        // Skip paused transactions
+        if (rt.isPaused) {
+          continue;
+        }
+        
         // Use simple string comparison instead of complex date parsing
         if (rt.lastProcessedDate === todayString) {
           continue;
@@ -1175,6 +1180,29 @@ function App() {
     } catch (error) {
       console.error("Error deleting recurring transaction: ", error);
       showToast('Error deleting recurring transaction', 'error');
+    }
+  };
+
+  const handleTogglePauseRecurringTransaction = async (id: string) => {
+    if (!user) return;
+    try {
+      const recurringTransaction = recurringTransactions.find(rt => rt.id === id);
+      if (!recurringTransaction) return;
+
+      const recurringTransactionDoc = doc(db, 'spenders', user.uid, 'recurring_transactions', id);
+      const newPausedState = !recurringTransaction.isPaused;
+      
+      await updateDoc(recurringTransactionDoc, {
+        isPaused: newPausedState
+      });
+      
+      showToast(
+        `Recurring transaction ${newPausedState ? 'paused' : 'resumed'} successfully!`, 
+        'success'
+      );
+    } catch (error) {
+      console.error("Error toggling pause state: ", error);
+      showToast('Error updating recurring transaction', 'error');
     }
   };
 
@@ -2745,6 +2773,7 @@ function App() {
         onSave={handleSaveRecurringTransaction}
         onUpdate={handleUpdateRecurringTransaction}
         onDelete={handleDeleteRecurringTransaction}
+        onTogglePause={handleTogglePauseRecurringTransaction}
         accounts={regularAccounts}
         categories={userCategories}
         recurringTransactions={recurringTransactions}

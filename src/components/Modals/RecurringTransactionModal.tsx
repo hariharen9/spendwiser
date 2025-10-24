@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, DollarSign, Calendar, Repeat, Tag, Briefcase, Trash2, Edit, Clock, Info } from 'lucide-react';
+import { X, DollarSign, Calendar, Repeat, Tag, Briefcase, Trash2, Edit, Clock, Pause, Play } from 'lucide-react';
 import { RecurringTransaction, Account } from '../../types/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { modalVariants } from '../Common/AnimationVariants';
@@ -12,6 +12,7 @@ interface RecurringTransactionModalProps {
   onSave: (transaction: Omit<RecurringTransaction, 'id' | 'lastProcessedDate'>) => void;
   onUpdate: (transaction: RecurringTransaction) => void;
   onDelete: (id: string) => void;
+  onTogglePause: (id: string) => void;
   accounts: Account[];
   categories?: string[];
   recurringTransactions: RecurringTransaction[];
@@ -24,6 +25,7 @@ const RecurringTransactionModal: React.FC<RecurringTransactionModalProps> = ({
   onSave,
   onUpdate,
   onDelete,
+  onTogglePause,
   accounts,
   categories = ['Salary', 'Freelance', 'Investment', 'Groceries', 'Food & Dining', 'Transportation', 'Entertainment', 'Shopping', 'Utilities', 'Healthcare', 'Education', 'Recharge & Bills', 'Other'],
   recurringTransactions,
@@ -62,9 +64,13 @@ const RecurringTransactionModal: React.FC<RecurringTransactionModalProps> = ({
   };
 
   const getNextETA = (rt: RecurringTransaction) => {
+    if (rt.isPaused) {
+      return 'Paused';
+    }
+
     const today = TimezoneManager.today();
     const lastProcessed = TimezoneManager.parseDate(rt.lastProcessedDate);
-    
+
     // If already processed today, next occurrence is based on frequency
     if (TimezoneManager.isSameDay(lastProcessed, today)) {
       const nextDate = TimezoneManager.getNextOccurrence(today, rt.frequency);
@@ -96,7 +102,7 @@ const RecurringTransactionModal: React.FC<RecurringTransactionModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const amount = parseFloat(formData.amount);
     const finalAmount = formData.type === 'expense' ? -amount : amount;
 
@@ -112,24 +118,24 @@ const RecurringTransactionModal: React.FC<RecurringTransactionModalProps> = ({
     };
 
     if (editingId) {
-        const originalTransaction = recurringTransactions.find(t => t.id === editingId);
-        if(originalTransaction) {
-            onUpdate({
-                ...originalTransaction,
-                ...recurringTransactionData
-            });
-        }
+      const originalTransaction = recurringTransactions.find(t => t.id === editingId);
+      if (originalTransaction) {
+        onUpdate({
+          ...originalTransaction,
+          ...recurringTransactionData
+        });
+      }
     } else {
       onSave(recurringTransactionData);
     }
-    
+
     resetForm();
   };
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div 
+        <motion.div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -169,12 +175,12 @@ const RecurringTransactionModal: React.FC<RecurringTransactionModalProps> = ({
                   {/* Name */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center">
-                        <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2"><DollarSign className="h-4 w-4 text-blue-600 dark:text-blue-400" /></span>
-                        Name *
+                      <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2"><DollarSign className="h-4 w-4 text-blue-600 dark:text-blue-400" /></span>
+                      Name *
                     </label>
                     <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-[#1A1A1A] dark:border-gray-600 dark:text-white py-2 px-3 transition-all" placeholder="e.g., Netflix, Rent" />
                   </div>
-                  
+
                   {/* Amount & Type */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -189,7 +195,7 @@ const RecurringTransactionModal: React.FC<RecurringTransactionModalProps> = ({
                         <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2"><Tag className="h-4 w-4 text-blue-600 dark:text-blue-400" /></span>
                         Type *
                       </label>
-                      <AnimatedDropdown 
+                      <AnimatedDropdown
                         selectedValue={formData.type}
                         options={['expense', 'income']}
                         onChange={(value) => setFormData({ ...formData, type: value as 'income' | 'expense' })}
@@ -200,39 +206,39 @@ const RecurringTransactionModal: React.FC<RecurringTransactionModalProps> = ({
                   {/* Category */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center">
-                        <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2"><Tag className="h-4 w-4 text-blue-600 dark:text-blue-400" /></span>
-                        Category *
+                      <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2"><Tag className="h-4 w-4 text-blue-600 dark:text-blue-400" /></span>
+                      Category *
                     </label>
-                    <AnimatedDropdown 
-                        selectedValue={formData.category}
-                        options={categories}
-                        onChange={(value) => setFormData({ ...formData, category: value })}
+                    <AnimatedDropdown
+                      selectedValue={formData.category}
+                      options={categories}
+                      onChange={(value) => setFormData({ ...formData, category: value })}
                     />
                   </div>
 
                   {/* Account */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center">
-                        <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2"><Briefcase className="h-4 w-4 text-blue-600 dark:text-blue-400" /></span>
-                        Account
+                      <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2"><Briefcase className="h-4 w-4 text-blue-600 dark:text-blue-400" /></span>
+                      Account
                     </label>
-                    <AnimatedDropdown 
-                        selectedValue={formData.accountId}
-                        placeholder="Select an account"
-                        options={accounts.map(acc => ({ value: acc.id, label: acc.name }))}
-                        onChange={(value) => setFormData({ ...formData, accountId: value })}
+                    <AnimatedDropdown
+                      selectedValue={formData.accountId}
+                      placeholder="Select an account"
+                      options={accounts.map(acc => ({ value: acc.id, label: acc.name }))}
+                      onChange={(value) => setFormData({ ...formData, accountId: value })}
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center">
-                        <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2"><Repeat className="h-4 w-4 text-blue-600 dark:text-blue-400" /></span>
-                        Frequency *
+                      <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2"><Repeat className="h-4 w-4 text-blue-600 dark:text-blue-400" /></span>
+                      Frequency *
                     </label>
-                    <AnimatedDropdown 
-                        selectedValue={formData.frequency}
-                        options={['daily', 'weekly', 'monthly', 'yearly']}
-                        onChange={(value) => setFormData({ ...formData, frequency: value as 'daily' | 'weekly' | 'monthly' | 'yearly' })}
+                    <AnimatedDropdown
+                      selectedValue={formData.frequency}
+                      options={['daily', 'weekly', 'monthly', 'yearly']}
+                      onChange={(value) => setFormData({ ...formData, frequency: value as 'daily' | 'weekly' | 'monthly' | 'yearly' })}
                     />
                   </div>
 
@@ -268,44 +274,66 @@ const RecurringTransactionModal: React.FC<RecurringTransactionModalProps> = ({
                 </h3>
                 <div className="max-h-[60vh] lg:max-h-[calc(90vh-200px)] overflow-y-auto space-y-3 pr-2">
                   {recurringTransactions.length > 0 ? recurringTransactions.map(rt => (
-                    <motion.div 
-                        key={rt.id} 
-                        className="p-4 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-gray-700 rounded-lg flex justify-between items-start"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, x: -10 }}
+                    <motion.div
+                      key={rt.id}
+                      className={`p-4 border border-gray-200 dark:border-gray-700 rounded-lg flex justify-between items-start ${rt.isPaused
+                        ? 'bg-gray-100 dark:bg-[#1a1a1a] opacity-75'
+                        : 'bg-gray-50 dark:bg-[#1e1e1e]'
+                        }`}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, x: -10 }}
                     >
                       <div className="flex items-center">
                         <div className={`mr-3 p-2 rounded-full ${rt.type === 'income' ? 'bg-green-100 dark:bg-green-900/50' : 'bg-red-100 dark:bg-red-900/50'}`}>
-                            <DollarSign size={16} className={`${rt.type === 'income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`} />
+                          <DollarSign size={16} className={`${rt.type === 'income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`} />
                         </div>
                         <div className="flex-1">
+                          <div className="flex items-center space-x-2">
                             <p className="font-semibold text-gray-800 dark:text-gray-200">{rt.name}</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 capitalize">
+                            {rt.isPaused && (
+                              <span className="px-2 py-1 text-xs bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200 rounded-full">
+                                Paused
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 capitalize">
                             {currency}{Math.abs(rt.amount)} / {rt.frequency}
-                            </p>
-                            <div className="flex items-center space-x-4 mt-1">
-                              <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
-                                <Clock size={12} />
-                                <span>Last: {TimezoneManager.formatDate(rt.lastProcessedDate)}</span>
-                              </div>
-                              <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
-                                <Calendar size={12} />
-                                <span>Next: {getNextETA(rt)}</span>
-                              </div>
+                          </p>
+                          <div className="flex items-center space-x-4 mt-1">
+                            <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
+                              <Clock size={12} />
+                              <span>Last: {TimezoneManager.formatDate(rt.lastProcessedDate)}</span>
                             </div>
+                            <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
+                              <Calendar size={12} />
+                              <span className={rt.isPaused ? 'text-yellow-600 dark:text-yellow-400' : ''}>
+                                Next: {getNextETA(rt)}
+                              </span>
+                            </div>
+                          </div>
                         </div>
                       </div>
                       <div className="flex space-x-2 mt-1">
+                        <button
+                          onClick={() => onTogglePause(rt.id)}
+                          className={`p-2 rounded-full transition-colors ${rt.isPaused
+                            ? 'text-green-500 hover:text-green-700 hover:bg-green-100 dark:hover:bg-green-900/50'
+                            : 'text-yellow-500 hover:text-yellow-700 hover:bg-yellow-100 dark:hover:bg-yellow-900/50'
+                            }`}
+                          title={rt.isPaused ? 'Resume transaction' : 'Pause transaction'}
+                        >
+                          {rt.isPaused ? <Play size={16} /> : <Pause size={16} />}
+                        </button>
                         <button onClick={() => handleEditClick(rt)} className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-full transition-colors"><Edit size={16} /></button>
                         <button onClick={() => onDelete(rt.id)} className="p-2 text-red-500 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full transition-colors"><Trash2 size={16} /></button>
                       </div>
                     </motion.div>
                   )) : (
                     <div className="text-center text-gray-500 dark:text-gray-400 py-10">
-                        <Repeat size={40} className="mx-auto text-gray-400"/>
-                        <p className="mt-2">No recurring transactions found.</p>
-                        <p className="text-sm">Add one using the form on the left.</p>
+                      <Repeat size={40} className="mx-auto text-gray-400" />
+                      <p className="mt-2">No recurring transactions found.</p>
+                      <p className="text-sm">Add one using the form on the left.</p>
                     </div>
                   )}
                 </div>
