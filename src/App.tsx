@@ -114,7 +114,7 @@ function App() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const action = urlParams.get('action');
-    
+
     if (action === 'add-transaction') {
       // Open add transaction modal when coming from notification
       setIsAddTransactionModalOpen(true);
@@ -128,12 +128,12 @@ function App() {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.addEventListener('message', (event) => {
         const { type, data } = event.data;
-        
+
         if (type === 'SCHEDULE_SNOOZE') {
           // Handle snooze scheduling from service worker
           const { snoozeTime, message, userId } = data;
           const delay = snoozeTime - Date.now();
-          
+
           if (delay > 0) {
             setTimeout(() => {
               showToast(message, 'info');
@@ -459,7 +459,7 @@ function App() {
         if (rt.isPaused) {
           continue;
         }
-        
+
         // Use simple string comparison instead of complex date parsing
         if (rt.lastProcessedDate === todayString) {
           continue;
@@ -1133,6 +1133,34 @@ function App() {
     }
   };
 
+  const handleMarkEmiPaid = async (loan: Loan) => {
+    if (!user) return;
+    try {
+      const transactionData = {
+        name: `EMI Payment - ${loan.name}`,
+        amount: -Math.abs(loan.emi), // Ensure it's negative for expense
+        date: new Date().toISOString().split('T')[0],
+        category: 'Loan Payment',
+        type: 'expense' as const,
+        loanId: loan.id,
+        createdAt: new Date().toISOString(),
+      };
+
+      const transactionsRef = collection(db, 'spenders', user.uid, 'transactions');
+      await addDoc(transactionsRef, transactionData);
+      showToast(`EMI payment for ${loan.name} recorded successfully!`, 'success');
+
+      // Increment global analytics
+      await updateDoc(analyticsGlobalRef, {
+        totalTransactions: increment(1),
+        totalExpenses: increment(Math.abs(loan.emi)),
+      });
+    } catch (error) {
+      console.error("Error recording EMI payment: ", error);
+      showToast('Error recording EMI payment', 'error');
+    }
+  };
+
   const handleSaveRecurringTransaction = async (recurringTransactionData: Omit<RecurringTransaction, 'id' | 'lastProcessedDate'>) => {
     if (!user) return;
     try {
@@ -1191,13 +1219,13 @@ function App() {
 
       const recurringTransactionDoc = doc(db, 'spenders', user.uid, 'recurring_transactions', id);
       const newPausedState = !recurringTransaction.isPaused;
-      
+
       await updateDoc(recurringTransactionDoc, {
         isPaused: newPausedState
       });
-      
+
       showToast(
-        `Recurring transaction ${newPausedState ? 'paused' : 'resumed'} successfully!`, 
+        `Recurring transaction ${newPausedState ? 'paused' : 'resumed'} successfully!`,
         'success'
       );
     } catch (error) {
@@ -1742,12 +1770,14 @@ function App() {
           >
             <LoansPage
               loans={loans}
+              transactions={transactions}
               onAddLoan={() => setIsLoanModalOpen(true)}
               onEditLoan={(loan) => {
                 setEditingLoan(loan);
                 setIsLoanModalOpen(true);
               }}
               onDeleteLoan={handleDeleteLoan}
+              onMarkEmiPaid={handleMarkEmiPaid}
               currency={currency}
             />
           </motion.div>

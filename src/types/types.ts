@@ -13,6 +13,7 @@ export interface Transaction {
   createdAt?: string;
   isRecurring?: boolean;
   recurringTransactionId?: string;
+  loanId?: string; // Link transaction to a specific loan payment
 }
 
 export interface Budget {

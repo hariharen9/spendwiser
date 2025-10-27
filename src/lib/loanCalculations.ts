@@ -1,4 +1,4 @@
-import { Loan } from '../types/types';
+import { Loan, Transaction } from '../types/types';
 
 export interface AmortizationEntry {
   month: number;
@@ -6,12 +6,29 @@ export interface AmortizationEntry {
   interest: number;
   totalPayment: number;
   endingBalance: number;
+  isPaid: boolean;
+  paymentDate?: string;
 }
 
 export interface LoanSummary {
   totalInterestPaid: number;
   loanEndDate: Date;
   amortizationSchedule: AmortizationEntry[];
+}
+
+export interface LoanStatus {
+  currentBalance: number;
+  percentagePaid: number;
+  paymentsMade: number;
+  totalPayments: number;
+  nextPaymentDue: number | null;
+  isFullyPaid: boolean;
+}
+
+export interface PreClosureCalculation {
+  payoffAmount: number;
+  interestSaved: number;
+  monthsEarly: number;
 }
 
 // Helper function to get total months from tenure (years) or tenureInMonths
@@ -58,6 +75,7 @@ export const calculateLoanSummary = (loan: Loan): LoanSummary => {
       interest: interestPaid,
       totalPayment: emi,
       endingBalance: remainingBalance,
+      isPaid: false, // Will be updated based on actual payments
     });
 
     month++;
@@ -69,32 +87,77 @@ export const calculateLoanSummary = (loan: Loan): LoanSummary => {
   return { totalInterestPaid, loanEndDate, amortizationSchedule };
 };
 
-export const calculateCurrentBalance = (loan: Loan): { currentBalance: number, percentagePaid: number } => {
-  const { loanAmount, startDate } = loan;
-  const start = new Date(startDate);
-  const today = new Date();
+// Completely rewritten function based on actual payments
+export const calculateCurrentBalance = (loan: Loan, transactions: Transaction[]): LoanStatus => {
+  const { loanAmount } = loan;
+  
+  // Get all payments for this specific loan
+  const loanPayments = transactions
+    .filter(t => t.loanId === loan.id && t.type === 'expense')
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-  const monthsElapsed = (today.getFullYear() - start.getFullYear()) * 12 + (today.getMonth() - start.getMonth());
+  const paymentsMade = loanPayments.length;
+  
+  // Get the full amortization schedule
+  const loanSummary = calculateLoanSummary(loan);
+  const totalPayments = loanSummary.amortizationSchedule.length;
+  
+  // Update amortization schedule with payment status
+  const updatedSchedule = loanSummary.amortizationSchedule.map((entry, index) => ({
+    ...entry,
+    isPaid: index < paymentsMade,
+    paymentDate: index < paymentsMade ? loanPayments[index]?.date : undefined,
+  }));
 
-  if (monthsElapsed <= 0) {
-    return { currentBalance: loanAmount, percentagePaid: 0 };
+  // Calculate current balance based on payments made
+  let currentBalance = loanAmount;
+  if (paymentsMade > 0 && paymentsMade <= totalPayments) {
+    currentBalance = updatedSchedule[paymentsMade - 1].endingBalance;
+  } else if (paymentsMade >= totalPayments) {
+    currentBalance = 0;
   }
 
-  const summary = calculateLoanSummary(loan);
-  const lastPayment = summary.amortizationSchedule.find(entry => entry.month === monthsElapsed);
-
-  if (!lastPayment) {
-    // If months elapsed is beyond the loan tenure
-    if (monthsElapsed > summary.amortizationSchedule.length) {
-        return { currentBalance: 0, percentagePaid: 100 };
-    }
-    return { currentBalance: loanAmount, percentagePaid: 0 };
-  }
-
-  const currentBalance = lastPayment.endingBalance;
   const percentagePaid = ((loanAmount - currentBalance) / loanAmount) * 100;
+  const nextPaymentDue = paymentsMade < totalPayments ? paymentsMade + 1 : null;
+  const isFullyPaid = paymentsMade >= totalPayments;
 
-  return { currentBalance, percentagePaid: Math.max(0, Math.min(100, percentagePaid)) };
+  return {
+    currentBalance: Math.max(0, currentBalance),
+    percentagePaid: Math.max(0, Math.min(100, percentagePaid)),
+    paymentsMade,
+    totalPayments,
+    nextPaymentDue,
+    isFullyPaid,
+  };
+};
+
+// New function for pre-closure calculations
+export const calculatePreClosure = (loan: Loan, transactions: Transaction[], targetMonth: number): PreClosureCalculation => {
+  const loanStatus = calculateCurrentBalance(loan, transactions);
+  const loanSummary = calculateLoanSummary(loan);
+  
+  if (targetMonth <= loanStatus.paymentsMade || targetMonth > loanSummary.amortizationSchedule.length) {
+    return {
+      payoffAmount: 0,
+      interestSaved: 0,
+      monthsEarly: 0,
+    };
+  }
+
+  // Get the outstanding balance at the target month (before that month's payment)
+  const payoffAmount = targetMonth > 1 ? loanSummary.amortizationSchedule[targetMonth - 2].endingBalance : loan.loanAmount;
+  
+  // Calculate interest that would be saved
+  const remainingSchedule = loanSummary.amortizationSchedule.slice(targetMonth - 1);
+  const interestSaved = remainingSchedule.reduce((total, entry) => total + entry.interest, 0);
+  
+  const monthsEarly = loanSummary.amortizationSchedule.length - targetMonth + 1;
+
+  return {
+    payoffAmount,
+    interestSaved,
+    monthsEarly,
+  };
 };
 
 export const applyPrepaymentStrategy = (
@@ -157,6 +220,7 @@ export const applyPrepaymentStrategy = (
       interest: interestPaid,
       totalPayment: currentEmi + prepayment,
       endingBalance: remainingBalance,
+      isPaid: false, // Will be updated based on actual payments
     });
 
     month++;
