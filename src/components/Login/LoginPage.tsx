@@ -212,7 +212,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         transition={{ delay: 0.7 }}
       >
         <p className="text-sm text-slate-600 dark:text-[#888888]">
-                      Built by <a href="https://hariharen9.site" target="_blank" rel="noopener noreferrer" className="text-[#007BFF] hover:underline dark:text-[#007BFF]">Hariharen</a> © 2025        </p>
+                      Built by <a href="https://hariharen.site" target="_blank" rel="noopener noreferrer" className="text-[#007BFF] hover:underline dark:text-[#007BFF]">Hariharen</a> © 2025        </p>
       </motion.div>
     </motion.div>
   );
