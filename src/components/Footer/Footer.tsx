@@ -1,9 +1,16 @@
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Github, Globe, DollarSign } from 'lucide-react';
 import { FaPaypal, FaCoffee } from 'react-icons/fa';
 import CurvedLoop from './CurvedLoop';
+import LegalModal from '../Modals/LegalModal';
+import PrivacyPolicy from '../Modals/PrivacyPolicy';
+import TermsConditions from '../Modals/TermsConditions';
 
 const Footer = () => {
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
+
   return (
     <footer className="text-black dark:text-white py-8 sm:py-16 px-6">
       <CurvedLoop 
@@ -164,27 +171,58 @@ const Footer = () => {
         </div>
 
         <motion.div
-          className="border-t border-slate-700 pt-8 mt-16 flex flex-col md:flex-row items-center justify-between text-center md:text-left"
+          className="border-t border-slate-700 pt-8 mt-16 flex flex-col md:flex-row items-center justify-between text-center md:text-left gap-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
         >
-          <p className="text-gray-500 dark:text-slate-400 mb-4 md:mb-0">
-            © 2026 SpendWiser. Built with 💜 by{' '}
-            <a 
-              href="https://hariharen.site" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-gray-400 hover:text-blue-500 transition-colors"
-            >
-              Hariharen
-            </a>
-          </p>
+          <div className="flex flex-col md:flex-row items-center gap-4">
+            <p className="text-gray-500 dark:text-slate-400">
+              © 2026 SpendWiser. Built with 💜 by{' '}
+              <a 
+                href="https://hariharen.site" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-blue-500 transition-colors"
+              >
+                Hariharen
+              </a>
+            </p>
+            <div className="hidden md:block h-4 w-px bg-slate-700"></div>
+            <div className="flex gap-4 text-sm">
+              <button 
+                onClick={() => setIsPrivacyOpen(true)}
+                className="text-gray-500 dark:text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
+              >
+                Privacy Policy
+              </button>
+              <button 
+                onClick={() => setIsTermsOpen(true)}
+                className="text-gray-500 dark:text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
+              >
+                Terms & Conditions
+              </button>
+            </div>
+          </div>
           <p className="text-gray-500 dark:text-slate-400 text-sm">
            Clarity in finance, confidence in life.
           </p>
         </motion.div>
       </div>
+
+      <LegalModal 
+        isOpen={isPrivacyOpen}
+        onClose={() => setIsPrivacyOpen(false)}
+        title="Privacy Policy"
+        content={<PrivacyPolicy />}
+      />
+      
+      <LegalModal 
+        isOpen={isTermsOpen}
+        onClose={() => setIsTermsOpen(false)}
+        title="Terms & Conditions"
+        content={<TermsConditions />}
+      />
     </footer>
   );
 };
