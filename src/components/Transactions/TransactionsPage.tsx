@@ -3,13 +3,15 @@ import FilterBar from './FilterBar';
 import TransactionTable from './TransactionTable';
 import MobileTransactionList from './MobileTransactionList';
 import TransactionSummary from './TransactionSummary';
-import { Transaction, Account } from '../../types/types';
+import { Transaction, Account, RecurringTransaction } from '../../types/types';
 import { motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Trash2, Calendar, List } from 'lucide-react';
 import { fadeInVariants, staggerContainer } from '../../components/Common/AnimationVariants';
+import CalendarView from './CalendarView';
 
 interface TransactionsPageProps {
   transactions: Transaction[];
+  recurringTransactions: RecurringTransaction[];
   onEditTransaction: (transaction: Transaction) => void;
   onSaveTransaction: (transaction: Omit<Transaction, 'id'>, id?: string) => void;
   onDeleteTransaction: (id: string) => void;
@@ -51,9 +53,11 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
   currency,
   sortOption,
   setSortOption,
-  accounts // Add accounts parameter
+  accounts, // Add accounts parameter
+  recurringTransactions
 }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
   const [monthNavigatorText, setMonthNavigatorText] = useState('');
   const [selectedTransactions, setSelectedTransactions] = useState<string[]>([]); // For bulk operations
   const [minAmount, setMinAmount] = useState(''); // For amount range filtering
@@ -348,16 +352,36 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
           </motion.button>
         </motion.div>
 
-        {/* Right side: Manage Recurring button (compact) */}
-        <motion.button
-          onClick={onOpenRecurringModal}
-          className="px-3 py-1 text-sm md:px-4 md:py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors flex items-center shadow-sm md:shadow-md hover:shadow-lg"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          Manage Recurring
-        </motion.button>
+        <div className="flex items-center space-x-2">
+            {/* View Toggle */}
+            <div className="hidden md:flex bg-gray-100 dark:bg-gray-800 p-1 rounded-lg mr-2">
+                <button
+                    onClick={() => setViewMode('list')}
+                    className={`p-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}
+                    title="List View"
+                >
+                    <List size={18} />
+                </button>
+                <button
+                    onClick={() => setViewMode('calendar')}
+                    className={`p-1.5 rounded-md transition-colors ${viewMode === 'calendar' ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}
+                    title="Calendar View"
+                >
+                    <Calendar size={18} />
+                </button>
+            </div>
+
+            {/* Right side: Manage Recurring button (compact) */}
+            <motion.button
+            onClick={onOpenRecurringModal}
+            className="px-3 py-1 text-sm md:px-4 md:py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors flex items-center shadow-sm md:shadow-md hover:shadow-lg"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+            >
+            Manage Recurring
+            </motion.button>
+        </div>
       </motion.div>
 
       <motion.div
@@ -435,17 +459,25 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
         animate="animate"
         transition={{ delay: 0.3 }}
       >
-        <TransactionTable
-          transactions={sortedAndFilteredTransactions}
-          onEditTransaction={onEditTransaction}
-          onSaveTransaction={onSaveTransaction}
-          onDeleteTransaction={onDeleteTransaction}
-          currency={currency}
-          categories={categories}
-          accounts={accounts} // Pass accounts data
-          selectedTransactions={selectedTransactions}
-          setSelectedTransactions={setSelectedTransactions}
-        />
+        {viewMode === 'list' ? (
+            <TransactionTable
+            transactions={sortedAndFilteredTransactions}
+            onEditTransaction={onEditTransaction}
+            onSaveTransaction={onSaveTransaction}
+            onDeleteTransaction={onDeleteTransaction}
+            currency={currency}
+            categories={categories}
+            accounts={accounts} // Pass accounts data
+            selectedTransactions={selectedTransactions}
+            setSelectedTransactions={setSelectedTransactions}
+            />
+        ) : (
+            <CalendarView 
+                currentMonth={currentMonth}
+                transactions={sortedAndFilteredTransactions}
+                currency={currency}
+            />
+        )}
       </motion.div>
 
       {/* Mobile View */}

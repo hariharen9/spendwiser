@@ -254,7 +254,7 @@ SpendWiser is built with a focus on performance, real-time data synchronization,
 ---
 ## 📜 License
 
-© 2025 Hariharen. All Rights Reserved.
+© 2026 Hariharen. All Rights Reserved.
 
 The source code for SpendWiser is available under the [PolyForm Noncommercial License 1.0.0](https://github.com/hariharen9/spendwiser/blob/main/LICENSE).
 

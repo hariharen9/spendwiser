@@ -28,20 +28,20 @@ const auth = getAuth(app);
 import("firebase/firestore").then((firestoreModule) => {
     if (firestoreModule.enablePersistence) {
         firestoreModule.enablePersistence(db)
-            .catch((err) => {
-                if (err.code == 'failed-precondition') {
-                    // Multiple tabs open, persistence can only be enabled
-                    // in one tab at a time.
-                    console.log('Firestore persistence can only be enabled in one tab at a time.');
-                } else if (err.code == 'unimplemented') {
-                    // The current browser does not support all of the
-                    // features required to enable persistence
-                    console.log('The current browser does not support all of the features required to enable persistence.');
-                }
+    .catch((err) => {
+        if (err.code == 'failed-precondition') {
+            // Multiple tabs open, persistence can only be enabled
+            // in one tab at a time.
+            console.log('Firestore persistence can only be enabled in one tab at a time.');
+        } else if (err.code == 'unimplemented') {
+            // The current browser does not support all of the
+            // features required to enable persistence
+            console.log('The current browser does not support all of the features required to enable persistence.');
+        }
             });
     }
 }).catch((error) => {
     console.log('Failed to enable Firestore persistence:', error);
-});
+    });
 
 export { db, auth };

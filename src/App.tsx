@@ -1670,6 +1670,7 @@ function App() {
           >
             <TransactionsPage
               transactions={filteredTransactions}
+              recurringTransactions={recurringTransactions}
               onEditTransaction={handleEditTransaction}
               onSaveTransaction={handleAddTransaction}
               onDeleteTransaction={handleDeleteTransaction}
@@ -2636,7 +2637,7 @@ function App() {
           transition={{ delay: 0.6 }}
         >
           <p className="text-sm text-[#888888]">
-            Built with <span className="text-red-500">❤️</span> by <a href="https://hariharen.site" target="_blank" rel="noopener noreferrer" className="text-[#007BFF] hover:underline">Hariharen</a> © 2025
+            Built with <span className="text-red-500">❤️</span> by <a href="https://hariharen.site" target="_blank" rel="noopener noreferrer" className="text-[#007BFF] hover:underline">Hariharen</a> © 2026
           </p>
         </motion.div>
       </motion.div>
@@ -2743,7 +2744,7 @@ function App() {
           {currentScreen !== 'settings' && (
             <footer className="py-4 text-center text-sm text-gray-500 dark:text-[#888888]">
               <p>
-                Built with <span className="text-red-500">❤️</span> by <a href="https://hariharen.site" target="_blank" rel="noopener noreferrer" className="text-[#007BFF] hover:underline dark:text-[#007BFF]">Hariharen</a> © 2025
+                Built with <span className="text-red-500">❤️</span> by <a href="https://hariharen.site" target="_blank" rel="noopener noreferrer" className="text-[#007BFF] hover:underline dark:text-[#007BFF]">Hariharen</a> © 2026
               </p>
             </footer>
           )}

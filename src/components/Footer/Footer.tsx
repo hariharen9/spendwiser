@@ -170,7 +170,7 @@ const Footer = () => {
           transition={{ delay: 0.5 }}
         >
           <p className="text-gray-500 dark:text-slate-400 mb-4 md:mb-0">
-            © 2025 SpendWiser. Built with 💜 by{' '}
+            © 2026 SpendWiser. Built with 💜 by{' '}
             <a 
               href="https://hariharen.site" 
               target="_blank" 

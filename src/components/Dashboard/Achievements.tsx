@@ -3,6 +3,7 @@ import { Transaction, Budget, Account } from '../../types/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fadeInVariants, cardHoverVariants } from '../../components/Common/AnimationVariants';
 import { Trophy, Star, Zap, Target, Award, Crown, Sparkles, TrendingUp, Calendar, DollarSign, ChevronDown, ChevronUp } from 'lucide-react';
+import confetti from 'canvas-confetti';
 
 // Define achievement tiers
 type AchievementTier = 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond';
@@ -489,48 +490,44 @@ const Achievements: React.FC<AchievementsProps> = ({ transactions, budgets, acco
 
   // Enhanced confetti effect with tier-based colors
   const triggerConfetti = (achievement: Achievement) => {
-    import('canvas-confetti').then((confettiModule) => {
-      const confetti = confettiModule.default;
-
-      // Tier-based confetti colors
-      const getTierColors = (tier: AchievementTier) => {
-        switch (tier) {
-          case 'bronze': return ['#CD7F32', '#B8860B'];
-          case 'silver': return ['#C0C0C0', '#A8A8A8'];
-          case 'gold': return ['#FFD700', '#FFA500'];
-          case 'platinum': return ['#E5E4E2', '#87CEEB'];
-          case 'diamond': return ['#B9F2FF', '#E6E6FA'];
-          default: return ['#FFD700', '#FFA500'];
-        }
-      };
-
-      const colors = getTierColors(achievement.tier);
-      const count = achievement.rarity === 'legendary' ? 200 :
-        achievement.rarity === 'epic' ? 150 :
-          achievement.rarity === 'rare' ? 100 : 75;
-
-      // Main burst
-      confetti({
-        particleCount: count,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: colors,
-        zIndex: 10000
-      });
-
-      // Secondary burst for legendary achievements
-      if (achievement.rarity === 'legendary') {
-        setTimeout(() => {
-          confetti({
-            particleCount: 100,
-            spread: 120,
-            origin: { y: 0.6 },
-            colors: ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1'],
-            zIndex: 10000
-          });
-        }, 200);
+    // Tier-based confetti colors
+    const getTierColors = (tier: AchievementTier) => {
+      switch (tier) {
+        case 'bronze': return ['#CD7F32', '#B8860B'];
+        case 'silver': return ['#C0C0C0', '#A8A8A8'];
+        case 'gold': return ['#FFD700', '#FFA500'];
+        case 'platinum': return ['#E5E4E2', '#87CEEB'];
+        case 'diamond': return ['#B9F2FF', '#E6E6FA'];
+        default: return ['#FFD700', '#FFA500'];
       }
+    };
+
+    const colors = getTierColors(achievement.tier);
+    const count = achievement.rarity === 'legendary' ? 200 :
+      achievement.rarity === 'epic' ? 150 :
+        achievement.rarity === 'rare' ? 100 : 75;
+
+    // Main burst
+    confetti({
+      particleCount: count,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: colors,
+      zIndex: 10000
     });
+
+    // Secondary burst for legendary achievements
+    if (achievement.rarity === 'legendary') {
+      setTimeout(() => {
+        confetti({
+          particleCount: 100,
+          spread: 120,
+          origin: { y: 0.6 },
+          colors: ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1'],
+          zIndex: 10000
+        });
+      }, 200);
+    }
   };
 
 
