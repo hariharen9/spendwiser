@@ -76,10 +76,26 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   };
 
   const transactionsByDate = transactions.reduce((acc, t) => {
-      // Ensure we parse the transaction date correctly as local YYYY-MM-DD
-      // t.date is expected to be YYYY-MM-DD string
-      if (!acc[t.date]) acc[t.date] = [];
-      acc[t.date].push(t);
+      if (!t.date) return acc;
+      
+      // Robust normalization:
+      // 1. Remove time component if exists
+      let datePart = t.date.split('T')[0];
+      
+      // 2. Handle potential non-standard formats (e.g. 2024-3-1 vs 2024-03-01)
+      // We assume the format is roughly YYYY-MM-DD or similar separator
+      if (datePart.includes('-')) {
+          const parts = datePart.split('-');
+          if (parts.length === 3) {
+              const year = parts[0];
+              const month = parts[1].padStart(2, '0');
+              const day = parts[2].padStart(2, '0');
+              datePart = `${year}-${month}-${day}`;
+          }
+      }
+      
+      if (!acc[datePart]) acc[datePart] = [];
+      acc[datePart].push(t);
       return acc;
   }, {} as Record<string, Transaction[]>);
 

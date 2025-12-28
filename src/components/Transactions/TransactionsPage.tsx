@@ -231,6 +231,45 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
     return filtered;
   }, [transactions, searchTerm, transactionType, selectedCategory, selectedCategories, minAmount, maxAmount, startDate, endDate, sortOption, showOnlyCC, showOnlyWithComments, accounts]);
 
+  // Separate filter for Calendar View: Applies all filters EXCEPT date range
+  // This ensures the calendar can show transactions for "padding days" (prev/next month days visible in grid)
+  const calendarTransactions = useMemo(() => {
+    return transactions.filter(transaction => {
+      // Text search filter
+      const matchesSearch = searchTerm === '' || transaction.name.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      // Transaction type filter
+      const matchesType = transactionType === 'all' || transaction.type === transactionType;
+      
+      // Category filter (single or multiple)
+      let matchesCategory = true;
+      if (selectedCategories.length > 0) {
+        matchesCategory = selectedCategories.includes(transaction.category);
+      } else if (selectedCategory) {
+        matchesCategory = transaction.category === selectedCategory;
+      }
+      
+      // Amount range filter
+      let matchesAmount = true;
+      const amount = Math.abs(transaction.amount);
+      if (minAmount && amount < parseFloat(minAmount)) {
+        matchesAmount = false;
+      }
+      if (maxAmount && amount > parseFloat(maxAmount)) {
+        matchesAmount = false;
+      }
+
+      // Account filter (Credit Card toggle)
+      const isCCTransaction = accounts.find(acc => acc.id === transaction.accountId)?.type === 'Credit Card';
+      const matchesCC = !showOnlyCC || isCCTransaction;
+
+      // Comments filter
+      const matchesComments = !showOnlyWithComments || (transaction.comments && transaction.comments.trim() !== '');
+      
+      return matchesSearch && matchesType && matchesCategory && matchesAmount && matchesCC && matchesComments;
+    });
+  }, [transactions, searchTerm, transactionType, selectedCategory, selectedCategories, minAmount, maxAmount, showOnlyCC, showOnlyWithComments, accounts]);
+
   const summary = useMemo(() => {
     const incomeTransactions = sortedAndFilteredTransactions.filter(t => t.type === 'income');
     const expenseTransactions = sortedAndFilteredTransactions.filter(t => t.type === 'expense');
@@ -474,7 +513,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
         ) : (
             <CalendarView 
                 currentMonth={currentMonth}
-                transactions={sortedAndFilteredTransactions}
+                transactions={calendarTransactions}
                 currency={currency}
             />
         )}
