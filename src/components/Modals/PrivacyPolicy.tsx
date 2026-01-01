@@ -4,7 +4,7 @@ const PrivacyPolicy = () => {
   return (
     <div className="space-y-6">
       <div className="text-sm text-gray-500 dark:text-gray-400">
-        Last Updated: December 28, 2025
+        Last Updated: January 01, 2026
       </div>
 
       <section>
