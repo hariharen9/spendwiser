@@ -33,7 +33,7 @@ const CATEGORY_KEYWORDS: Record<string, string[]> = {
   'Salary': ['salary', 'wage', 'payroll', 'income', 'deposit', 'paycheck', 'bonus', 'stipend', 'earnings'],
   'Freelance': ['freelance', 'consulting', 'contract', 'project', 'client', 'upwork', 'fiverr', 'freelancer'],
   'Investment': ['investment', 'stock', 'mutual fund', 'sip', 'fd', 'fixed deposit', 'shares', 'zerodha', 'upstox', 'groww', 'paytm money', 'indmoney', 'smallcase', 'coin', 'kite', 'kuvera', 'crypto', 'binance', 'coinbase', 'wazirx', 'coindcx'],
-  'Recharge & Bills': ['recharge', 'bill', 'paytm', 'gpay', 'phonepe', 'google pay', 'cred', 'freecharge', 'mobikwik', 'amazon pay', 'bharatpe'],
+  'Bills & EMIs': ['recharge', 'bill', 'paytm', 'gpay', 'phonepe', 'google pay', 'cred', 'freecharge', 'mobikwik', 'amazon pay', 'bharatpe', 'emi', 'loan', 'repayment', 'lic', 'premium', 'insurance premium', 'credit card bill', 'cc bill'],
   'Fuel': ['gas', 'fuel', 'petrol', 'diesel', 'shell', 'hp', 'indian oil', 'bharat petroleum', 'cng', 'ev charging'],
   'Travel': ['hotel', 'airbnb', 'booking.com', 'agoda', 'makemytrip', 'goibibo', 'cleartrip', 'easemytrip', 'oyorooms', 'taj', 'marriott', 'hyatt', 'hilton', 'resort', 'stay', 'trip'],
   'Personal Care': ['salon', 'spa', 'haircut', 'barber', 'cosmetics', 'urban company', 'parlour', 'massage', 'grooming'],
@@ -48,7 +48,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   accounts,
   creditCards = [],
   defaultAccountId,
-  categories = ['Salary', 'Freelance', 'Investment', 'Groceries', 'Food & Dining', 'Transportation', 'Entertainment', 'Shopping', 'Utilities', 'Healthcare', 'Education', 'Recharge & Bills', 'Other'],
+  categories = ['Home', 'Groceries', 'Food & Dining', 'Transportation', 'Entertainment', 'Shopping', 'Personal', 'Fuel', 'Utilities', 'Healthcare', 'Education', 'Bills & EMIs', 'Rent & Housing', 'Investment', 'Travel', 'Other'],
   shortcuts,
   currency = '₹', // Add currency prop with default value
 }) => {

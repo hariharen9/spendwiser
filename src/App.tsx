@@ -1140,7 +1140,7 @@ function App() {
         name: `EMI Payment - ${loan.name}`,
         amount: -Math.abs(loan.emi), // Ensure it's negative for expense
         date: new Date().toISOString().split('T')[0],
-        category: 'Loan Payment',
+        category: 'Bills & EMIs',
         type: 'expense' as const,
         loanId: loan.id,
         createdAt: new Date().toISOString(),
