@@ -18,6 +18,7 @@ interface AddTransactionModalProps {
   categories?: string[];
   shortcuts: Shortcut[];
   currency?: string; // Add currency prop
+  loans?: Loan[]; // Add loans prop
 }
 
 // Category keywords mapping for auto-categorization
@@ -51,6 +52,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   categories = ['Home', 'Groceries', 'Food & Dining', 'Transportation', 'Entertainment', 'Shopping', 'Personal', 'Fuel', 'Utilities', 'Healthcare', 'Education', 'Bills & EMIs', 'Rent & Housing', 'Investment', 'Travel', 'Other'],
   shortcuts,
   currency = '₹', // Add currency prop with default value
+  loans = [], // Add loans prop
 }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -59,7 +61,8 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
     category: categories[0],
     type: 'expense' as 'income' | 'expense',
     accountId: '',
-    comments: ''
+    comments: '',
+    loanId: '' // Add loanId to formData
   });
   
   const [isLargeAmount, setIsLargeAmount] = useState(false);
@@ -174,7 +177,8 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
         category: editingTransaction.category,
         type: editingTransaction.type,
         accountId: editingTransaction.accountId || '',
-        comments: editingTransaction.comments || ''
+        comments: editingTransaction.comments || '',
+        loanId: editingTransaction.loanId || ''
       });
     } else {
       // Set default account based on the rules
@@ -192,7 +196,8 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
         category: categories[0],
         type: 'expense',
         accountId: defaultAccount,
-        comments: ''
+        comments: '',
+        loanId: ''
       });
     }
   }, [editingTransaction, isOpen, accounts, creditCards, defaultAccountId, categories]);
@@ -221,6 +226,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
       type: formData.type,
       ...(formData.accountId && { accountId: formData.accountId }),
       ...(formData.comments && { comments: formData.comments }),
+      ...(formData.loanId && { loanId: formData.loanId }), // Add loanId to the saved transaction
     };
 
     onSave(transaction);
@@ -524,6 +530,29 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                     onChange={(value) => setFormData({ ...formData, category: value })}
                   />
                 </motion.div>
+
+                {/* Loan Selector - Only show for Bills & EMIs */}
+                {formData.category === 'Bills & EMIs' && loans.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center mt-4">
+                      <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2">
+                        <Briefcase className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      </span>
+                      Link to Loan (Optional)
+                    </label>
+                    <AnimatedDropdown
+                      selectedValue={formData.loanId}
+                      placeholder="Select a loan..."
+                      options={[{ value: '', label: 'No loan link' }, ...loans.map(loan => ({ value: loan.id, label: loan.name }))]}
+                      onChange={(value) => setFormData({ ...formData, loanId: value })}
+                    />
+                  </motion.div>
+                )}
 
                 {/* Account */}
                 {shouldShowAccountField && (

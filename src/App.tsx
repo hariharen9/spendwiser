@@ -40,6 +40,7 @@ import FeedbackModal from './components/Modals/FeedbackModal';
 import ShortcutModal from './components/Modals/ShortcutModal';
 import OnboardingWizard from './components/Onboarding/OnboardingWizard';
 import ConfirmationDialog from './components/BillSplitting/ConfirmationDialog';
+import LinkLoanTransactionModal from './components/Modals/LinkLoanTransactionModal';
 
 // Icons
 import { LogOut, DollarSign, X, Sun, Moon } from 'lucide-react';
@@ -106,6 +107,8 @@ function App() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isProcessingRecurring, setIsProcessingRecurring] = useState(false);
   const [lastProcessingTime, setLastProcessingTime] = useState(0);
+  const [isLinkLoanTransactionModalOpen, setIsLinkLoanTransactionModalOpen] = useState(false);
+  const [selectedLoanForLinking, setSelectedLoanForLinking] = useState<Loan | null>(null);
 
   // Toast system
   const { toasts, showToast, removeToast } = useToast();
@@ -1133,32 +1136,56 @@ function App() {
     }
   };
 
-  const handleMarkEmiPaid = async (loan: Loan) => {
-    if (!user) return;
+  const handleLinkLoanTransaction = async (transactionId: string) => {
+    if (!user || !selectedLoanForLinking) return;
+
+    try {
+      const transactionDoc = doc(db, 'spenders', user.uid, 'transactions', transactionId);
+      
+      // Update the transaction with the loanId
+      await updateDoc(transactionDoc, {
+        loanId: selectedLoanForLinking.id,
+        category: 'Bills & EMIs' // Ensure category is correct
+      });
+
+      showToast(`Transaction linked to ${selectedLoanForLinking.name} successfully!`, 'success');
+    } catch (error) {
+      console.error("Error linking transaction: ", error);
+      showToast('Error linking transaction', 'error');
+    }
+  };
+
+  const handleCreateTransactionFromLoan = async (date: string) => {
+    if (!user || !selectedLoanForLinking) return;
     try {
       const transactionData = {
-        name: `EMI Payment - ${loan.name}`,
-        amount: -Math.abs(loan.emi), // Ensure it's negative for expense
-        date: new Date().toISOString().split('T')[0],
+        name: `EMI Payment - ${selectedLoanForLinking.name}`,
+        amount: -Math.abs(selectedLoanForLinking.emi), // Ensure it's negative for expense
+        date: date,
         category: 'Bills & EMIs',
         type: 'expense' as const,
-        loanId: loan.id,
+        loanId: selectedLoanForLinking.id,
         createdAt: new Date().toISOString(),
       };
 
       const transactionsRef = collection(db, 'spenders', user.uid, 'transactions');
       await addDoc(transactionsRef, transactionData);
-      showToast(`EMI payment for ${loan.name} recorded successfully!`, 'success');
+      showToast(`EMI payment for ${selectedLoanForLinking.name} recorded successfully!`, 'success');
 
       // Increment global analytics
       await updateDoc(analyticsGlobalRef, {
         totalTransactions: increment(1),
-        totalExpenses: increment(Math.abs(loan.emi)),
+        totalExpenses: increment(Math.abs(selectedLoanForLinking.emi)),
       });
     } catch (error) {
       console.error("Error recording EMI payment: ", error);
       showToast('Error recording EMI payment', 'error');
     }
+  };
+
+  const handleMarkEmiPaid = (loan: Loan) => {
+    setSelectedLoanForLinking(loan);
+    setIsLinkLoanTransactionModalOpen(true);
   };
 
   const handleSaveRecurringTransaction = async (recurringTransactionData: Omit<RecurringTransaction, 'id' | 'lastProcessedDate'>) => {
@@ -3081,6 +3108,21 @@ function App() {
         confirmText="Logout"
         cancelText="Cancel"
       />
+
+      {selectedLoanForLinking && (
+        <LinkLoanTransactionModal
+          isOpen={isLinkLoanTransactionModalOpen}
+          onClose={() => {
+            setIsLinkLoanTransactionModalOpen(false);
+            setSelectedLoanForLinking(null);
+          }}
+          loan={selectedLoanForLinking}
+          transactions={transactions}
+          onLinkTransaction={handleLinkLoanTransaction}
+          onCreateTransaction={handleCreateTransactionFromLoan}
+          currency={currency}
+        />
+      )}
     </div>
   );
 }
