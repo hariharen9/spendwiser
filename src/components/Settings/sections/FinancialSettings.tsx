@@ -1,10 +1,27 @@
 
 import React, { useState } from 'react';
-import { DollarSign, Tag, Edit, Trash2, X, Plus, RotateCcw } from 'lucide-react';
+import { DollarSign, Tag, Edit, Trash2, X, Plus, RotateCcw, GripVertical } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fadeInVariants, buttonHoverVariants, modalVariants } from '../../Common/AnimationVariants';
 import AnimatedDropdown from '../../Common/AnimatedDropdown';
 import { currencies } from '../../../data/mockData';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface FinancialSettingsProps {
   currency: string;
@@ -18,6 +35,64 @@ interface FinancialSettingsProps {
   onDeleteCategory: (category: string) => void;
   onResetCategories: () => void;
   onUpdateCategories: (categories: string[]) => void;
+}
+
+// Sortable Item Component
+function SortableCategoryItem({ category, onEdit, onDelete }: { category: string, onEdit: () => void, onDelete: () => void }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({ id: category });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : 1,
+    opacity: isDragging ? 0.5 : 1
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center justify-between p-3 bg-gray-50 dark:bg-[#1A1A1A] rounded-lg border border-gray-200 dark:border-gray-600 ${isDragging ? 'shadow-lg' : ''}`}
+    >
+      <div className="flex items-center space-x-3 flex-1">
+        <button
+          className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
+        <span className="font-medium text-gray-900 dark:text-[#F5F5F5]">{category}</span>
+      </div>
+      <div className="flex items-center space-x-1">
+        <motion.button
+          onClick={onEdit}
+          className="p-1 text-gray-500 dark:text-[#888888] hover:text-gray-800 dark:hover:text-[#F5F5F5] hover:bg-gray-100 dark:hover:bg-[#242424] rounded transition-all duration-200"
+          variants={buttonHoverVariants}
+          whileHover="hover"
+          whileTap="tap"
+        >
+          <Edit className="h-4 w-4" />
+        </motion.button>
+        <motion.button
+          onClick={onDelete}
+          className="p-1 text-gray-500 dark:text-[#888888] hover:text-red-500 dark:hover:text-[#DC3545] hover:bg-gray-100 dark:hover:bg-[#242424] rounded transition-all duration-200"
+          variants={buttonHoverVariants}
+          whileHover="hover"
+          whileTap="tap"
+        >
+          <Trash2 className="h-4 w-4" />
+        </motion.button>
+      </div>
+    </div>
+  );
 }
 
 const FinancialSettings: React.FC<FinancialSettingsProps> = ({ 
@@ -38,7 +113,17 @@ const FinancialSettings: React.FC<FinancialSettingsProps> = ({
   const [newCategoryName, setNewCategoryName] = useState('');
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
   const [showResetCategoriesConfirm, setShowResetCategoriesConfirm] = useState(false);
-  const [draggedCategory, setDraggedCategory] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+        activationConstraint: {
+            distance: 8,
+        },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const handleOpenCategoryEditor = () => {
     setShowCategoryEditorModal(true);
@@ -94,35 +179,15 @@ const FinancialSettings: React.FC<FinancialSettingsProps> = ({
     }
   };
 
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, category: string) => {
-    e.dataTransfer.setData('text/plain', category);
-    setDraggedCategory(category);
-  };
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
 
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-  };
+    if (over && active.id !== over.id) {
+      const oldIndex = categories.indexOf(active.id as string);
+      const newIndex = categories.indexOf(over.id as string);
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>, targetCategory: string) => {
-    e.preventDefault();
-    const draggedCategoryName = e.dataTransfer.getData('text/plain');
-    
-    if (draggedCategoryName !== targetCategory) {
-      const newCategories = [...categories];
-      const draggedIndex = newCategories.indexOf(draggedCategoryName);
-      const targetIndex = newCategories.indexOf(targetCategory);
-      
-      newCategories.splice(draggedIndex, 1);
-      newCategories.splice(targetIndex, 0, draggedCategoryName);
-      
-      onUpdateCategories(newCategories);
+      onUpdateCategories(arrayMove(categories, oldIndex, newIndex));
     }
-    
-    setDraggedCategory(null);
-  };
-
-  const handleDragEnd = () => {
-    setDraggedCategory(null);
   };
 
   return (
@@ -267,41 +332,25 @@ const FinancialSettings: React.FC<FinancialSettingsProps> = ({
                 </div>
 
                 <div className="space-y-2 max-h-[60vh] overflow-y-auto">
-                  {categories.map((category) => (
-                    <div
-                      key={category}
-                      draggable
-                      onDragStart={(e: React.DragEvent<HTMLDivElement>) => handleDragStart(e, category)}
-                      onDragOver={handleDragOver}
-                      onDrop={(e: React.DragEvent<HTMLDivElement>) => handleDrop(e, category)}
-                      onDragEnd={handleDragEnd}
-                      className={`flex items-center justify-between p-3 bg-gray-50 dark:bg-[#1A1A1A] rounded-lg border border-gray-200 dark:border-gray-600 cursor-move ${
-                        draggedCategory === category ? 'opacity-50' : ''
-                      }`}
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <SortableContext
+                      items={categories}
+                      strategy={verticalListSortingStrategy}
                     >
-                      <span className="font-medium text-gray-900 dark:text-[#F5F5F5]">{category}</span>
-                      <div className="flex items-center space-x-1">
-                        <motion.button
-                          onClick={() => handleOpenEditCategoryModal(category)}
-                          className="p-1 text-gray-500 dark:text-[#888888] hover:text-gray-800 dark:hover:text-[#F5F5F5] hover:bg-gray-100 dark:hover:bg-[#242424] rounded transition-all duration-200"
-                          variants={buttonHoverVariants}
-                          whileHover="hover"
-                          whileTap="tap"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </motion.button>
-                        <motion.button
-                          onClick={() => handleOpenDeleteCategoryConfirm(category)}
-                          className="p-1 text-gray-500 dark:text-[#888888] hover:text-red-500 dark:hover:text-[#DC3545] hover:bg-gray-100 dark:hover:bg-[#242424] rounded transition-all duration-200"
-                          variants={buttonHoverVariants}
-                          whileHover="hover"
-                          whileTap="tap"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </motion.button>
-                      </div>
-                    </div>
-                  ))}
+                      {categories.map((category) => (
+                        <SortableCategoryItem
+                          key={category}
+                          category={category}
+                          onEdit={() => handleOpenEditCategoryModal(category)}
+                          onDelete={() => handleOpenDeleteCategoryConfirm(category)}
+                        />
+                      ))}
+                    </SortableContext>
+                  </DndContext>
                 </div>
 
                 <div className="flex justify-between pt-4">

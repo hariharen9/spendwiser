@@ -22,19 +22,22 @@ interface AddTransactionModalProps {
 
 // Category keywords mapping for auto-categorization
 const CATEGORY_KEYWORDS: Record<string, string[]> = {
-  'Groceries': ['grocery', 'market', 'supermarket', 'vegetables', 'fruits', 'meat', 'dairy', 'zepto', 'instamart', 'blinkit', 'bigbasket', 'grofers', 'reliance fresh', 'dmart'],
-  'Food & Dining': ['restaurant', 'cafe', 'food', 'breakfast', 'lunch', 'dinner', 'meal', 'dining', 'burger', 'pizza', 'mcdonalds', 'starbucks', 'swiggy', 'zomato', 'haldirams', 'bikaner', 'faasos', 'behrouz', 'ovenstory'],
-  'Transportation': [ 'uber', 'taxi', 'bus', 'train', 'flight', 'airline', 'parking', 'toll', 'auto', 'cab', 'ola', 'rapido', 'metro', 'local train'],
-  'Utilities': ['electricity', 'water', 'gas', 'internet', 'wifi', 'phone', 'mobile', 'subscription', 'netflix', 'spotify', 'airtel', 'jio', 'vodafone', 'idea', 'bsnl', 'act', 'hathway', 'prime video', 'hotstar', 'zee5', 'sonyliv'],
-  'Entertainment': ['movie', 'cinema', 'theater', 'concert', 'ticket', 'game', 'playstation', 'xbox', 'streaming'],
-  'Shopping': ['clothing', 'shoes', 'mall', 'store', 'retail', 'purchase', 'buy', 'amazon', 'flipkart', 'myntra', 'ajio', 'nykaa', 'meesho', 'croma', 'reliance digital'],
-  'Healthcare': ['doctor', 'hospital', 'medicine', 'pharmacy', 'drug', 'medical', 'clinic', 'dentist', 'apollo', 'fortis', 'max', 'lal pathlabs', '1mg', 'netmeds', 'pharmeasy'],
-  'Education': ['school', 'college', 'university', 'tuition', 'books', 'course', 'training', 'education'],
-  'Salary': ['salary', 'wage', 'payroll', 'income', 'deposit', 'paycheck'],
-  'Freelance': ['freelance', 'consulting', 'contract', 'project', 'client'],
-  'Investment': ['investment', 'stock', 'mutual fund', 'sip', 'fd', 'fixed deposit', 'shares', 'zerodha', 'upstox', 'groww', 'paytm money'],
-  'Recharge & Bills': ['recharge', 'bill', 'paytm', 'gpay', 'phonepe', 'google pay'],
-  'Fuel': ['gas', 'fuel', 'petrol', 'diesel',],
+  'Groceries': ['grocery', 'market', 'supermarket', 'vegetables', 'fruits', 'meat', 'dairy', 'zepto', 'instamart', 'blinkit', 'bigbasket', 'grofers', 'reliance fresh', 'dmart', 'more', 'spencer', 'nature bsket', 'ratnadeep', 'heritage'],
+  'Food & Dining': ['restaurant', 'cafe', 'food', 'breakfast', 'lunch', 'dinner', 'meal', 'dining', 'burger', 'pizza', 'mcdonalds', 'starbucks', 'swiggy', 'zomato', 'haldirams', 'bikaner', 'faasos', 'behrouz', 'ovenstory', 'domino', 'kfc', 'subway', 'chai', 'coffee', 'barista', 'costa', 'tim hortons', 'dunkin', 'baskin', 'eatclub', 'magicpin'],
+  'Transportation': ['uber', 'taxi', 'bus', 'train', 'flight', 'airline', 'parking', 'toll', 'auto', 'cab', 'ola', 'rapido', 'metro', 'local train', 'irctc', 'indigo', 'vistara', 'air india', 'spicejet', 'akasa', 'redbus', 'abhibus', 'fastag', 'park+', 'zoomcar', 'revv'],
+  'Utilities': ['electricity', 'water', 'gas', 'internet', 'wifi', 'phone', 'mobile', 'subscription', 'netflix', 'spotify', 'airtel', 'jio', 'vodafone', 'idea', 'bsnl', 'act', 'hathway', 'prime video', 'hotstar', 'zee5', 'sonyliv', 'apple music', 'youtube', 'hulu', 'disney', 'hbo', 'tatasky', 'dish tv', 'dth', 'bescom', 'bwssb', 'mahavitaran', 'adani', 'torrent'],
+  'Entertainment': ['movie', 'cinema', 'theater', 'concert', 'ticket', 'game', 'playstation', 'xbox', 'streaming', 'pvr', 'inox', 'cinepolis', 'bookmyshow', 'insider', 'event', 'steam', 'epic games', 'nintendo', 'twitch'],
+  'Shopping': ['clothing', 'shoes', 'mall', 'store', 'retail', 'purchase', 'buy', 'amazon', 'flipkart', 'myntra', 'ajio', 'nykaa', 'meesho', 'croma', 'reliance digital', 'tatacliq', 'snapdeal', 'decathlon', 'nike', 'adidas', 'puma', 'zara', 'h&m', 'uniqlo', 'westside', 'pantaloons', 'shoppers stop', 'lifestyle', 'max'],
+  'Healthcare': ['doctor', 'hospital', 'medicine', 'pharmacy', 'drug', 'medical', 'clinic', 'dentist', 'apollo', 'fortis', 'max', 'lal pathlabs', '1mg', 'netmeds', 'pharmeasy', 'medplus', 'practo', 'cult', 'fit', 'gym', 'wellness', 'insurance'],
+  'Education': ['school', 'college', 'university', 'tuition', 'books', 'course', 'training', 'education', 'udemy', 'coursera', 'edx', 'upgrad', 'byjus', 'unacademy', 'physics wallah', 'kindle', 'audible'],
+  'Salary': ['salary', 'wage', 'payroll', 'income', 'deposit', 'paycheck', 'bonus', 'stipend', 'earnings'],
+  'Freelance': ['freelance', 'consulting', 'contract', 'project', 'client', 'upwork', 'fiverr', 'freelancer'],
+  'Investment': ['investment', 'stock', 'mutual fund', 'sip', 'fd', 'fixed deposit', 'shares', 'zerodha', 'upstox', 'groww', 'paytm money', 'indmoney', 'smallcase', 'coin', 'kite', 'kuvera', 'crypto', 'binance', 'coinbase', 'wazirx', 'coindcx'],
+  'Recharge & Bills': ['recharge', 'bill', 'paytm', 'gpay', 'phonepe', 'google pay', 'cred', 'freecharge', 'mobikwik', 'amazon pay', 'bharatpe'],
+  'Fuel': ['gas', 'fuel', 'petrol', 'diesel', 'shell', 'hp', 'indian oil', 'bharat petroleum', 'cng', 'ev charging'],
+  'Travel': ['hotel', 'airbnb', 'booking.com', 'agoda', 'makemytrip', 'goibibo', 'cleartrip', 'easemytrip', 'oyorooms', 'taj', 'marriott', 'hyatt', 'hilton', 'resort', 'stay', 'trip'],
+  'Personal Care': ['salon', 'spa', 'haircut', 'barber', 'cosmetics', 'urban company', 'parlour', 'massage', 'grooming'],
+  'Housing': ['rent', 'mortgage', 'maintenance', 'repair', 'furniture', 'decor', 'ikea', 'pepperfry', 'urban ladder', 'home centre'],
 };
 
 const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
@@ -95,7 +98,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   useEffect(() => {
     if (formData.name && !editingTransaction) {
       const lowerName = formData.name.toLowerCase();
-      let bestMatchCategory = null;
+      let bestMatchCategory: string | null = null;
       let bestMatchCount = 0;
       
       for (const [category, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
@@ -107,14 +110,43 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
       }
       
       if (bestMatchCategory && bestMatchCategory !== formData.category) {
-        setSuggestedCategory(bestMatchCategory);
+        // Validate that the suggested category exists in the user's available categories
+        
+        // 1. Try exact match
+        const exactMatch = categories.find(c => c === bestMatchCategory);
+        
+        if (exactMatch) {
+          setSuggestedCategory(exactMatch);
+        } else {
+          // 2. Try case-insensitive match
+          const lowerBestMatch = bestMatchCategory.toLowerCase();
+          const looseMatch = categories.find(c => c.toLowerCase() === lowerBestMatch);
+          
+          if (looseMatch) {
+            setSuggestedCategory(looseMatch);
+          } else {
+            // 3. Try partial/fuzzy match
+            // Check if the user's category contains the best match keyword OR vice versa
+            const partialMatch = categories.find(c => {
+              const lowerCat = c.toLowerCase();
+              return lowerCat.includes(lowerBestMatch) || lowerBestMatch.includes(lowerCat);
+            });
+
+            if (partialMatch) {
+              setSuggestedCategory(partialMatch);
+            } else {
+              // Category not found in user's list - don't suggest it
+              setSuggestedCategory(null);
+            }
+          }
+        }
       } else {
         setSuggestedCategory(null);
       }
     } else {
       setSuggestedCategory(null);
     }
-  }, [formData.name, formData.category, editingTransaction]);
+  }, [formData.name, formData.category, editingTransaction, categories]);
 
   // Amount validation for large transactions
   useEffect(() => {
