@@ -12,12 +12,14 @@ import {
   FiActivity, FiCalendar, FiFilter, FiRefreshCw
 } from 'react-icons/fi';
 import { PieChart as PieChartIcon } from 'lucide-react';
+import CategoryTransactionsModal from './CategoryTransactionsModal';
 
 interface ChartData {
   name: string;
   value: number;
   color: string;
   percentage: number;
+  count: number;
   [key: string]: any;
 }
 
@@ -36,6 +38,16 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, currency, t
   // Removed showComparison state
   const [showInsights, setShowInsights] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [modalCategory, setModalCategory] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleSliceClick = (entry: any) => {
+    if (entry && entry.name) {
+      setSelectedCategory(entry.name);
+      setModalCategory(entry.name);
+      setIsModalOpen(true);
+    }
+  };
 
   // Extended color palette with 50+ distinct colors for better category differentiation
   const extendedColorPalette = [
@@ -80,15 +92,17 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, currency, t
       const amount = Math.abs(t.amount);
       if (existing) {
         existing.value += amount;
+        existing.count += 1;
       } else {
         acc.push({
           name: t.category,
           value: amount,
           color: getCategoryColor(t.category),
+          count: 1,
         });
       }
       return acc;
-    }, [] as { name: string; value: number; color: string }[]);
+    }, [] as { name: string; value: number; color: string; count: number }[]);
 
     const total = aggregatedData.reduce((sum, item) => sum + item.value, 0);
     const dataWithPercentages = aggregatedData.map(item => ({
@@ -305,6 +319,7 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, currency, t
           <p className="font-bold text-gray-900 dark:text-[#F5F5F5]">{data.name}</p>
           <p className="text-[#007BFF]">{currency}{data.value.toLocaleString()}</p>
           <p className="text-gray-500 dark:text-[#888888]">{data.percentage}% of total spending</p>
+          <p className="text-xs text-gray-400 mt-1">{data.count} transaction{data.count !== 1 ? 's' : ''}</p>
         </div>
       );
     }
@@ -547,6 +562,7 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, currency, t
                     paddingAngle={2}
                     dataKey="value"
                     nameKey="name"
+                    onClick={handleSliceClick}
                   >
                     {data.map((entry, index) => {
                       const isSelected = selectedCategory === entry.name;
@@ -557,6 +573,7 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, currency, t
                           stroke={isSelected ? '#fff' : 'none'}
                           strokeWidth={isSelected ? 3 : 0}
                           opacity={selectedCategory && !isSelected ? 0.5 : 1}
+                          cursor="pointer"
                         />
                       );
                     })}
@@ -905,6 +922,13 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, currency, t
           )}
         </motion.button>
       </div>
+      <CategoryTransactionsModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        category={modalCategory}
+        transactions={transactions}
+        currency={currency}
+      />
     </motion.div>
   );
 };
