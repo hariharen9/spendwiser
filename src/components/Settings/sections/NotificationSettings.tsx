@@ -41,27 +41,24 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
   } = useNotifications(userId);
 
   const [isTestingNotification, setIsTestingNotification] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(true); // Default to collapsed
+  const [isCollapsed, setIsCollapsed] = useState(true);
 
-  // Handle permission request
+  // ... (Handlers remain the same)
   const handleRequestPermission = async () => {
     const granted = await requestPermission();
     if (granted) {
       onShowToast('Notification permission granted! 🎉', 'success');
-      // Auto-enable browser notifications
       await updateSettings({ browserEnabled: true });
     } else {
       onShowToast('Notification permission denied. Please enable in browser settings.', 'error');
     }
   };
 
-  // Handle test notification
   const handleTestNotification = async () => {
     if (permission !== 'granted') {
       onShowToast('Please grant notification permission first.', 'warning');
       return;
     }
-
     try {
       setIsTestingNotification(true);
       await testNotification();
@@ -73,351 +70,187 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
     }
   };
 
-  // Handle push notification toggle
   const handlePushToggle = async (enabled: boolean) => {
     if (enabled) {
       const success = await enablePushNotifications();
-      if (success) {
-        onShowToast('Push notifications enabled! 🚀', 'success');
-      } else {
-        onShowToast('Failed to enable push notifications.', 'error');
-      }
+      success ? onShowToast('Push notifications enabled! 🚀', 'success') : onShowToast('Failed to enable push notifications.', 'error');
     } else {
       const success = await disablePushNotifications();
-      if (success) {
-        onShowToast('Push notifications disabled.', 'info');
-      } else {
-        onShowToast('Failed to disable push notifications.', 'error');
-      }
+      success ? onShowToast('Push notifications disabled.', 'info') : onShowToast('Failed to disable push notifications.', 'error');
     }
   };
 
-  // Format next notification time
   const formatNextNotification = (date: Date | null): string => {
     if (!date) return 'Not scheduled';
-    
     const now = new Date();
     const diffMs = date.getTime() - now.getTime();
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffDays = Math.floor(diffHours / 24);
 
-    if (diffDays > 0) {
-      return `In ${diffDays} day${diffDays > 1 ? 's' : ''} at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-    } else if (diffHours > 0) {
-      return `In ${diffHours} hour${diffHours > 1 ? 's' : ''} at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-    } else {
-      return `Today at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-    }
+    if (diffDays > 0) return `In ${diffDays} day${diffDays > 1 ? 's' : ''} at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    if (diffHours > 0) return `In ${diffHours} hour${diffHours > 1 ? 's' : ''} at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    return `Today at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
   };
 
   if (!isSupported) {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-[#242424] rounded-xl p-6 border border-gray-200 dark:border-gray-700"
-      >
-        <div className="flex items-center space-x-3 mb-4">
-          <BellOff className="w-6 h-6 text-gray-400" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5]">
-            Notifications Not Supported
-          </h3>
+      <div className="bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-2xl p-6">
+        <div className="flex items-center gap-3 mb-2">
+          <BellOff className="text-red-500" />
+          <h3 className="font-bold text-red-700 dark:text-red-400">Notifications Unsupported</h3>
         </div>
-        <p className="text-gray-600 dark:text-gray-400">
-          Your browser doesn't support notifications. Please use a modern browser like Chrome, Firefox, or Safari.
-        </p>
-      </motion.div>
+        <p className="text-sm text-red-600/80 dark:text-red-400/70">Your browser doesn't support notifications.</p>
+      </div>
     );
   }
 
   return (
     <motion.div
+      className="bg-white dark:bg-[#1A1A1A] rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white dark:bg-[#242424] rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
     >
-      {/* Collapsible Header */}
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+        className="w-full px-8 py-6 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors"
       >
-        <div className="flex items-center space-x-3">
-          <Bell className="w-6 h-6 text-blue-500" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5]">
-            Daily Reminders
-          </h3>
+        <div className="flex items-center gap-4">
+          <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400">
+            <Bell size={20} />
+          </div>
+          <div className="text-left">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Daily Reminders</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Configure your alert preferences</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
           {settings.enabled && (
-            <span className="px-2 py-1 text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full">
+            <span className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full">
               Active
             </span>
           )}
+          <motion.div animate={{ rotate: isCollapsed ? 0 : 90 }}>
+            <ChevronRight className="text-gray-400" />
+          </motion.div>
         </div>
-        <motion.div
-          animate={{ rotate: isCollapsed ? 0 : 90 }}
-          transition={{ duration: 0.2 }}
-        >
-          <ChevronRight className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-        </motion.div>
       </button>
 
-      {/* Collapsible Content */}
       <AnimatePresence>
         {!isCollapsed && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
             className="overflow-hidden"
           >
-            <div className="px-6 pb-6 border-t border-gray-100 dark:border-gray-700">
-              <div className="pt-4 space-y-6">
-        {/* Permission Status */}
-        <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-          <div className="flex items-center space-x-3">
-            {permission === 'granted' ? (
-              <CheckCircle className="w-5 h-5 text-green-500" />
-            ) : (
-              <AlertCircle className="w-5 h-5 text-yellow-500" />
-            )}
-            <div>
-              <p className="font-medium text-gray-900 dark:text-white">
-                Notification Permission
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                {permission === 'granted' ? 'Granted' : 
-                 permission === 'denied' ? 'Denied' : 'Not requested'}
-              </p>
-            </div>
-          </div>
-          {permission !== 'granted' && (
-            <button
-              onClick={handleRequestPermission}
-              disabled={isLoading}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50"
-            >
-              {isLoading ? 'Requesting...' : 'Grant Permission'}
-            </button>
-          )}
-        </div>
-
-        {/* Master Toggle */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            {settings.enabled ? (
-              <Bell className="w-5 h-5 text-blue-500" />
-            ) : (
-              <BellOff className="w-5 h-5 text-gray-400" />
-            )}
-            <div>
-              <p className="font-medium text-gray-900 dark:text-white">
-                Enable Daily Reminders
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                Get reminded to log your daily transactions
-              </p>
-            </div>
-          </div>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={settings.enabled}
-              onChange={(e) => updateSettings({ enabled: e.target.checked })}
-              disabled={permission !== 'granted' || isLoading}
-              className="sr-only peer"
-            />
-            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 disabled:opacity-50"></div>
-          </label>
-        </div>
-
-        {settings.enabled && permission === 'granted' && (
-          <>
-            {/* Notification Time */}
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2">
-                <Clock className="w-5 h-5 text-gray-500" />
-                <label className="font-medium text-gray-900 dark:text-white">
-                  Reminder Time
-                </label>
-              </div>
-              <input
-                type="time"
-                value={settings.time}
-                onChange={(e) => updateSettings({ time: e.target.value })}
-                className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
-              />
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Timezone: {userTimezone}
-              </p>
-            </div>
-
-            {/* Frequency */}
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2">
-                <Calendar className="w-5 h-5 text-gray-500" />
-                <label className="font-medium text-gray-900 dark:text-white">
-                  Frequency
-                </label>
-              </div>
-              <select
-                value={settings.frequency}
-                onChange={(e) => updateSettings({ 
-                  frequency: e.target.value as 'daily' | 'weekdays' | 'weekends' | 'custom'
-                })}
-                className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
-              >
-                <option value="daily">Every Day</option>
-                <option value="weekdays">Weekdays Only</option>
-                <option value="weekends">Weekends Only</option>
-                <option value="custom">Custom Days</option>
-              </select>
-            </div>
-
-            {/* Custom Days */}
-            {settings.frequency === 'custom' && (
-              <div className="space-y-3">
-                <label className="font-medium text-gray-900 dark:text-white">
-                  Select Days
-                </label>
-                <div className="grid grid-cols-7 gap-2">
-                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
-                    <button
-                      key={day}
-                      onClick={() => {
-                        const newDays = settings.customDays.includes(index)
-                          ? settings.customDays.filter(d => d !== index)
-                          : [...settings.customDays, index];
-                        updateSettings({ customDays: newDays });
-                      }}
-                      className={`p-2 text-xs font-medium rounded-lg transition-colors ${
-                        settings.customDays.includes(index)
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                      }`}
-                    >
-                      {day}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Notification Types */}
-            <div className="space-y-4">
-              <h4 className="font-medium text-gray-900 dark:text-white flex items-center space-x-2">
-                <SettingsIcon className="w-4 h-4" />
-                <span>Notification Types</span>
-              </h4>
-
-              {/* Browser Notifications */}
-              <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <Monitor className="w-5 h-5 text-gray-500" />
+            <div className="px-8 pb-8 space-y-6 border-t border-gray-100 dark:border-gray-800 pt-6">
+              
+              {/* Permission Banner */}
+              <div className={`flex items-center justify-between p-4 rounded-xl border ${permission === 'granted' ? 'bg-green-50 dark:bg-green-900/10 border-green-100 dark:border-green-900/30' : 'bg-yellow-50 dark:bg-yellow-900/10 border-yellow-100 dark:border-yellow-900/30'}`}>
+                <div className="flex items-center gap-3">
+                  {permission === 'granted' ? <CheckCircle className="text-green-500" /> : <AlertCircle className="text-yellow-500" />}
                   <div>
-                    <p className="font-medium text-gray-900 dark:text-white">
-                      Browser Notifications
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      Show notifications when app is open
+                    <p className={`font-bold text-sm ${permission === 'granted' ? 'text-green-800 dark:text-green-200' : 'text-yellow-800 dark:text-yellow-200'}`}>
+                      {permission === 'granted' ? 'Permission Granted' : 'Permission Required'}
                     </p>
                   </div>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={settings.browserEnabled}
-                    onChange={(e) => updateSettings({ browserEnabled: e.target.checked })}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                </label>
+                {permission !== 'granted' && (
+                  <button onClick={handleRequestPermission} className="px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700">
+                    Allow
+                  </button>
+                )}
               </div>
 
-              {/* Push Notifications */}
-              <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <Smartphone className="w-5 h-5 text-gray-500" />
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-white">
-                      Push Notifications
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      Reliable notifications even when app is closed
-                    </p>
-                  </div>
+              {/* Master Toggle */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-bold text-gray-900 dark:text-white">Enable Reminders</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Toggle all notifications on or off</p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={isPushEnabled}
-                    onChange={(e) => handlePushToggle(e.target.checked)}
-                    disabled={isLoading}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 disabled:opacity-50"></div>
-                </label>
+                <button
+                  onClick={() => updateSettings({ enabled: !settings.enabled })}
+                  className={`w-12 h-6 rounded-full transition-colors relative ${settings.enabled ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-700'}`}
+                >
+                  <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${settings.enabled ? 'left-7' : 'left-1'}`} />
+                </button>
               </div>
-            </div>
 
-            {/* Custom Message */}
-            <div className="space-y-3">
-              <label className="font-medium text-gray-900 dark:text-white">
-                Custom Reminder Message
-              </label>
-              <textarea
-                value={settings.reminderText}
-                onChange={(e) => updateSettings({ reminderText: e.target.value })}
-                placeholder="Don't forget to log your transactions for today! 💰"
-                rows={3}
-                className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 resize-none"
-              />
-            </div>
+              {settings.enabled && permission === 'granted' && (
+                <div className="space-y-6 pl-4 border-l-2 border-gray-100 dark:border-gray-800">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Time</label>
+                      <input
+                        type="time"
+                        value={settings.time}
+                        onChange={(e) => updateSettings({ time: e.target.value })}
+                        className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Frequency</label>
+                      <select
+                        value={settings.frequency}
+                        onChange={(e) => updateSettings({ frequency: e.target.value as any })}
+                        className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-blue-500"
+                      >
+                        <option value="daily">Every Day</option>
+                        <option value="weekdays">Weekdays</option>
+                        <option value="weekends">Weekends</option>
+                        <option value="custom">Custom</option>
+                      </select>
+                    </div>
+                  </div>
 
-            {/* Snooze Duration */}
-            <div className="space-y-3">
-              <label className="font-medium text-gray-900 dark:text-white">
-                Snooze Duration (minutes)
-              </label>
-              <select
-                value={settings.snoozeMinutes}
-                onChange={(e) => updateSettings({ snoozeMinutes: parseInt(e.target.value) })}
-                className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
-              >
-                <option value={30}>30 minutes</option>
-                <option value={60}>1 hour</option>
-                <option value={120}>2 hours</option>
-                <option value={240}>4 hours</option>
-                <option value={480}>8 hours</option>
-              </select>
-            </div>
+                  {settings.frequency === 'custom' && (
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Days</label>
+                      <div className="flex gap-2">
+                        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
+                          <button
+                            key={i}
+                            onClick={() => updateSettings({ customDays: settings.customDays.includes(i) ? settings.customDays.filter(d => d !== i) : [...settings.customDays, i] })}
+                            className={`w-8 h-8 rounded-lg text-xs font-bold ${settings.customDays.includes(i) ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-500'}`}
+                          >
+                            {d}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
-            {/* Next Notification */}
-            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-              <div className="flex items-center space-x-2 mb-2">
-                <Clock className="w-4 h-4 text-blue-500" />
-                <span className="font-medium text-blue-700 dark:text-blue-300">
-                  Next Reminder
-                </span>
-              </div>
-              <p className="text-sm text-blue-600 dark:text-blue-400">
-                {formatNextNotification(nextNotificationTime)}
-              </p>
-            </div>
+                  {/* Types */}
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-3">Delivery Method</label>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
+                        <div className="flex items-center gap-3">
+                          <Smartphone size={18} className="text-gray-400" />
+                          <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Push Notification</span>
+                        </div>
+                        <input type="checkbox" checked={isPushEnabled} onChange={(e) => handlePushToggle(e.target.checked)} className="accent-blue-600 w-4 h-4" />
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
+                        <div className="flex items-center gap-3">
+                          <Monitor size={18} className="text-gray-400" />
+                          <span className="text-sm font-bold text-gray-700 dark:text-gray-300">In-App Alert</span>
+                        </div>
+                        <input type="checkbox" checked={settings.browserEnabled} onChange={(e) => updateSettings({ browserEnabled: e.target.checked })} className="accent-blue-600 w-4 h-4" />
+                      </div>
+                    </div>
+                  </div>
 
-            {/* Test Notification */}
-            <button
-              onClick={handleTestNotification}
-              disabled={isTestingNotification || isLoading}
-              className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50"
-            >
-              <TestTube className="w-5 h-5" />
-              <span>
-                {isTestingNotification ? 'Sending...' : 'Test Notification'}
-              </span>
-            </button>
-          </>
-        )}
-              </div>
+                  <button
+                    onClick={handleTestNotification}
+                    disabled={isTestingNotification}
+                    className="w-full py-3 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-300 font-bold rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <TestTube size={16} />
+                    {isTestingNotification ? 'Sending...' : 'Send Test Alert'}
+                  </button>
+                </div>
+              )}
             </div>
           </motion.div>
         )}

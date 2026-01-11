@@ -1,0 +1,89 @@
+Based on the "Premium" design language established in the Credit Cards page, here is a detailed upgrade plan for the rest of your application.
+
+  The core philosophy for this upgrade is: Don't just show data; tell a story. Use visual metaphors, integrated analytics, and asymmetric layouts to make each page feel like a specialized tool.
+
+  1. Loans & EMI Page (LoansPage)
+  Concept: "The Debt Dossier"
+  Move away from a simple grid of cards. Treat each loan like a serious financial contract that you are actively managing.
+
+   * Visual Upgrade (The "Dossier"):
+       * Left Column (Active Loan): Create a "Loan Certificate" visual.
+           * Look: A vertical, document-style card with a subtle paper texture or "official" watermark pattern.
+           * Elements: A large "stamped" status (e.g., "ACTIVE", "PAID OFF") in a stencil font.
+           * Progress: Instead of a flat bar, use a circular progress ring showing % Paid with the "Principal Remaining" inside it.
+           * Details: Use a "receipt" style jagged edge at the bottom for the latest payment info.
+   * Layout Change:
+       * Master-Detail View: A sidebar (or top scroll) of "Loan Chips" to select the loan, and a large central "Workspace" for the active loan.
+   * New Features & Integration:
+       * "The Mountain" Chart: An Area Chart showing the amortization curve. The "Interest" layer sits on top of "Principal". As the user plays with the Simulator sliders, they actively see the "Mountain" shrink in
+         real-time.
+       * Simulator 2.0: Instead of tabs, use interactive sliders directly next to the chart. Dragging a slider updates the "Projected Savings" badge instantly.
+       * Prepay Action Tiles: Dedicated "Make Extra Payment" tile that opens a payment modal (integrated with Transactions) and immediately updates the "Mountain".
+
+  2. Budgets Page (BudgetsPage)
+  Concept: "Control Center"
+  Budgeting is about limits and capacity. Use gauges and "container" metaphors.
+
+   * Visual Upgrade (The "Gauge"):
+       * Hero Section: Replace the "Total Budget" card with a large Radial Speedometer/Gauge.
+           * Zones: Green (Safe), Yellow (Caution), Red (Danger/Over).
+           * Needle: Animates to the current spending % position.
+       * Category Cards ("Envelopes"): Make each budget card look like a digital "Envelope" or "Fuel Tank".
+           * Liquid Fill Effect: The background of the card "fills up" with a liquid gradient animation based on spending % (e.g., rising water level).
+   * Layout Change:
+       * Tiered Layout: Top section is the "Global Limit" (Speedometer). Bottom grid contains category buckets sorted by % used (highest risk first).
+   * New Features & Integration:
+       * "Safe to Spend": A prominent number showing exactly how much you can spend per day for the rest of the month to stay on budget.
+       * Spending Velocity: Small sparkline charts on each budget card showing when you spent the money this month (did you blow it all in week 1?).
+
+  3. Goals Page (GoalsPage)
+  Concept: "The Vault / Dream Board"
+  Goals are positive and aspirational. The UI should feel rewarding, not administrative.
+
+   * Visual Upgrade (The "Token"):
+       * Visuals: Instead of list cards, render each goal as a Glass Jar or Gold Coin/Token visual.
+       * Texture: Use a subtle "noise" texture or "metallic" gradient (Gold, Silver, Bronze) based on how close you are to completion.
+       * Imagery: Allow the user's Emoji (e.g., 🚗, 🏠) to be a massive, glowing watermark behind the card.
+   * Layout Change:
+       * Masonry/Gallery View: Display goals like an art gallery or a collection of achievements.
+   * New Features & Integration:
+       * Projection Chart: A line chart showing "Actual Savings" vs "Target Trajectory". "If you keep saving at this rate, you'll buy the car by [Date]."
+       * Gamification: When "Adding Funds" (linking a transaction), play a "coin drop" sound or animation.
+       * "Allocated" vs "Free" Cash: A visual showing how much of your total account balance is actually "locked" in goals vs available to spend.
+
+  4. Transactions Page (TransactionsPage)
+  Concept: "The Ledger"
+  This is data-heavy, so "Premium" here means Clarity and Pattern Recognition, not heavy textures.
+
+   * Visual Upgrade (The "Smart Table"):
+       * Headers: Use a sticky "Glassmorphic" header bar.
+       * Rows: Move away from standard table rows. Use a "Card Row" style with:
+           * Category Icon: A colored circle with the icon inside.
+           * Smart Time: "Today", "Yesterday" grouping headers.
+       * Receipt Panel: Clicking a row shouldn't open a generic modal. It should slide out a "Digital Receipt" panel from the side, looking like a physical printed receipt with serrated edges, showing breakdown,
+         map location (if applicable), and notes.
+   * Layout Change:
+       * Split View: Left side is the list. Top header contains a "Spending Pulse"—a bar chart of the last 30 days that acts as a navigation/filter (click a bar to filter by that day).
+   * New Features & Integration:
+       * Smart Search: A "Command Palette" style search bar (Ctrl+K) that floats at the top.
+       * Merchant Logos: Attempt to match merchant names to brand logos (or nice initials) for immediate visual recognition.
+
+  5. Dashboard (DashboardPage)
+  Concept: "The Cockpit"
+  The Dashboard should summarize the "Story" of the other pages.
+
+   * Visual Upgrade (The "HUD"):
+       * Hero Widget: A unified "Net Worth" or "Current Status" card with a Mesmerizing Mesh Gradient background that slowly animates.
+       * Glass Widgets: All widgets should use backdrop-blur-md, bg-white/5 (in dark mode), and subtle white borders to look like floating glass panes on a desktop.
+   * Layout Change:
+       * Bento Grid: Adopt a strict "Bento Grid" layout (like Apple/Windows tiles) where widgets snap perfectly into large squares, tall rectangles, or wide banners.
+   * New Features & Integration:
+       * "Morning Briefing": A text-based, AI-style summary at the top: "Good Morning! You have 2 bills due tomorrow, and you're 15% under budget for Food."
+       * Quick Actions Dock: A floating dock at the bottom (like macOS) for "Add Transaction", "Transfer", "Add Goal".
+
+  Summary of Shared "Premium" DNA
+  To unify these upgrades, I will ensure these elements are present across all pages:
+   1. Gradients as Identity: Use specific gradients for specific contexts (Green/Emerald for Income/Assets, Red/Rose for Debt/Expenses, Blue/Indigo for Analytics).
+   2. Contextual Charts: No page without a chart. Even the list views need sparklines.
+   3. Action Tiles: Replace primary buttons with description-rich "Tiles" (Icon + Title + Description).
+   4. Glassmorphism: Use it for overlays, sticky headers, and active states to create depth.

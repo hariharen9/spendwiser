@@ -17,21 +17,13 @@ const FeedbackAndSupport: React.FC<FeedbackAndSupportProps> = ({ onOpenFeedbackM
       starControls.start({
         rotate: 360,
         scale: 1.2,
-        transition: {
-          duration: 0.5,
-          type: "spring",
-          stiffness: 300
-        }
+        transition: { duration: 0.5, type: "spring", stiffness: 300 }
       });
     } else {
       starControls.start({
         rotate: 0,
         scale: 1,
-        transition: {
-          duration: 0.3,
-          type: "spring",
-          stiffness: 300
-        }
+        transition: { duration: 0.3, type: "spring", stiffness: 300 }
       });
     }
   }, [isHovered, starControls]);
@@ -39,41 +31,49 @@ const FeedbackAndSupport: React.FC<FeedbackAndSupportProps> = ({ onOpenFeedbackM
   return (
     <motion.div 
       variants={fadeInVariants} 
-      className="bg-white dark:bg-[#242424] backdrop-blur-lg border border-gray-200 dark:border-gray-700 p-4 rounded-lg shadow-lg text-gray-800 dark:text-white"
+      initial="initial"
+      animate="animate"
+      className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden"
     >
-      <h3 className="text-lg font-bold mb-2 flex items-center gap-2">
-        <Heart className="text-red-500" />
-        <span>Enjoying SpendWiser?</span>
-      </h3>
-      <p className="mb-4 opacity-80 text-sm">
-        Your feedback and support help us make the app better for everyone.
-      </p>
-      <div className="flex flex-col sm:flex-row gap-2">
-        <button
-          onClick={onOpenFeedbackModal}
-          className="flex-1 bg-blue-500 hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-semibold py-2 px-3 rounded-lg transition-all duration-300 ease-in-out flex items-center justify-center gap-2 shadow-md hover:shadow-lg hover:shadow-blue-500/50"
-        >
-          <MessageSquare size={16} />
-          <span className="text-sm">Give Feedback</span>
-        </button>
-        <motion.a
-          href={GITHUB_REPO_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-2 px-3 rounded-lg transition-all duration-300 ease-in-out flex items-center justify-center gap-2 shadow-2xl shadow-yellow-500/70"
-          variants={buttonHoverVariants} // Apply button hover variants
-          whileHover="hover"
-          whileTap="tap"
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
-          <motion.div // Wrap Star in a motion.div for more control
-            animate={starControls}
+      <div className="absolute top-0 right-0 p-8 opacity-10">
+        <Heart size={120} />
+      </div>
+
+      <div className="relative z-10">
+        <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
+          <Heart className="text-pink-400 fill-current" size={24} />
+          <span>Loving SpendWiser?</span>
+        </h3>
+        <p className="mb-6 text-blue-100 font-medium max-w-sm">
+          Your support fuels our development. Star us on GitHub or send us your thoughts!
+        </p>
+        
+        <div className="flex flex-col sm:flex-row gap-3">
+          <button
+            onClick={onOpenFeedbackModal}
+            className="flex-1 bg-white/10 backdrop-blur-md hover:bg-white/20 text-white font-bold py-3 px-4 rounded-xl transition-all border border-white/10 flex items-center justify-center gap-2"
           >
-            <Star size={16} />
-          </motion.div>
-          <span className="text-sm">Star on GitHub</span>
-        </motion.a>
+            <MessageSquare size={18} />
+            <span>Send Feedback</span>
+          </button>
+          
+          <motion.a
+            href={GITHUB_REPO_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 bg-white text-blue-600 font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg"
+            variants={buttonHoverVariants}
+            whileHover="hover"
+            whileTap="tap"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
+            <motion.div animate={starControls}>
+              <Star size={18} className="fill-current" />
+            </motion.div>
+            <span>Star Project</span>
+          </motion.a>
+        </div>
       </div>
     </motion.div>
   );

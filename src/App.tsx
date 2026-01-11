@@ -2762,7 +2762,7 @@ function App() {
           </div>
 
           {/* Page Content */}
-          <main className="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-8">
+        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-[#121212] px-4 md:px-8 pt-8 pb-32 md:pb-8 scroll-smooth custom-scrollbar">
             <AnimatePresence mode="wait">
               {renderCurrentPage()}
             </AnimatePresence>
