@@ -51,8 +51,7 @@ const AccountManagement: React.FC<AccountManagementProps> = ({ accounts, onAddAc
       const accountData: Omit<Account, 'id'> = {
         name: accountForm.name,
         type: accountForm.type,
-        balance: parseFloat(accountForm.balance),
-        ...(accountForm.type === 'Credit Card' && { limit: parseFloat(accountForm.limit) || 0 })
+        balance: parseFloat(accountForm.balance)
       };
       
       if (editingAccount) {
@@ -68,6 +67,8 @@ const AccountManagement: React.FC<AccountManagementProps> = ({ accounts, onAddAc
     onDeleteAccount(id);
     setShowDeleteConfirm(null);
   };
+
+  const nonCreditCardAccounts = accounts.filter(a => a.type !== 'Credit Card');
 
   return (
     <motion.div
@@ -106,7 +107,7 @@ const AccountManagement: React.FC<AccountManagementProps> = ({ accounts, onAddAc
         initial="initial"
         animate="animate"
       >
-        {accounts.map((account, index) => (
+        {nonCreditCardAccounts.map((account, index) => (
           <motion.div
             key={account.id}
             className="flex items-center justify-between p-4 bg-gray-50 dark:bg-[#1A1A1A] rounded-lg border border-gray-200 dark:border-gray-600"
@@ -222,7 +223,7 @@ const AccountManagement: React.FC<AccountManagementProps> = ({ accounts, onAddAc
                   </label>
                   <AnimatedDropdown
                     selectedValue={accountForm.type}
-                    options={['Checking', 'Savings', 'Business Checking', 'Investment', 'Credit Card']}
+                    options={['Checking', 'Savings', 'Business Checking', 'Investment']}
                     onChange={(value) => setAccountForm({ ...accountForm, type: value })}
                   />
                 </motion.div>
@@ -244,26 +245,6 @@ const AccountManagement: React.FC<AccountManagementProps> = ({ accounts, onAddAc
                     placeholder="0.00"
                   />
                 </motion.div>
-
-                {accountForm.type === 'Credit Card' && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.6 }}
-                  >
-                    <label className="block text-sm font-medium text-gray-900 dark:text-[#F5F5F5] mb-2">
-                      Credit Limit *
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={accountForm.limit}
-                      onChange={(e) => setAccountForm({ ...accountForm, limit: e.target.value })}
-                      className="w-full px-3 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
-                      placeholder="5000.00"
-                    />
-                  </motion.div>
-                )}
 
                 <motion.div
                   className="flex items-center justify-end space-x-4 pt-4"

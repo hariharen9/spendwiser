@@ -348,6 +348,31 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
       return { totalLimit, totalDebt, utilization, available };
   }, [isAllCardsSelected, creditCards, currentBalance]);
 
+  const groupedTransactions = useMemo(() => {
+    const sliced = cardTransactions.slice(0, isAllCardsSelected ? 20 : 5);
+    const groups: { title: string; totalExpense: number; transactions: Transaction[] }[] = [];
+    
+    sliced.forEach(t => {
+      // Parse date safely assuming YYYY-MM-DD format
+      const [year, month] = t.date.split('-').map(Number);
+      const d = new Date(year, month - 1, 1);
+      const monthYear = d.toLocaleString('default', { month: 'long', year: 'numeric' });
+      
+      let group = groups.find(g => g.title === monthYear);
+      if (!group) {
+        group = { title: monthYear, totalExpense: 0, transactions: [] };
+        groups.push(group);
+      }
+      
+      group.transactions.push(t);
+      if (t.type === 'expense') {
+        group.totalExpense += Math.abs(t.amount);
+      }
+    });
+    
+    return groups;
+  }, [cardTransactions, isAllCardsSelected]);
+
   const handleAddCard = () => {
     if (cardForm.name && cardForm.limit && onAddAccount) {
       onAddAccount({
@@ -491,7 +516,7 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
       {/* Header / Selector */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Credit Cards</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Credit Card Overview</h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm">Manage debt, track utilization, and analyze spending.</p>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -748,28 +773,38 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
       {/* Transaction History */}
       <div className="bg-white dark:bg-[#242424] border border-gray-200 dark:border-gray-700 rounded-xl p-6">
         <h3 className="font-bold text-lg mb-4 text-gray-900 dark:text-white">{isAllCardsSelected ? 'All Card Transactions' : 'Recent Activity'}</h3>
-        <div className="space-y-2">
-            {cardTransactions.slice(0, isAllCardsSelected ? 20 : 5).map(t => (
-                <div key={t.id} className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-[#1A1A1A] rounded-lg transition-colors">
-                    <div className="flex items-center space-x-3">
-                        <div className={`p-2 rounded-full ${t.type === 'income' ? 'bg-green-100 dark:bg-green-900/30 text-green-600' : 'bg-red-100 dark:bg-red-900/30 text-red-600'}`}>
-                            {t.type === 'income' ? <ArrowRight className="w-4 h-4 rotate-180" /> : <ArrowRight className="w-4 h-4" />}
-                        </div>
-                        <div>
-                            <p className="font-medium text-gray-900 dark:text-white">{t.name}</p>
-                            <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
-                                {isAllCardsSelected && (
-                                    <span className="mr-2 px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">
-                                        {creditCards.find(c => c.id === t.accountId)?.name}
-                                    </span>
-                                )}
-                                <span>{t.date} • {t.category}</span>
-                            </div>
-                        </div>
+        <div className="space-y-6">
+            {groupedTransactions.map(group => (
+                <div key={group.title} className="space-y-2">
+                    <div className="flex items-center justify-between px-1 mb-2">
+                        <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">{group.title}</h4>
+                        <span className="text-[10px] font-bold px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded-full text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
+                            EXPENSE: {currency}{group.totalExpense.toLocaleString()}
+                        </span>
                     </div>
-                    <span className={`font-semibold ${t.type === 'income' ? 'text-green-500' : 'text-gray-900 dark:text-white'}`}>
-                        {t.type === 'income' ? '+' : ''}{currency}{Math.abs(t.amount).toLocaleString()}
-                    </span>
+                    {group.transactions.map(t => (
+                        <div key={t.id} className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-[#1A1A1A] rounded-lg transition-colors border border-transparent hover:border-gray-100 dark:hover:border-gray-800">
+                            <div className="flex items-center space-x-3">
+                                <div className={`p-2 rounded-full ${t.type === 'income' ? 'bg-green-100 dark:bg-green-900/30 text-green-600' : 'bg-red-100 dark:bg-red-900/30 text-red-600'}`}>
+                                    {t.type === 'income' ? <ArrowRight className="w-4 h-4 rotate-180" /> : <ArrowRight className="w-4 h-4" />}
+                                </div>
+                                <div>
+                                    <p className="font-medium text-gray-900 dark:text-white text-sm">{t.name}</p>
+                                    <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                                        {isAllCardsSelected && (
+                                            <span className="mr-2 px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-[10px] font-medium">
+                                                {creditCards.find(c => c.id === t.accountId)?.name}
+                                            </span>
+                                        )}
+                                        <span>{t.date} • {t.category}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <span className={`font-semibold text-sm ${t.type === 'income' ? 'text-green-500' : 'text-gray-900 dark:text-white'}`}>
+                                {t.type === 'income' ? '+' : ''}{currency}{Math.abs(t.amount).toLocaleString()}
+                            </span>
+                        </div>
+                    ))}
                 </div>
             ))}
             {cardTransactions.length === 0 && (
