@@ -570,21 +570,21 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
                 <div className="grid grid-cols-2 gap-3">
                     <button 
                         onClick={() => setShowPayBillModal(true)}
-                        className="flex flex-col items-center justify-center p-4 bg-white dark:bg-[#242424] border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-[#2a2a2a] transition-all group"
+                        className="flex flex-col items-center justify-center p-4 bg-white dark:bg-[#242424] border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-[#2a2a2a] transition-all group text-gray-900 dark:text-gray-100"
                     >
                         <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-full mb-2 group-hover:scale-110 transition-transform">
                             <DollarSign className="w-5 h-5 text-green-600 dark:text-green-400" />
                         </div>
-                        <span className="font-medium text-sm text-gray-900 dark:text-gray-200">Pay Bill</span>
+                        <span className="font-medium text-sm">Pay Bill</span>
                     </button>
                     <button 
                         onClick={() => { setReconcileForm({actualBalance: ''}); setShowReconcileModal(true); }}
-                        className="flex flex-col items-center justify-center p-4 bg-white dark:bg-[#242424] border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-[#2a2a2a] transition-all group"
+                        className="flex flex-col items-center justify-center p-4 bg-white dark:bg-[#242424] border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-[#2a2a2a] transition-all group text-gray-900 dark:text-gray-100"
                     >
                         <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-full mb-2 group-hover:scale-110 transition-transform">
                             <CheckCircle className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                         </div>
-                        <span className="font-medium text-sm text-gray-900 dark:text-gray-200">Reconcile</span>
+                        <span className="font-medium text-sm">Reconcile</span>
                     </button>
                 </div>
             )}
@@ -809,7 +809,7 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
                          <div className="relative">
                              <span className="absolute left-3 top-2.5 text-gray-500">{currency}</span>
                              <input 
-                                 className="w-full pl-8 p-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#1A1A1A] focus:ring-2 focus:ring-blue-500 outline-none"
+                                 className="w-full pl-8 p-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#1A1A1A] text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
                                  type="number"
                                  value={paymentForm.amount} 
                                  onChange={e => setPaymentForm({...paymentForm, amount: e.target.value})}
@@ -820,7 +820,7 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
                      <div>
                          <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Date</label>
                          <input 
-                             className="w-full p-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#1A1A1A] focus:ring-2 focus:ring-blue-500 outline-none"
+                             className="w-full p-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#1A1A1A] text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
                              type="date"
                              value={paymentForm.date} 
                              onChange={e => setPaymentForm({...paymentForm, date: e.target.value})}
@@ -839,15 +839,15 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
             >
                 <div className="space-y-4">
                     <div className="text-center py-4">
-                        <p className="text-sm text-gray-500">System Calculated Balance</p>
-                        <p className="text-2xl font-bold">{currency}{Math.abs(currentBalance).toLocaleString()}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">System Calculated Balance</p>
+                        <p className="text-2xl font-bold text-gray-900 dark:text-white">{currency}{Math.abs(currentBalance).toLocaleString()}</p>
                     </div>
                     <div>
                          <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Actual Bank Balance (What you owe)</label>
                          <div className="relative">
                              <span className="absolute left-3 top-2.5 text-gray-500">{currency}</span>
                              <input 
-                                 className="w-full pl-8 p-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#1A1A1A] focus:ring-2 focus:ring-blue-500 outline-none"
+                                 className="w-full pl-8 p-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#1A1A1A] text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
                                  type="number"
                                  value={reconcileForm.actualBalance} 
                                  onChange={e => setReconcileForm({...reconcileForm, actualBalance: e.target.value})}

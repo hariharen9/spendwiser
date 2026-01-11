@@ -1736,6 +1736,7 @@ function App() {
               onEditAccount={handleEditAccount}
               onDeleteAccount={handleDeleteAccount}
               currency={currency}
+              onSaveTransaction={handleAddTransaction}
             />
           </motion.div>
         );
