@@ -252,9 +252,12 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
     }
   };
 
-  // Format account name with balance
+  // Format account name with balance (hides balance for credit cards)
   const formatAccountName = (account: Account) => {
-    return `${account.name} (₹${account.balance.toFixed(2)})`;
+    if (account.type === 'Credit Card') {
+      return account.name;
+    }
+    return `${account.name} (${currency}${account.balance.toFixed(2)})`;
   };
 
   return (
@@ -584,6 +587,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                         selectedValue={formData.accountId}
                         onChange={(value) => setFormData({ ...formData, accountId: value })}
                         defaultAccountId={defaultAccountId}
+                        currency={currency}
                       />
                     )}
                   </motion.div>

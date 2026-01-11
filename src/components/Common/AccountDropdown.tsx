@@ -10,6 +10,7 @@ interface AccountDropdownProps {
   onChange: (value: string) => void;
   defaultAccountId?: string | null;
   placeholder?: string;
+  currency?: string;
 }
 
 const dropdownVariants = {
@@ -32,8 +33,11 @@ const optionVariants = {
   }),
 };
 
-const formatAccountName = (account: Account) => {
-  return `${account.name} (₹${account.balance.toFixed(2)})`;
+const formatAccountName = (account: Account, currency: string = '₹') => {
+  if (account.type === 'Credit Card') {
+    return account.name;
+  }
+  return `${account.name} (${currency}${account.balance.toFixed(2)})`;
 };
 
 const AccountDropdown: React.FC<AccountDropdownProps> = ({
@@ -43,6 +47,7 @@ const AccountDropdown: React.FC<AccountDropdownProps> = ({
   onChange,
   defaultAccountId,
   placeholder = 'Select an account',
+  currency = '₹',
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -68,7 +73,7 @@ const AccountDropdown: React.FC<AccountDropdownProps> = ({
   const getSelectedLabel = () => {
     const selectedAccount = allAccounts.find(acc => acc.id === selectedValue);
     if (!selectedAccount) return placeholder;
-    return formatAccountName(selectedAccount);
+    return formatAccountName(selectedAccount, currency);
   };
 
   return (
@@ -113,7 +118,7 @@ const AccountDropdown: React.FC<AccountDropdownProps> = ({
                       initial="initial"
                       animate="animate"
                     >
-                      {formatAccountName(account)} {account.id === defaultAccountId ? '(Default)' : ''}
+                      {formatAccountName(account, currency)} {account.id === defaultAccountId ? '(Default)' : ''}
                     </motion.li>
                   ))}
                 </>
@@ -133,7 +138,7 @@ const AccountDropdown: React.FC<AccountDropdownProps> = ({
                       initial="initial"
                       animate="animate"
                     >
-                      {formatAccountName(card)} {card.id === defaultAccountId ? '(Default)' : ''}
+                      {formatAccountName(card, currency)} {card.id === defaultAccountId ? '(Default)' : ''}
                     </motion.li>
                   ))}
                 </>
