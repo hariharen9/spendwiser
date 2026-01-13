@@ -216,7 +216,7 @@ const LoansPage: React.FC<LoansPageProps> = ({
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Loan Dashboard</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Loans & EMIs Dashboard</h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1">Manage liabilities and optimize your repayment path.</p>
         </div>
         <button 

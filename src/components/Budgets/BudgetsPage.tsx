@@ -551,7 +551,7 @@ const BudgetsPage: React.FC<BudgetsPageProps> = ({
 
         {/* RIGHT COLUMN: Analytics Panel */}
         <div className="lg:col-span-8">
-            <GlassCard className="p-6">
+            <GlassCard className="p-4 md:p-6">
                 <div className="flex items-center justify-between mb-2">
                     <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center">
                         <PieChartIcon className="w-5 h-5 mr-2 text-purple-500" />
@@ -559,7 +559,7 @@ const BudgetsPage: React.FC<BudgetsPageProps> = ({
                     </h3>
                 </div>
                 <Tabs tabs={analyticsTabs} selectedTab={activeTab} onSelectTab={setActiveTab} />
-                <div className="mt-4">
+                <div className="mt-4 mb-10">
                     {activeTab === 'distribution' && (
                         <CategoryDistributionChart budgets={budgets} transactions={transactions} currency={currency} />
                     )}
