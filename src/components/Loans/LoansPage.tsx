@@ -1,22 +1,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Loan, Transaction } from '../../types/types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { staggerContainer, fadeInVariants } from '../../components/Common/AnimationVariants';
+import { staggerContainer, fadeInVariants, modalVariants } from '../../components/Common/AnimationVariants';
 import { 
-  Plus, 
-  Landmark, 
-  Home, 
-  Car, 
-  User, 
-  GraduationCap, 
-  CheckCircle, 
-  Clock, 
-  ChevronDown, 
-  ChevronUp,
-  TrendingDown,
-  Calendar,
-  DollarSign,
-  Target
+  Plus, Landmark, Home, Car, User, GraduationCap, CheckCircle, Clock, 
+  ChevronDown, ChevronUp, TrendingDown, Calendar, DollarSign, Target,
+  Edit, Trash2, PieChart as PieChartIcon, ArrowRight, Wallet
 } from 'lucide-react';
 import { 
   calculateLoanSummary, 
@@ -27,6 +16,10 @@ import {
 } from '../../lib/loanCalculations';
 import AnimatedDropdown from '../Common/AnimatedDropdown';
 import Tabs from '../Common/Tabs';
+import { 
+  PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend 
+} from 'recharts';
+import ConfirmationDialog from '../BillSplitting/ConfirmationDialog';
 
 interface LoansPageProps {
   loans: Loan[];
@@ -38,6 +31,63 @@ interface LoansPageProps {
   currency: string;
 }
 
+// --- Helper Components ---
+
+const LoanTypeIcon: React.FC<{ type?: string, className?: string }> = ({ type, className = "w-6 h-6" }) => {
+  switch (type) {
+    case 'home': return <Home className={className} />;
+    case 'auto': return <Car className={className} />;
+    case 'personal': return <User className={className} />;
+    case 'student': return <GraduationCap className={className} />;
+    default: return <Landmark className={className} />;
+  }
+};
+
+const GlassCard: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = "" }) => (
+  <div className={`bg-white/70 dark:bg-gray-900/60 backdrop-blur-md border border-white/20 dark:border-gray-700/30 shadow-xl rounded-2xl overflow-hidden ${className}`}>
+    {children}
+  </div>
+);
+
+const LoanProgressRing: React.FC<{ percentage: number; size?: number; strokeWidth?: number; color?: string }> = ({ 
+  percentage, size = 60, strokeWidth = 6, color = "text-blue-500" 
+}) => {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const offset = circumference - (percentage / 100) * circumference;
+
+  return (
+    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+      <svg className="transform -rotate-90 w-full h-full">
+        <circle
+          className="text-gray-200 dark:text-gray-700"
+          strokeWidth={strokeWidth}
+          stroke="currentColor"
+          fill="transparent"
+          r={radius}
+          cx={size / 2}
+          cy={size / 2}
+        />
+        <circle
+          className={`${color} transition-all duration-1000 ease-out`}
+          strokeWidth={strokeWidth}
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          stroke="currentColor"
+          fill="transparent"
+          r={radius}
+          cx={size / 2}
+          cy={size / 2}
+        />
+      </svg>
+      <span className="absolute text-xs font-bold text-gray-700 dark:text-gray-300">{Math.round(percentage)}%</span>
+    </div>
+  );
+};
+
+// --- Main Page Component ---
+
 const LoansPage: React.FC<LoansPageProps> = ({ 
   loans, 
   transactions, 
@@ -47,22 +97,10 @@ const LoansPage: React.FC<LoansPageProps> = ({
   onMarkEmiPaid, 
   currency 
 }) => {
-  const getLoanIcon = (type?: 'home' | 'auto' | 'personal' | 'student' | 'other') => {
-    switch (type) {
-      case 'home':
-        return <Home className="h-5 w-5 text-blue-500" />;
-      case 'auto':
-        return <Car className="h-5 w-5 text-blue-500" />;
-      case 'personal':
-        return <User className="h-5 w-5 text-blue-500" />;
-      case 'student':
-        return <GraduationCap className="h-5 w-5 text-blue-500" />;
-      default:
-        return <Landmark className="h-5 w-5 text-blue-500" />;
-    }
-  };
-
-  const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
+  const [selectedLoanId, setSelectedLoanId] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  
+  // Strategy State
   const [extraEmiPerYear, setExtraEmiPerYear] = useState(false);
   const [annualEmiIncrease, setAnnualEmiIncrease] = useState(0);
   const [lumpSumAmount, setLumpSumAmount] = useState(0);
@@ -71,24 +109,20 @@ const LoansPage: React.FC<LoansPageProps> = ({
   const [preClosureMonth, setPreClosureMonth] = useState(12);
   const [expandedYears, setExpandedYears] = useState<Set<number>>(new Set());
 
+  // Auto-select first loan
   useEffect(() => {
-    const isSelectedLoanInList = selectedLoan && loans.some(l => l.id === selectedLoan.id);
-
-    if ((!selectedLoan || !isSelectedLoanInList) && loans.length > 0) {
-      setSelectedLoan(loans[0]);
+    if (loans.length > 0 && !selectedLoanId) {
+      setSelectedLoanId(loans[0].id);
     } else if (loans.length === 0) {
-      setSelectedLoan(null);
+      setSelectedLoanId(null);
+    } else if (selectedLoanId && !loans.find(l => l.id === selectedLoanId)) {
+       setSelectedLoanId(loans[0].id);
     }
-  }, [loans, selectedLoan]);
+  }, [loans, selectedLoanId]);
 
-  const strategyTabs = [
-    { id: 'extraEMI', label: 'Extra EMI' },
-    { id: 'increaseEMI', label: 'EMI Increase' },
-    { id: 'lumpSum', label: 'Lump Sum' },
-    { id: 'preClosure', label: 'Pre-Closure' },
-  ];
+  const selectedLoan = useMemo(() => loans.find(l => l.id === selectedLoanId) || null, [loans, selectedLoanId]);
 
-  // Calculate loan status based on actual payments
+  // Calculations
   const selectedLoanStatus = useMemo((): LoanStatus | null => {
     if (!selectedLoan) return null;
     return calculateCurrentBalance(selectedLoan, transactions);
@@ -109,21 +143,19 @@ const LoansPage: React.FC<LoansPageProps> = ({
     return calculatePreClosure(selectedLoan, transactions, preClosureMonth);
   }, [selectedLoan, transactions, preClosureMonth]);
 
-  const interestSaved = useMemo(() => {
-    if (!originalLoanSummary || !newLoanSummary) return 0;
-    return originalLoanSummary.totalInterestPaid - newLoanSummary.totalInterestPaid;
-  }, [originalLoanSummary, newLoanSummary]);
+  const strategyTabs = [
+    { id: 'extraEMI', label: 'Extra EMI' },
+    { id: 'increaseEMI', label: 'Step Up' },
+    { id: 'lumpSum', label: 'Lump Sum' },
+    { id: 'preClosure', label: 'Pre-Closure' },
+  ];
 
-  // Group amortization schedule by year
   const amortizationByYear = useMemo(() => {
     if (!originalLoanSummary || !selectedLoanStatus) return {};
-    
     const grouped: { [year: number]: typeof originalLoanSummary.amortizationSchedule } = {};
-    
     originalLoanSummary.amortizationSchedule.forEach((entry, index) => {
       const year = Math.ceil(entry.month / 12);
       if (!grouped[year]) grouped[year] = [];
-      
       grouped[year].push({
         ...entry,
         isPaid: index < selectedLoanStatus.paymentsMade,
@@ -131,632 +163,410 @@ const LoansPage: React.FC<LoansPageProps> = ({
           transactions.filter(t => t.loanId === selectedLoan?.id)[index]?.date : undefined,
       });
     });
-    
     return grouped;
   }, [originalLoanSummary, selectedLoanStatus, transactions, selectedLoan]);
 
   const toggleYearExpansion = (year: number) => {
     const newExpanded = new Set(expandedYears);
-    if (newExpanded.has(year)) {
-      newExpanded.delete(year);
-    } else {
-      newExpanded.add(year);
-    }
+    if (newExpanded.has(year)) newExpanded.delete(year);
+    else newExpanded.add(year);
     setExpandedYears(newExpanded);
   };
 
-  return (
-    <motion.div 
-      className="space-y-6"
-      initial="initial"
-      animate="animate"
-      variants={staggerContainer}
-    >
-      {/* Header */}
-      <motion.div 
-        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-        variants={fadeInVariants}
-      >
+  const pieData = useMemo(() => {
+      if(!selectedLoanStatus || !originalLoanSummary) return [];
+      const paidPrincipal = originalLoanSummary.totalPrincipal - selectedLoanStatus.currentBalance;
+      // Simplification for chart:
+      return [
+          { name: 'Paid Principal', value: paidPrincipal > 0 ? paidPrincipal : 0, color: '#10b981' },
+          { name: 'Outstanding', value: selectedLoanStatus.currentBalance, color: '#ef4444' },
+      ];
+  }, [selectedLoanStatus, originalLoanSummary]);
+
+  // --- Render Empty State ---
+  if (loans.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[60vh] text-center space-y-6">
+        <div className="p-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full shadow-lg shadow-blue-500/30">
+          <Landmark className="w-16 h-16 text-white" />
+        </div>
         <div>
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-[#F5F5F5]">EMIs & Loans Tracker</h2>
-          <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
-            Track your loan payments manually and optimize your repayment strategy
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Start Your Debt-Free Journey</h2>
+          <p className="text-gray-500 dark:text-gray-400 mt-2 max-w-md">
+            Add your loans to track payments, visualize progress, and simulate payoff strategies.
           </p>
         </div>
-        <motion.button 
+        <button
           onClick={onAddLoan}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg flex items-center space-x-2 shadow-lg transition-colors"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all flex items-center"
         >
-          <Plus className="h-5 w-5"/>
-          <span className="font-medium">Add New Loan</span>
-        </motion.button>
-      </motion.div>
+          <Plus className="w-5 h-5 mr-2" />
+          Add First Loan
+        </button>
+      </div>
+    );
+  }
 
-      {loans.length === 0 ? (
-        <motion.div 
-          className="text-center py-16 bg-white dark:bg-[#242424] rounded-xl border border-gray-200 dark:border-gray-700"
-          variants={fadeInVariants}
+  return (
+    <div className="space-y-8 pb-20 relative">
+      
+      {/* Page Background Accent */}
+      <div className="fixed top-0 left-0 right-0 h-[500px] bg-gradient-to-b from-blue-50/50 to-transparent dark:from-blue-900/10 dark:to-transparent pointer-events-none -z-10" />
+
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Loan Dashboard</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">Manage liabilities and optimize your repayment path.</p>
+        </div>
+        <button 
+           onClick={onAddLoan}
+           className="flex items-center space-x-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg font-medium hover:opacity-90 transition-opacity shadow-md"
         >
-          <div className="bg-blue-100 dark:bg-blue-900/30 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-            <Landmark className="h-8 w-8 text-blue-500" />
-          </div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No loans yet</h3>
-          <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
-            Start tracking your loans and EMIs to get insights into your repayment progress and optimization strategies.
-          </p>
-          <button 
-            onClick={onAddLoan}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors"
-          >
-            Add Your First Loan
-          </button>
-        </motion.div>
-      ) : (
-        <>
-          {/* Loans Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {loans.map(loan => {
-              const loanStatus = calculateCurrentBalance(loan, transactions);
-              return (
-                <motion.div 
-                  key={loan.id} 
-                  className={`bg-white dark:bg-[#242424] rounded-xl shadow-sm border-2 transition-all cursor-pointer hover:shadow-md ${
-                    selectedLoan?.id === loan.id 
-                      ? 'border-blue-500 ring-2 ring-blue-500/20' 
-                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                  }`}
-                  variants={fadeInVariants}
-                  onClick={() => setSelectedLoan(loan)}
-                  whileHover={{ y: -2 }}
-                >
-                  <div className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-lg">
-                          {getLoanIcon(loan.type)}
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-gray-900 dark:text-white">{loan.name}</h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">
-                            {loan.type || 'other'} loan
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex space-x-1">
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); onEditLoan(loan); }} 
-                          className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                        >
-                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                        </button>
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); onDeleteLoan(loan.id); }} 
-                          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-                        >
-                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
+           <Plus className="w-4 h-4" />
+           <span>New Loan</span>
+        </button>
+      </div>
 
-                    <div className="space-y-3 mb-4">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600 dark:text-gray-400">Principal</span>
-                        <span className="font-medium text-gray-900 dark:text-white">
-                          {currency}{loan.loanAmount.toLocaleString()}
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600 dark:text-gray-400">EMI</span>
-                        <span className="font-medium text-gray-900 dark:text-white">
-                          {currency}{loan.emi.toLocaleString()}
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600 dark:text-gray-400">Interest Rate</span>
-                        <span className="font-medium text-gray-900 dark:text-white">
-                          {loan.interestRate === 0 ? '0%' : `${loan.interestRate}%`}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Progress Section */}
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Progress</span>
-                        <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                          {loanStatus.paymentsMade}/{loanStatus.totalPayments} EMIs
-                        </span>
-                      </div>
-                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        {/* Left Sidebar: Loan List / Selection */}
+        <div className="lg:col-span-4 space-y-4">
+            <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider px-1">Your Portfolio</h3>
+            <div className="flex overflow-x-auto snap-x snap-mandatory lg:flex-col lg:overflow-visible space-x-4 lg:space-x-0 lg:space-y-3 pb-6 lg:pb-0 no-scrollbar">
+                {loans.map(loan => {
+                    const status = calculateCurrentBalance(loan, transactions);
+                    const isSelected = selectedLoanId === loan.id;
+                    return (
                         <motion.div 
-                          className="bg-gradient-to-r from-green-500 to-green-600 h-3 rounded-full flex items-center justify-end pr-1" 
-                          initial={{ width: 0 }}
-                          animate={{ width: `${loanStatus.percentagePaid}%` }}
-                          transition={{ duration: 0.8, ease: "easeOut" }}
+                            key={loan.id}
+                            layoutId={loan.id}
+                            onClick={() => setSelectedLoanId(loan.id)}
+                            className={`group relative p-4 rounded-xl cursor-pointer transition-all duration-300 border flex-shrink-0 w-[85vw] sm:w-[60vw] lg:w-full snap-center ${
+                                isSelected 
+                                ? 'bg-white dark:bg-gray-800 border-blue-500/50 ring-2 ring-blue-500/20 shadow-lg' 
+                                : 'bg-white/40 dark:bg-gray-800/40 border-gray-200/50 dark:border-gray-700/50 hover:bg-white dark:hover:bg-gray-800 hover:shadow-md'
+                            }`}
                         >
-                          {loanStatus.percentagePaid > 15 && (
-                            <span className="text-xs text-white font-medium">
-                              {Math.round(loanStatus.percentagePaid)}%
-                            </span>
-                          )}
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center space-x-3">
+                                    <div className={`p-2 rounded-lg ${isSelected ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-500'}`}>
+                                        <LoanTypeIcon type={loan.type} className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <h4 className={`font-semibold ${isSelected ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>{loan.name}</h4>
+                                        <p className="text-xs text-gray-500">{loan.interestRate}% APR</p>
+                                    </div>
+                                </div>
+                                <LoanProgressRing percentage={status.percentagePaid} size={40} strokeWidth={4} color={isSelected ? 'text-blue-500' : 'text-gray-400'} />
+                            </div>
+                            <div className="flex justify-between items-end mt-2">
+                                <div>
+                                    <p className="text-[10px] text-gray-500 uppercase tracking-wide">Outstanding</p>
+                                    <p className="text-sm font-bold text-gray-900 dark:text-white">{currency}{status.currentBalance.toLocaleString()}</p>
+                                </div>
+                                <div className="text-right">
+                                     <p className="text-[10px] text-gray-500 uppercase tracking-wide">EMI</p>
+                                     <p className="text-sm font-medium text-gray-900 dark:text-white">{currency}{loan.emi.toLocaleString()}</p>
+                                </div>
+                            </div>
                         </motion.div>
-                      </div>
-                      <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-                        <span>Outstanding: {currency}{loanStatus.currentBalance.toLocaleString()}</span>
-                        <span>{Math.round(loanStatus.percentagePaid)}% paid</span>
-                      </div>
-                      
-                      {/* Mark as Paid Button */}
-                      <div className="pt-2">
-                        {!loanStatus.isFullyPaid && loanStatus.nextPaymentDue ? (
-                          <button
-                            onClick={(e) => { 
-                              e.stopPropagation(); 
-                              onMarkEmiPaid(loan); 
+                    );
+                })}
+            </div>
+
+            {/* Total Debt Summary (Mini) */}
+            <div className="mt-8 p-5 bg-gradient-to-br from-gray-900 to-gray-800 dark:from-black dark:to-gray-900 rounded-2xl text-white shadow-xl">
+                 <div className="flex items-center space-x-2 mb-4 opacity-80">
+                     <Wallet className="w-5 h-5" />
+                     <span className="text-sm font-medium tracking-wide">TOTAL DEBT LOAD</span>
+                 </div>
+                 <div className="text-3xl font-bold mb-1">
+                     {currency}{loans.reduce((acc, loan) => acc + calculateCurrentBalance(loan, transactions).currentBalance, 0).toLocaleString()}
+                 </div>
+                 <p className="text-sm opacity-60">Across {loans.length} active loans</p>
+            </div>
+        </div>
+
+        {/* Right Content: Details & Simulator */}
+        <div className="lg:col-span-8 space-y-6">
+            <AnimatePresence mode="wait">
+                {selectedLoan && selectedLoanStatus && (
+                    <motion.div 
+                        key={selectedLoan.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.3 }}
+                        className="space-y-6"
+                    >
+                        {/* Main Status Card */}
+                        <GlassCard className="p-6 md:p-8 relative overflow-hidden group">
+                             {/* Decorative blurred blobs */}
+                             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none group-hover:bg-blue-500/20 transition-colors duration-500"></div>
+                             
+                             <div className="flex flex-col md:flex-row justify-between items-start md:items-center relative z-10 mb-8 gap-4">
+                                 <div className="flex-1">
+                                     <div className="flex items-center justify-between md:justify-start gap-4">
+                                         <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+                                             {selectedLoan.name}
+                                         </h2>
+                                         <div className="flex items-center space-x-2">
+                                             <button 
+                                                onClick={(e) => { e.stopPropagation(); onEditLoan(selectedLoan); }} 
+                                                className="p-2.5 md:p-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-all border border-blue-100/50 dark:border-blue-800/50 shadow-sm"
+                                                title="Edit Loan"
+                                             >
+                                                 <Edit className="w-5 h-5 md:w-4 md:h-4"/>
+                                             </button>
+                                             <button 
+                                                onClick={(e) => { e.stopPropagation(); setShowDeleteConfirm(true); }} 
+                                                className="p-2.5 md:p-2 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/50 transition-all border border-red-100/50 dark:border-red-800/50 shadow-sm"
+                                                title="Delete Loan"
+                                             >
+                                                 <Trash2 className="w-5 h-5 md:w-4 md:h-4"/>
+                                             </button>
+                                         </div>
+                                     </div>
+                                     <p className="text-gray-500 dark:text-gray-400 text-sm mt-2 flex items-center gap-2">
+                                         <span className="font-semibold text-gray-700 dark:text-gray-300">{currency}{selectedLoan.loanAmount.toLocaleString()}</span>
+                                         <span className="opacity-30">•</span>
+                                         <span>
+                                             {originalLoanSummary?.amortizationSchedule.length} Months 
+                                             {originalLoanSummary?.amortizationSchedule.length && originalLoanSummary.amortizationSchedule.length >= 12 && (
+                                                 <span className="ml-1 opacity-70">
+                                                     ({(originalLoanSummary.amortizationSchedule.length / 12).toFixed(1).replace(/\.0$/, '')} Years)
+                                                 </span>
+                                             )}
+                                         </span>
+                                         <span className="opacity-30 md:inline hidden">•</span>
+                                         <span className="md:inline hidden">Started {new Date(selectedLoan.startDate).toLocaleDateString()}</span>
+                                     </p>
+                                 </div>
+                                 <div className="mt-4 md:mt-0 flex gap-3">
+                                     {!selectedLoanStatus.isFullyPaid && selectedLoanStatus.nextPaymentDue && (
+                                         <button 
+                                            onClick={() => onMarkEmiPaid(selectedLoan)}
+                                            className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium shadow-lg shadow-emerald-500/20 transition-all flex items-center space-x-2"
+                                         >
+                                             <CheckCircle className="w-4 h-4" />
+                                             <span>Pay EMI #{selectedLoanStatus.nextPaymentDue}</span>
+                                         </button>
+                                     )}
+                                     {selectedLoanStatus.isFullyPaid && (
+                                         <div className="px-5 py-2.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-lg font-medium flex items-center space-x-2">
+                                             <CheckCircle className="w-4 h-4" />
+                                             <span>Paid Off</span>
+                                         </div>
+                                     )}
+                                 </div>
+                             </div>
+
+                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                                 <div className="p-4 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700">
+                                     <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Total Outstanding</p>
+                                     <p className="text-2xl font-bold text-gray-900 dark:text-white">{currency}{selectedLoanStatus.currentBalance.toLocaleString()}</p>
+                                 </div>
+                                 <div className="p-4 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700">
+                                     <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Interest Rate</p>
+                                     <p className="text-2xl font-bold text-gray-900 dark:text-white">{selectedLoan.interestRate}%</p>
+                                 </div>
+                                 <div className="p-4 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700">
+                                     <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Monthly EMI</p>
+                                     <p className="text-2xl font-bold text-gray-900 dark:text-white">{currency}{selectedLoan.emi.toLocaleString()}</p>
+                                 </div>
+                             </div>
+
+                             {/* Breakdown Chart embedded in card */}
+                             <div className="flex items-center space-x-6 p-4 bg-gray-50/80 dark:bg-gray-800/50 rounded-xl">
+                                  <div className="w-16 h-16 flex-shrink-0">
+                                      <ResponsiveContainer width="100%" height="100%">
+                                          <PieChart>
+                                              <Pie data={pieData} innerRadius={20} outerRadius={30} paddingAngle={2} dataKey="value">
+                                                  {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
+                                              </Pie>
+                                          </PieChart>
+                                      </ResponsiveContainer>
+                                  </div>
+                                  <div className="flex-1 grid grid-cols-2 gap-4 text-sm">
+                                      <div>
+                                          <div className="flex items-center space-x-2 mb-1">
+                                              <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                                              <span className="text-gray-500 dark:text-gray-400">Paid Principal</span>
+                                          </div>
+                                          <p className="font-semibold text-gray-900 dark:text-white pl-4">{currency}{pieData[0].value.toLocaleString(undefined, { maximumFractionDigits:0 })}</p>
+                                      </div>
+                                      <div>
+                                          <div className="flex items-center space-x-2 mb-1">
+                                              <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                                              <span className="text-gray-500 dark:text-gray-400">Remaining</span>
+                                          </div>
+                                          <p className="font-semibold text-gray-900 dark:text-white pl-4">{currency}{pieData[1].value.toLocaleString(undefined, { maximumFractionDigits:0 })}</p>
+                                      </div>
+                                  </div>
+                             </div>
+                        </GlassCard>
+
+                        {/* Interactive Tools Grid */}
+                        <div className="grid grid-cols-1 gap-6">
+                            {/* Strategy Simulator */}
+                            <GlassCard className="p-6">
+                                <div className="flex items-center space-x-3 mb-6">
+                                    <div className="p-2 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg">
+                                        <TrendingDown className="w-5 h-5" />
+                                    </div>
+                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">Payoff Accelerator</h3>
+                                </div>
+                                
+                                <Tabs tabs={strategyTabs} selectedTab={activeStrategyTab} onSelectTab={setActiveStrategyTab} />
+
+                                <div className="mt-6 p-5 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700/50">
+                                    {activeStrategyTab === 'extraEMI' && (
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-gray-700 dark:text-gray-300 font-medium">Pay 1 Extra EMI / Year</label>
+                                            <input 
+                                                type="checkbox" 
+                                                checked={extraEmiPerYear} 
+                                                onChange={e => setExtraEmiPerYear(e.target.checked)}
+                                                className="w-6 h-6 text-blue-600 rounded focus:ring-blue-500" 
+                                            />
+                                        </div>
+                                    )}
+                                    {activeStrategyTab === 'increaseEMI' && (
+                                        <div className="space-y-4">
+                                            <div className="flex justify-between text-sm font-medium">
+                                                <span className="text-gray-700 dark:text-gray-300">Annual Increase</span>
+                                                <span className="text-blue-600">{annualEmiIncrease}%</span>
+                                            </div>
+                                            <input type="range" min="0" max="25" step="1" value={annualEmiIncrease} onChange={e => setAnnualEmiIncrease(Number(e.target.value))} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-blue-500" />
+                                        </div>
+                                    )}
+                                    {activeStrategyTab === 'lumpSum' && (
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Amount</label>
+                                                <div className="relative mt-1">
+                                                    <span className="absolute left-3 top-2 text-gray-400 dark:text-gray-500">{currency}</span>
+                                                    <input 
+                                                        type="number" 
+                                                        value={lumpSumAmount} 
+                                                        onChange={e => setLumpSumAmount(Number(e.target.value))} 
+                                                        className="w-full pl-8 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 outline-none focus:ring-2 focus:ring-blue-500/50" 
+                                                        placeholder="0.00"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Timing (Months)</label>
+                                                <input 
+                                                    type="number" 
+                                                    value={lumpSumTiming} 
+                                                    onChange={e => setLumpSumTiming(Number(e.target.value))} 
+                                                    className="w-full mt-1 py-2 px-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 outline-none focus:ring-2 focus:ring-blue-500/50" 
+                                                    placeholder="12"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+                                    {activeStrategyTab === 'preClosure' && (
+                                        <div className="space-y-4">
+                                             <div className="flex justify-between text-sm font-medium">
+                                                <span className="text-gray-700 dark:text-gray-300">Close After Month</span>
+                                                <span className="text-blue-600">{preClosureMonth}</span>
+                                            </div>
+                                            <input type="range" min={selectedLoanStatus.paymentsMade + 1} max={selectedLoanStatus.totalPayments} value={preClosureMonth} onChange={e => setPreClosureMonth(Number(e.target.value))} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-blue-500" />
+                                            {preClosureCalculation && (
+                                                <div className="text-sm text-center text-gray-600 dark:text-gray-400 pt-2 border-t border-gray-200 dark:border-gray-700 mt-2">
+                                                    Pay <strong>{currency}{preClosureCalculation.payoffAmount.toLocaleString()}</strong> to save <strong>{currency}{preClosureCalculation.interestSaved.toLocaleString()}</strong> in interest.
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {newLoanSummary && (
+                                    <div className="mt-6 flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl">
+                                        <div>
+                                            <p className="text-xs text-green-700 dark:text-green-300 uppercase font-bold">Projected Saving</p>
+                                            <p className="text-lg font-bold text-green-800 dark:text-green-200">
+                                                {currency}{(originalLoanSummary?.totalInterestPaid - newLoanSummary.totalInterestPaid).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                            </p>
+                                        </div>
+                                        <div className="text-right">
+                                             <p className="text-xs text-green-700 dark:text-green-300 uppercase font-bold">Time Saved</p>
+                                             <p className="text-lg font-bold text-green-800 dark:text-green-200">
+                                                 {Math.max(0, originalLoanSummary?.amortizationSchedule.length - newLoanSummary.amortizationSchedule.length)} Months
+                                             </p>
+                                        </div>
+                                    </div>
+                                )}
+                            </GlassCard>
+                        </div>
+
+                        {/* Amortization Schedule (Full Width) */}
+                        <GlassCard className="p-6 lg:col-span-12">
+                            <div className="flex items-center space-x-3 mb-6">
+                                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
+                                    <Calendar className="w-5 h-5" />
+                                </div>
+                                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Payment Schedule</h3>
+                            </div>
+                            <div className="space-y-3">
+                                {Object.entries(amortizationByYear).map(([year, entries]) => (
+                                    <div key={year} className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+                                        <button 
+                                            onClick={() => toggleYearExpansion(parseInt(year))}
+                                            className="w-full flex items-center justify-between p-4 bg-gray-50/50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                                        >
+                                            <span className="font-semibold text-gray-800 dark:text-white">Year {year}</span>
+                                            <div className="flex items-center space-x-3">
+                                                <span className="text-xs text-gray-500 font-medium">{entries.filter(e => e.isPaid).length}/{entries.length} Paid</span>
+                                                {expandedYears.has(parseInt(year)) ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+                                            </div>
+                                        </button>
+                                        <AnimatePresence>
+                                            {expandedYears.has(parseInt(year)) && (
+                                                <motion.div 
+                                                    initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} 
+                                                    className="overflow-hidden bg-white dark:bg-gray-900"
+                                                >
+                                                    <div className="p-3 grid gap-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                                                        {entries.map(entry => (
+                                                            <div key={entry.month} className="flex items-center justify-between p-3 rounded-lg border border-gray-100 dark:border-gray-800 text-sm hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                                                                <div className="flex items-center space-x-3">
+                                                                    {entry.isPaid ? <CheckCircle className="w-4 h-4 text-green-500" /> : <Clock className="w-4 h-4 text-gray-300" />}
+                                                                    <span className="font-medium text-gray-700 dark:text-gray-300">Month {entry.month}</span>
+                                                                </div>
+                                                                <div className="text-right">
+                                                                    <span className="block font-bold text-gray-900 dark:text-white">{currency}{entry.totalPayment.toLocaleString()}</span>
+                                                                    <span className="text-[10px] text-gray-400">P: {Math.round(entry.principal)} • I: {Math.round(entry.interest)}</span>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
+                                ))}
+                            </div>
+                        </GlassCard>
+                        <ConfirmationDialog 
+                            isOpen={showDeleteConfirm}
+                            onClose={() => setShowDeleteConfirm(false)}
+                            onConfirm={() => {
+                                if(selectedLoanId) onDeleteLoan(selectedLoanId);
+                                setShowDeleteConfirm(false);
                             }}
-                            className="w-full bg-green-500 hover:bg-green-600 text-white py-2 px-3 rounded-lg text-sm font-medium flex items-center justify-center space-x-2 transition-colors"
-                          >
-                            <CheckCircle className="h-4 w-4" />
-                            <span>Mark EMI #{loanStatus.nextPaymentDue} as Paid</span>
-                          </button>
-                        ) : loanStatus.isFullyPaid ? (
-                          <div className="w-full bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 py-2 px-3 rounded-lg text-sm font-medium flex items-center justify-center space-x-2">
-                            <CheckCircle className="h-4 w-4" />
-                            <span>Loan Fully Paid!</span>
-                          </div>
-                        ) : (
-                          <div className="w-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 py-2 px-3 rounded-lg text-sm font-medium flex items-center justify-center space-x-2">
-                            <Clock className="h-4 w-4" />
-                            <span>No payments due</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-
-          {/* Selected Loan Details */}
-          {selectedLoan && selectedLoanStatus && originalLoanSummary && (
-            <motion.div className="space-y-8" variants={fadeInVariants}>
-              {/* Loan Summary Header */}
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800/40">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="bg-blue-500 p-3 rounded-xl">
-                      {getLoanIcon(selectedLoan.type)}
-                    </div>
-                    <div>
-                      <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{selectedLoan.name}</h3>
-                      <p className="text-blue-600 dark:text-blue-400 font-medium">
-                        {selectedLoanStatus.paymentsMade} of {selectedLoanStatus.totalPayments} EMIs paid
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    {!selectedLoanStatus.isFullyPaid && selectedLoanStatus.nextPaymentDue && (
-                      <motion.button
-                        onClick={() => onMarkEmiPaid(selectedLoan)}
-                        className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium flex items-center space-x-2 shadow-lg transition-colors"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        <CheckCircle className="h-5 w-5" />
-                        <span>Mark EMI #{selectedLoanStatus.nextPaymentDue} as Paid</span>
-                      </motion.button>
-                    )}
-                    
-                    {selectedLoanStatus.isFullyPaid && (
-                      <div className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 px-6 py-3 rounded-lg font-medium flex items-center space-x-2">
-                        <CheckCircle className="h-5 w-5" />
-                        <span>Loan Fully Paid!</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Quick Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                  <div className="bg-white dark:bg-gray-800/50 rounded-lg p-4">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <DollarSign className="h-4 w-4 text-blue-500" />
-                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Outstanding</span>
-                    </div>
-                    <p className="text-lg font-bold text-gray-900 dark:text-white">
-                      {currency}{selectedLoanStatus.currentBalance.toLocaleString()}
-                    </p>
-                  </div>
-                  
-                  <div className="bg-white dark:bg-gray-800/50 rounded-lg p-4">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <Calendar className="h-4 w-4 text-green-500" />
-                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Progress</span>
-                    </div>
-                    <p className="text-lg font-bold text-gray-900 dark:text-white">
-                      {Math.round(selectedLoanStatus.percentagePaid)}%
-                    </p>
-                  </div>
-                  
-                  <div className="bg-white dark:bg-gray-800/50 rounded-lg p-4">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <Clock className="h-4 w-4 text-orange-500" />
-                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">EMI</span>
-                    </div>
-                    <p className="text-lg font-bold text-gray-900 dark:text-white">
-                      {currency}{selectedLoan.emi.toLocaleString()}
-                    </p>
-                  </div>
-                  
-                  <div className="bg-white dark:bg-gray-800/50 rounded-lg p-4">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <Target className="h-4 w-4 text-purple-500" />
-                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Interest</span>
-                    </div>
-                    <p className="text-lg font-bold text-gray-900 dark:text-white">
-                      {selectedLoan.interestRate}%
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Strategy Simulator */}
-              <div className="bg-white dark:bg-[#242424] rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                <div className="flex items-center space-x-3 mb-6">
-                  <div className="bg-blue-500 rounded-lg p-2">
-                    <TrendingDown className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <h4 className="text-xl font-bold text-gray-900 dark:text-white">Repayment Strategy Simulator</h4>
-                    <p className="text-gray-600 dark:text-gray-400 text-sm">
-                      Explore different strategies to optimize your loan repayment
-                    </p>
-                  </div>
-                </div>
-                
-                <Tabs tabs={strategyTabs} selectedTab={activeStrategyTab} onSelectTab={setActiveStrategyTab} />
-                
-                <div className="mt-6">
-                  {activeStrategyTab === 'extraEMI' && (
-                    <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-6">
-                      <div className="flex items-start space-x-4">
-                        <div className="bg-blue-100 dark:bg-blue-900/50 p-2 rounded-lg flex-shrink-0">
-                          <CheckCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center mb-3">
-                            <input
-                              type="checkbox"
-                              id="extra-emi"
-                              checked={extraEmiPerYear}
-                              onChange={(e) => setExtraEmiPerYear(e.target.checked)}
-                              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                            />
-                            <label htmlFor="extra-emi" className="ml-3 text-lg font-semibold text-gray-900 dark:text-white">
-                              Pay 1 Extra EMI Every Year
-                            </label>
-                          </div>
-                          <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-                            Make one additional EMI payment annually to significantly reduce your loan tenure and save on interest.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {activeStrategyTab === 'increaseEMI' && (
-                    <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-6">
-                      <div className="flex items-start space-x-4">
-                        <div className="bg-blue-100 dark:bg-blue-900/50 p-2 rounded-lg flex-shrink-0">
-                          <TrendingDown className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <div className="flex-1">
-                          <label className="block text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                            Annual EMI Increase: {annualEmiIncrease}%
-                          </label>
-                          <input 
-                            type="range" 
-                            value={annualEmiIncrease} 
-                            onChange={(e) => setAnnualEmiIncrease(parseFloat(e.target.value))} 
-                            className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-blue-500 mb-3"
-                            min="0" 
-                            max="30"
-                            step="0.5"
-                          />
-                          <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400 mb-3">
-                            <span>0%</span>
-                            <span>15%</span>
-                            <span>30%</span>
-                          </div>
-                          <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-                            Gradually increase your EMI as your income grows to pay off the loan faster.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {activeStrategyTab === 'lumpSum' && (
-                    <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-6">
-                      <div className="flex items-start space-x-4">
-                        <div className="bg-blue-100 dark:bg-blue-900/50 p-2 rounded-lg flex-shrink-0">
-                          <DollarSign className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <div className="flex-1">
-                          <label className="block text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                            Lump Sum Payment
-                          </label>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Amount ({currency})
-                              </label>
-                              <input 
-                                type="number" 
-                                value={lumpSumAmount} 
-                                onChange={(e) => setLumpSumAmount(parseFloat(e.target.value) || 0)} 
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="Enter amount"
-                                min="0"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Timing
-                              </label>
-                              <AnimatedDropdown
-                                selectedValue={lumpSumTiming.toString()}
-                                options={[
-                                  { value: '6', label: 'After 6 months' },
-                                  { value: '12', label: 'After 1 year' },
-                                  { value: '24', label: 'After 2 years' },
-                                  { value: '36', label: 'After 3 years' },
-                                ]}
-                                onChange={(value) => setLumpSumTiming(parseInt(value))}
-                              />
-                            </div>
-                          </div>
-                          <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-                            Make a one-time extra payment to reduce principal and save on interest. Perfect for bonuses or windfalls!
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {activeStrategyTab === 'preClosure' && preClosureCalculation && (
-                    <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-6">
-                      <div className="flex items-start space-x-4">
-                        <div className="bg-blue-100 dark:bg-blue-900/50 p-2 rounded-lg flex-shrink-0">
-                          <Target className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <div className="flex-1">
-                          <label className="block text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                            Pre-Closure Calculator
-                          </label>
-                          <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                              Close loan after month: {preClosureMonth}
-                            </label>
-                            <input 
-                              type="range" 
-                              value={preClosureMonth} 
-                              onChange={(e) => setPreClosureMonth(parseInt(e.target.value))} 
-                              className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-blue-500"
-                              min={selectedLoanStatus.paymentsMade + 1} 
-                              max={selectedLoanStatus.totalPayments}
-                            />
-                            <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400 mt-1">
-                              <span>Month {selectedLoanStatus.paymentsMade + 1}</span>
-                              <span>Month {selectedLoanStatus.totalPayments}</span>
-                            </div>
-                          </div>
-                          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-                            <p className="text-blue-800 dark:text-blue-200 font-medium">
-                              To pay off your loan in month {preClosureMonth}, you would need to pay{' '}
-                              <span className="font-bold">{currency}{preClosureCalculation.payoffAmount.toLocaleString()}</span>.
-                              This would save you{' '}
-                              <span className="font-bold">{currency}{preClosureCalculation.interestSaved.toLocaleString()}</span>{' '}
-                              in future interest and close your loan{' '}
-                              <span className="font-bold">{preClosureCalculation.monthsEarly} months</span> early.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Strategy Results */}
-                {newLoanSummary && (
-                  <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800/30">
-                      <h5 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">Original Plan</h5>
-                      <div className="space-y-1 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-blue-700 dark:text-blue-300">End Date:</span>
-                          <span className="font-medium text-blue-800 dark:text-blue-200">{originalLoanSummary.loanEndDate.toLocaleDateString()}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-blue-700 dark:text-blue-300">Total Interest:</span>
-                          <span className="font-medium text-blue-800 dark:text-blue-200">{currency}{originalLoanSummary.totalInterestPaid.toLocaleString()}</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800/30">
-                      <h5 className="font-semibold text-green-800 dark:text-green-200 mb-2">Optimized Plan</h5>
-                      <div className="space-y-1 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-green-700 dark:text-green-300">End Date:</span>
-                          <span className="font-medium text-green-800 dark:text-green-200">{newLoanSummary.loanEndDate.toLocaleDateString()}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-green-700 dark:text-green-300">Total Interest:</span>
-                          <span className="font-medium text-green-800 dark:text-green-200">{currency}{newLoanSummary.totalInterestPaid.toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between font-bold text-green-800 dark:text-green-200 pt-2 border-t border-green-200 dark:border-green-800">
-                          <span>Interest Saved:</span>
-                          <span>{currency}{interestSaved.toLocaleString()}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                            title="Delete Loan?"
+                            message="Are you sure you want to delete this loan account? This action cannot be undone."
+                        />
+                    </motion.div>
                 )}
-              </div>
-
-              {/* Smart Amortization Schedule */}
-              <div className="bg-white dark:bg-[#242424] rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                <h4 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center space-x-2">
-                  <Calendar className="h-6 w-6 text-blue-500" />
-                  <span>Payment Schedule</span>
-                </h4>
-                
-                <div className="space-y-4">
-                  {Object.entries(amortizationByYear).map(([year, entries]) => (
-                    <div key={year} className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-                      <button
-                        onClick={() => toggleYearExpansion(parseInt(year))}
-                        className="w-full px-6 py-4 bg-gray-50 dark:bg-gray-800/50 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                      >
-                        <div className="flex items-center space-x-4">
-                          <span className="font-semibold text-gray-900 dark:text-white">Year {year}</span>
-                          <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
-                            <span>{entries.filter(e => e.isPaid).length}/{entries.length} paid</span>
-                            <span>
-                              {currency}{entries.reduce((sum, e) => sum + e.totalPayment, 0).toLocaleString()} total
-                            </span>
-                          </div>
-                        </div>
-                        {expandedYears.has(parseInt(year)) ? (
-                          <ChevronUp className="h-5 w-5 text-gray-400" />
-                        ) : (
-                          <ChevronDown className="h-5 w-5 text-gray-400" />
-                        )}
-                      </button>
-                      
-                      <AnimatePresence>
-                        {expandedYears.has(parseInt(year)) && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.3 }}
-                            className="overflow-hidden"
-                          >
-                            <div className="p-4 bg-white dark:bg-[#242424]">
-                              {/* Desktop: 2-column grid */}
-                              <div className="hidden md:grid md:grid-cols-2 gap-3">
-                                {entries.map((entry) => (
-                                  <div
-                                    key={entry.month}
-                                    className={`flex items-center justify-between p-3 rounded-lg border ${
-                                      entry.isPaid
-                                        ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-                                        : 'bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700'
-                                    }`}
-                                  >
-                                    <div className="flex items-center space-x-3">
-                                      <div className={`p-1 rounded-full ${
-                                        entry.isPaid ? 'bg-green-500' : 'bg-gray-400'
-                                      }`}>
-                                        {entry.isPaid ? (
-                                          <CheckCircle className="h-4 w-4 text-white" />
-                                        ) : (
-                                          <Clock className="h-4 w-4 text-white" />
-                                        )}
-                                      </div>
-                                      <div>
-                                        <span className="font-medium text-gray-900 dark:text-white">
-                                          EMI #{entry.month}
-                                        </span>
-                                        {entry.isPaid && entry.paymentDate && (
-                                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                                            Paid on {new Date(entry.paymentDate).toLocaleDateString()}
-                                          </p>
-                                        )}
-                                      </div>
-                                    </div>
-                                    
-                                    <div className="text-right">
-                                      <div className="font-semibold text-gray-900 dark:text-white">
-                                        {currency}{entry.totalPayment.toLocaleString()}
-                                      </div>
-                                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                                        P: {currency}{entry.principal.toLocaleString()} | 
-                                        I: {currency}{entry.interest.toLocaleString()}
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                              
-                              {/* Mobile: Single column */}
-                              <div className="md:hidden grid gap-3">
-                                {entries.map((entry) => (
-                                  <div
-                                    key={entry.month}
-                                    className={`flex items-center justify-between p-3 rounded-lg border ${
-                                      entry.isPaid
-                                        ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-                                        : 'bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700'
-                                    }`}
-                                  >
-                                    <div className="flex items-center space-x-3">
-                                      <div className={`p-1 rounded-full ${
-                                        entry.isPaid ? 'bg-green-500' : 'bg-gray-400'
-                                      }`}>
-                                        {entry.isPaid ? (
-                                          <CheckCircle className="h-4 w-4 text-white" />
-                                        ) : (
-                                          <Clock className="h-4 w-4 text-white" />
-                                        )}
-                                      </div>
-                                      <div>
-                                        <span className="font-medium text-gray-900 dark:text-white">
-                                          EMI #{entry.month}
-                                        </span>
-                                        {entry.isPaid && entry.paymentDate && (
-                                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                                            Paid on {new Date(entry.paymentDate).toLocaleDateString()}
-                                          </p>
-                                        )}
-                                      </div>
-                                    </div>
-                                    
-                                    <div className="text-right">
-                                      <div className="font-semibold text-gray-900 dark:text-white">
-                                        {currency}{entry.totalPayment.toLocaleString()}
-                                      </div>
-                                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                                        P: {currency}{entry.principal.toLocaleString()} | 
-                                        I: {currency}{entry.interest.toLocaleString()}
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </>
-      )}
-    </motion.div>
+            </AnimatePresence>
+        </div>
+      </div>
+    </div>
   );
 };
 
