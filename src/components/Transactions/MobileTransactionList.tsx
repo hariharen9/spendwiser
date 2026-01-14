@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Transaction, Account } from '../../types/types';
-import { Edit, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Edit, Trash2, ChevronDown, ChevronUp, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface MobileTransactionListProps {
@@ -32,6 +32,26 @@ const MobileTransactionList: React.FC<MobileTransactionListProps> = ({
       day: 'numeric',
       year: 'numeric'
     });
+  };
+
+  const getCategoryIcon = (category: string) => {
+    const iconMap: { [key: string]: React.ReactNode } = {
+      'Home': '🏠',
+      'Personal': '🙋🏻‍♂️',
+      'Fuel': '⛽️',
+      'Miscellaneous': '🙃',
+      'Groceries': '🛒',
+      'Food & Dining': '🍽️',
+      'Transportation': '🚗',
+      'Entertainment': '🎬',
+      'Shopping': '🛍️',
+      'Utilities': '⚡',
+      'Health': '🏥',
+      'Salary': '💼',
+      'Investment': '📈',
+      'Other': '📦'
+    };
+    return iconMap[category] || '💰';
   };
 
   // Group transactions by date, sorted by transaction date first, then by creation time
@@ -110,18 +130,21 @@ const MobileTransactionList: React.FC<MobileTransactionListProps> = ({
                   onClick={() => toggleExpand(transaction.id)}
                 >
                   <div className="flex items-center space-x-3">
-                    <div className={`p-2 rounded-lg ${
-                      transaction.type === 'income' 
-                        ? 'bg-green-100 dark:bg-green-900/30' 
-                        : 'bg-red-100 dark:bg-red-900/30'
-                    }`}>
-                      <span className={`font-semibold ${
+                    <div className="relative">
+                      <div className="text-2xl">
+                        {getCategoryIcon(transaction.category)}
+                      </div>
+                      <div className={`absolute -bottom-1 -right-1 p-0.5 rounded-full border border-white dark:border-[#242424] ${
                         transaction.type === 'income' 
-                          ? 'text-green-600 dark:text-green-400' 
-                          : 'text-red-600 dark:text-red-400'
+                          ? 'bg-green-100 dark:bg-green-900/50'
+                          : 'bg-red-100 dark:bg-red-900/50'
                       }`}>
-                        {transaction.type === 'income' ? '+' : '-'}
-                      </span>
+                        {transaction.type === 'income' ? (
+                          <ArrowUpRight className="h-2.5 w-2.5 text-green-600 dark:text-green-400" />
+                        ) : (
+                          <ArrowDownLeft className="h-2.5 w-2.5 text-red-600 dark:text-red-400" />
+                        )}
+                      </div>
                     </div>
                     <div>
                       <div className="flex items-center">

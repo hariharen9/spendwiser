@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { DollarSign, TrendingUp, TrendingDown, Edit3, Save, X, Download, Grid3X3, Eye } from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown, Edit3, Save, X, Download, Grid3X3, Eye, Sun, SunDim, Moon, Sparkles } from 'lucide-react';
 import MetricCard from './MetricCard';
 import SpendingChart from './SpendingChart';
 import RecentTransactions from './RecentTransactions';
@@ -97,6 +97,16 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, recurringTr
   const [isWidgetLibraryOpen, setIsWidgetLibraryOpen] = useState(false);
   const [draggedWidget, setDraggedWidget] = useState<string | null>(null);
   
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return { text: 'Good morning', icon: Sun, color: 'text-orange-500', subtext: 'Ready to seize the day?' };
+    if (hour >= 12 && hour < 17) return { text: 'Good afternoon', icon: SunDim, color: 'text-amber-500', subtext: 'How is your day going?' };
+    if (hour >= 17 && hour < 22) return { text: 'Good evening', icon: Moon, color: 'text-indigo-500', subtext: 'Time to wind down.' };
+    return { text: 'Good night', icon: Moon, color: 'text-purple-500', subtext: 'Rest well, Captain.' };
+  };
+
+  const greeting = getGreeting();
+
   // Widget visibility and layout
   const [visibleWidgets, setVisibleWidgets] = useState<string[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.VISIBLE_WIDGETS);
@@ -314,92 +324,105 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, recurringTr
       initial="initial"
       animate="animate"
       variants={staggerContainer}
+      className="space-y-6"
     >
+      {/* Enhanced Header Section */}
       <motion.div 
-        className="hidden md:flex justify-end mb-6 gap-2"
+        className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-1 md:p-0"
         variants={fadeInVariants}
-        initial="initial"
-        animate="animate"
       >
-        {/* Widget Library button */}
-        {!isEditMode && (
-          <motion.button
-            onClick={() => setIsWidgetLibraryOpen(true)}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-            variants={buttonHoverVariants}
-            whileHover="hover"
-            whileTap="tap"
-            initial={{ opacity: 0, x: 10 }}
-            animate={{ opacity: 1, x: 0 }}
+        <div className="flex items-center gap-3 md:gap-4 relative">
+          {/* Mobile visual flair */}
+          <div className="md:hidden absolute -left-4 -top-4 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -z-10" />
+          
+          <motion.div 
+            className={`hidden md:block p-3 rounded-2xl bg-white dark:bg-white/10 shadow-lg ${greeting.color}`}
+            animate={{ 
+              rotate: [0, 5, -5, 0],
+              scale: [1, 1.1, 1]
+            }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
           >
-            <Grid3X3 size={14} />
-            Widgets
-          </motion.button>
-        )}
-        
-        {/* Export button */}
-        {onExportDashboard && !isEditMode && (
-          <motion.button
-            onClick={onExportDashboard}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-            variants={buttonHoverVariants}
-            whileHover="hover"
-            whileTap="tap"
-            initial={{ opacity: 0, x: 10 }}
-            animate={{ opacity: 1, x: 0 }}
-          >
-            <Download size={14} />
-            Export
-          </motion.button>
-        )}
-        
-        {isEditMode ? (
-          <>
+            <greeting.icon size={32} strokeWidth={2.5} />
+          </motion.div>
+          <div>
+            <h1 className="text-2xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
+              {greeting.text}, <span className="text-blue-600 dark:text-blue-400">Captain!</span>
+            </h1>
+            <p className="flex text-xs md:text-sm text-slate-500 dark:text-slate-400 font-medium items-center gap-1.5 mt-0.5 md:mt-1">
+              <Sparkles size={12} className="text-amber-400 md:w-3.5 md:h-3.5" />
+              {greeting.subtext}
+            </p>
+          </div>
+        </div>
+
+        <div className="hidden md:flex items-center gap-2 self-center">
+          {!isEditMode && (
             <motion.button
-              onClick={cancelEdit}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              onClick={() => setIsWidgetLibraryOpen(true)}
+              className="group flex items-center gap-2 px-4 py-2 text-sm font-bold bg-white dark:bg-white/10 text-slate-700 dark:text-slate-200 rounded-xl hover:bg-slate-50 dark:hover:bg-white/20 border border-slate-200 dark:border-white/10 transition-all shadow-sm"
               variants={buttonHoverVariants}
               whileHover="hover"
               whileTap="tap"
-              initial={{ opacity: 0, x: 10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 }}
             >
-              <X size={14} />
-              Cancel
+              <Grid3X3 size={18} className="text-blue-500 group-hover:rotate-90 transition-transform" />
+              <span className="hidden sm:inline">Widgets</span>
             </motion.button>
+          )}
+          
+          {onExportDashboard && !isEditMode && (
             <motion.button
-              onClick={saveLayout}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              onClick={onExportDashboard}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-bold bg-white dark:bg-white/10 text-slate-700 dark:text-slate-200 rounded-xl hover:bg-slate-50 dark:hover:bg-white/20 border border-slate-200 dark:border-white/10 transition-all shadow-sm"
               variants={buttonHoverVariants}
               whileHover="hover"
               whileTap="tap"
-              initial={{ opacity: 0, x: 10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
             >
-              <Save size={14} />
-              Save
+              <Download size={18} className="text-emerald-500" />
+              <span className="hidden sm:inline">Export</span>
             </motion.button>
-          </>
-        ) : (
-          <motion.button
-            onClick={toggleEditMode}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-            variants={buttonHoverVariants}
-            whileHover="hover"
-            whileTap="tap"
-            initial={{ opacity: 0, x: 10 }}
-            animate={{ opacity: 1, x: 0 }}
-          >
-            <Edit3 size={14} />
-            Edit
-          </motion.button>
-        )}
+          )}
+          
+          {isEditMode ? (
+            <div className="flex items-center gap-2 bg-slate-100 dark:bg-black/20 p-1 rounded-xl">
+              <motion.button
+                onClick={cancelEdit}
+                className="flex items-center gap-2 px-3 py-1.5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 transition-colors"
+                variants={buttonHoverVariants}
+                whileHover="hover"
+                whileTap="tap"
+              >
+                <X size={18} />
+                Cancel
+              </motion.button>
+              <motion.button
+                onClick={saveLayout}
+                className="flex items-center gap-2 px-4 py-1.5 text-sm font-bold bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-lg shadow-blue-500/30 transition-all"
+                variants={buttonHoverVariants}
+                whileHover="hover"
+                whileTap="tap"
+              >
+                <Save size={18} />
+                Save Layout
+              </motion.button>
+            </div>
+          ) : (
+            <motion.button
+              onClick={toggleEditMode}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-bold bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl hover:opacity-90 transition-all shadow-lg shadow-slate-900/10 dark:shadow-none"
+              variants={buttonHoverVariants}
+              whileHover="hover"
+              whileTap="tap"
+            >
+              <Edit3 size={18} />
+              <span className="hidden sm:inline">Customize</span>
+            </motion.button>
+          )}
+        </div>
       </motion.div>
 
       <motion.div 
-        className="grid grid-cols-3 gap-2 md:gap-4 mb-4 md:mb-6"
+        className="grid grid-cols-3 gap-2 md:gap-4 md:mb-6"
         variants={staggerContainer}
         initial="initial"
         animate="animate"
@@ -431,32 +454,6 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, recurringTr
           />
         </motion.div>
       </motion.div>
-
-      {/* Separator line between metrics and widgets */}
-      <div className="border-t border-gray-200 dark:border-gray-700 my-4"></div>
-      
-      {/* Welcome heading for mobile only */}
-      <div className="md:hidden text-center mt-4 mb-0">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5]">Welcome to <motion.span 
-          className='text-[#007BFF]' 
-          animate={{ 
-            scale: [1, 1.05, 1],
-            textShadow: [
-              "0 0 0px rgba(0, 123, 255, 0)",
-              "0 0 10px rgba(0, 123, 255, 0.5)",
-              "0 0 0px rgba(0, 123, 255, 0)"
-            ]
-          }} 
-          transition={{ 
-            duration: 2, 
-            repeat: Infinity, 
-            ease: "easeInOut"
-          }}
-        >SpendWiser!</motion.span></h2>
-        <h4 className="text-lg font-semibold text-gray-900 dark:text-[#F5F5F5]">
-          Let's Start <span className="underline" style={{ color: '#28A745' }}>Tracking..</span>
-        </h4>
-      </div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}

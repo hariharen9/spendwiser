@@ -23,57 +23,75 @@ const MetricCard: React.FC<MetricCardProps> = ({
   color 
 }) => {
   const changeColor = {
-    positive: 'text-[#28A745]',
-    negative: 'text-[#DC3545]',
-    neutral: 'text-[#888888]'
+    positive: 'text-emerald-500 dark:text-emerald-400',
+    negative: 'text-rose-500 dark:text-rose-400',
+    neutral: 'text-slate-400 dark:text-slate-500'
+  };
+
+  // Extract base color for glow effects
+  const getGlowColor = () => {
+    if (color.includes('#007BFF')) return 'rgba(0, 123, 255, 0.3)';
+    if (color.includes('#28A745')) return 'rgba(40, 167, 69, 0.3)';
+    if (color.includes('#DC3545')) return 'rgba(220, 53, 69, 0.3)';
+    return 'rgba(0, 0, 0, 0.1)';
   };
 
   return (
     <motion.div 
-      className="bg-white dark:bg-[#242424] rounded-lg p-3 sm:p-4 md:p-6 border border-gray-200 dark:border-gray-700"
+      className="relative overflow-hidden bg-white/80 dark:bg-[#1e1e1e]/80 backdrop-blur-xl rounded-xl md:rounded-2xl p-3 md:p-6 border border-white/20 dark:border-white/5 shadow-lg shadow-slate-200/50 dark:shadow-none"
       variants={cardHoverVariants}
       initial="initial"
       whileHover="hover"
       whileFocus="hover"
       layout
     >
-      <div className="flex items-center justify-between mb-2 sm:mb-3 md:mb-4">
-        <motion.div 
-          className={`p-1.5 sm:p-2 md:p-3 rounded-lg ${color}`}
-          variants={bounceVariants}
-          whileHover="bounce"
-        >
-          <Icon className="h-3 w-3 sm:h-4 sm:w-4 md:h-6 md:w-6 text-white" />
-        </motion.div>
-        {change && (
-          <motion.span 
-            className={`text-xs sm:text-sm font-medium ${changeColor[changeType]}`}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
+      {/* Background Gradient Decorative Element */}
+      <div 
+        className={`absolute -right-4 -top-4 w-16 h-16 md:w-24 md:h-24 rounded-full blur-2xl md:blur-3xl opacity-20 dark:opacity-10 ${color}`}
+        aria-hidden="true"
+      />
+      
+      <div className="relative z-10">
+        <div className="flex items-center justify-between mb-2 md:mb-4">
+          <motion.div 
+            className={`p-2 md:p-3 rounded-lg md:rounded-xl ${color} shadow-lg`}
+            style={{ boxShadow: `0 8px 20px -4px ${getGlowColor()}` }}
+            variants={bounceVariants}
+            whileHover="bounce"
+          >
+            <Icon className="h-3.5 w-3.5 md:h-6 md:w-6 text-white" />
+          </motion.div>
+          {change && (
+            <motion.div 
+              className={`flex items-center gap-1 px-2 py-0.5 md:px-2.5 md:py-1 rounded-full text-[10px] md:text-xs font-semibold bg-slate-100 dark:bg-white/5 ${changeColor[changeType]}`}
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              {change}
+            </motion.div>
+          )}
+        </div>
+        
+        <div className="space-y-0.5 md:space-y-1">
+          <motion.h3 
+            className="text-[10px] md:text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.1 }}
+          >
+            <span className="sm:hidden">{mobileTitle || title}</span>
+            <span className="hidden sm:inline">{title}</span>
+          </motion.h3>
+          <motion.p 
+            className="text-base sm:text-lg md:text-3xl font-black text-slate-900 dark:text-white tracking-tight truncate"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            {change}
-          </motion.span>
-        )}
-      </div>
-      <div>
-        <motion.h3 
-          className="text-xs sm:text-sm font-medium text-gray-500 dark:text-[#888888] mb-1 truncate"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.1 }}
-        >
-          <span className="sm:hidden">{mobileTitle || title}</span>
-          <span className="hidden sm:inline">{title}</span>
-        </motion.h3>
-        <motion.p 
-          className="text-sm sm:text-lg md:text-2xl font-bold text-gray-900 dark:text-[#F5F5F5] truncate"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          {value}
-        </motion.p>
+            {value}
+          </motion.p>
+        </div>
       </div>
     </motion.div>
   );

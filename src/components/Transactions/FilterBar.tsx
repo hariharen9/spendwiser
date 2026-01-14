@@ -274,20 +274,13 @@ const FilterBar: React.FC<FilterBarProps> = ({
 
           {/* Category Dropdown - Updated to show "Multiple" when multiple categories selected */}
           <div className="relative">
-            <select
-              value={selectedCategory}
-              onChange={(e) => onCategoryChange(e.target.value)}
-              className="w-full px-4 py-2 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF] appearance-none"
-            >
-              <option value="">All Categories</option>
-              {categories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
+            <AnimatedDropdown
+              selectedValue={selectedCategory}
+              options={[{value: '', label: 'All Categories'}, ...categories.map(c => ({value: c, label: c}))]}
+              onChange={onCategoryChange}
+            />
             {selectedCategories.length > 1 && (
-              <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-xs text-blue-500">
+              <div className="absolute inset-y-0 right-8 flex items-center px-2 pointer-events-none text-xs text-blue-500 z-10">
                 +{selectedCategories.length - 1} more
               </div>
             )}
@@ -385,7 +378,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
 
               {/* Multiple Category Selection */}
               <div className="md:col-span-3">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Categories</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Multiple Categories</label>
                 <div className="relative">
                   <div className="bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg p-2 min-h-[42px] max-h-32 overflow-y-auto">
                     <div className="flex flex-wrap gap-2">
