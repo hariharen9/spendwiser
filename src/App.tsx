@@ -2885,6 +2885,7 @@ function App() {
           }
         }}
         editingGoal={editingGoal}
+        currency={currency}
       />
 
       <LoanModal
@@ -2901,6 +2902,7 @@ function App() {
           }
         }}
         editingLoan={editingLoan}
+        currency={currency}
       />
 
       <AddFundsModal
@@ -2908,7 +2910,8 @@ function App() {
         onClose={() => setIsAddFundsModalOpen(false)}
         onAddFunds={handleAddFundsToGoal}
         goal={selectedGoal}
-        accounts={regularAccounts}
+        accounts={accountsWithDynamicBalances}
+        currency={currency}
       />
 
       <HelpModal

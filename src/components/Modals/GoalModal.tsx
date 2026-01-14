@@ -3,15 +3,17 @@ import { Goal } from '../../types/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { modalVariants } from '../../components/Common/AnimationVariants';
 import { X, Target, Calendar, TrendingUp, PiggyBank, Flag } from 'lucide-react';
+import CurrencyInput from '../Common/CurrencyInput';
 
 interface GoalModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (goal: Omit<Goal, 'id'>) => void;
   editingGoal?: Goal;
+  currency?: string;
 }
 
-const GoalModal: React.FC<GoalModalProps> = ({ isOpen, onClose, onSave, editingGoal }) => {
+const GoalModal: React.FC<GoalModalProps> = ({ isOpen, onClose, onSave, editingGoal, currency = '₹' }) => {
   const [name, setName] = useState('');
   const [targetAmount, setTargetAmount] = useState(0);
   const [currentAmount, setCurrentAmount] = useState(0);
@@ -142,16 +144,14 @@ const GoalModal: React.FC<GoalModalProps> = ({ isOpen, onClose, onSave, editingG
                       </span>
                       Target Amount
                     </label>
-                    <input 
-                      type="number" 
-                      id="goal-target-amount" 
-                      value={targetAmount || ''} 
-                      onChange={(e) => setTargetAmount(parseFloat(e.target.value) || 0)} 
-                      className="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-[#1A1A1A] dark:border-gray-600 dark:text-white py-3 px-4 transition-all" 
+                    <CurrencyInput
+                      id="goal-target-amount"
+                      value={targetAmount || ''}
+                      onChange={(value) => setTargetAmount(parseFloat(value) || 0)}
+                      currency={currency}
+                      className="w-full"
                       placeholder="0"
-                      min="0"
-                      step="0.01"
-                      required 
+                      required
                     />
                   </div>
                   
@@ -162,16 +162,14 @@ const GoalModal: React.FC<GoalModalProps> = ({ isOpen, onClose, onSave, editingG
                       </span>
                       Current Amount
                     </label>
-                    <input 
-                      type="number" 
-                      id="goal-current-amount" 
-                      value={currentAmount || ''} 
-                      onChange={(e) => setCurrentAmount(parseFloat(e.target.value) || 0)} 
-                      className="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-[#1A1A1A] dark:border-gray-600 dark:text-white py-3 px-4 transition-all" 
+                    <CurrencyInput
+                      id="goal-current-amount"
+                      value={currentAmount || ''}
+                      onChange={(value) => setCurrentAmount(parseFloat(value) || 0)}
+                      currency={currency}
+                      className="w-full"
                       placeholder="0"
-                      min="0"
-                      step="0.01"
-                      required 
+                      required
                     />
                   </div>
                 </div>

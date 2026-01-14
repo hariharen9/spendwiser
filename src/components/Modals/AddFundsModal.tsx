@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { modalVariants } from '../../components/Common/AnimationVariants';
 import { X, PiggyBank, Wallet } from 'lucide-react';
 import AnimatedDropdown from '../Common/AnimatedDropdown';
+import CurrencyInput from '../Common/CurrencyInput';
 
 interface AddFundsModalProps {
   isOpen: boolean;
@@ -11,9 +12,10 @@ interface AddFundsModalProps {
   onAddFunds: (goal: Goal, amount: number, accountId: string) => void;
   goal: Goal | null;
   accounts: Account[];
+  currency?: string;
 }
 
-const AddFundsModal: React.FC<AddFundsModalProps> = ({ isOpen, onClose, onAddFunds, goal, accounts }) => {
+const AddFundsModal: React.FC<AddFundsModalProps> = ({ isOpen, onClose, onAddFunds, goal, accounts, currency = '₹' }) => {
   const [amount, setAmount] = useState(0);
   const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
 
@@ -71,13 +73,12 @@ const AddFundsModal: React.FC<AddFundsModalProps> = ({ isOpen, onClose, onAddFun
                   Amount
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-[#888888]">₹</span>
-                  <input 
-                    type="number" 
+                  <CurrencyInput 
                     id="add-funds-amount" 
                     value={amount || ''} 
-                    onChange={(e) => setAmount(parseFloat(e.target.value) || 0)} 
-                    className="w-full pl-8 pr-4 py-3 rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 dark:bg-[#1A1A1A] dark:border-gray-600 dark:text-white placeholder-gray-400 dark:placeholder-[#888888] focus:outline-none transition-all" 
+                    onChange={(value) => setAmount(parseFloat(value) || 0)} 
+                    currency={currency}
+                    className="w-full" 
                     placeholder="0.00"
                     required 
                   />

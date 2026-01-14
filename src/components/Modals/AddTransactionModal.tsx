@@ -6,6 +6,7 @@ import { modalVariants } from '../Common/AnimationVariants';
 import AnimatedDropdown from '../Common/AnimatedDropdown';
 import AccountDropdown from '../Common/AccountDropdown';
 import BillSplittingModal from './BillSplittingModal';
+import CurrencyInput from '../Common/CurrencyInput';
 
 interface AddTransactionModalProps {
   isOpen: boolean;
@@ -390,6 +391,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                   exit={{ opacity: 0, y: 10 }}
                   transition={{ delay: 0.4 }}
                 >
+
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center">
                       <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2">
@@ -398,36 +400,25 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                       Amount *
                     </label>
                     <div className="relative">
-                      <input
-                        type="number"
+                      <CurrencyInput
                         required
-                        step="0.01"
-                        min="0"
                         value={formData.amount}
-                        onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                        className={`w-full rounded-lg border shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-[#1A1A1A] dark:text-white py-2 md:py-3 px-3 md:px-4 transition-all placeholder-gray-400 dark:placeholder-[#888888] ${
+                        onChange={(value) => setFormData({ ...formData, amount: value })}
+                        currency={currency}
+                        className={`w-full ${
                           isLargeAmount 
                             ? 'border-red-500 focus:ring-red-200 dark:border-red-500 dark:focus:ring-red-900/50' 
                             : 'border-gray-300 dark:border-gray-600'
                         }`}
                         placeholder="0.00"
+                        error={isLargeAmount ? "Large transaction amount" : undefined}
                       />
                       {isLargeAmount && (
-                        <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-10 pointer-events-none">
                           <AlertTriangle className="h-5 w-5 text-red-500" />
                         </div>
                       )}
                     </div>
-                    {isLargeAmount && (
-                      <motion.p 
-                        className="mt-1 text-sm text-red-600 dark:text-red-400 flex items-center"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                      >
-                        <AlertTriangle className="h-4 w-4 mr-1" />
-                        Large transaction amount
-                      </motion.p>
-                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center">

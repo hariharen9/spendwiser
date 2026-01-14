@@ -6,6 +6,7 @@ import { User as FirebaseUser } from 'firebase/auth';
 import { addDoc, collection, Timestamp, updateDoc, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 import AnimatedDropdown from '../Common/AnimatedDropdown';
+import CurrencyInput from '../Common/CurrencyInput';
 
 interface ExpenseFormProps {
   user: FirebaseUser | null;
@@ -355,13 +356,11 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Amount
           </label>
-          <input
-            type="number"
-            step="0.01"
-            min="0"
+          <CurrencyInput
             value={newExpense.amount}
-            onChange={(e) => setNewExpense({...newExpense, amount: e.target.value})}
-            className="w-full px-3 py-2 bg-white dark:bg-[#242424] border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-[#F5F5F5] focus:outline-none focus:border-[#007BFF]"
+            onChange={(value) => setNewExpense({...newExpense, amount: value})}
+            currency={currency}
+            className="w-full"
             placeholder="0.00"
           />
         </div>

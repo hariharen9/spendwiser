@@ -3,15 +3,17 @@ import { Loan } from '../../types/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { modalVariants } from '../../components/Common/AnimationVariants';
 import { X, Calculator, Calendar, CreditCard, Percent, Clock } from 'lucide-react';
+import CurrencyInput from '../Common/CurrencyInput';
 
 interface LoanModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (loan: Omit<Loan, 'id'>) => void;
   editingLoan?: Loan;
+  currency?: string;
 }
 
-const LoanModal: React.FC<LoanModalProps> = ({ isOpen, onClose, onSave, editingLoan }) => {
+const LoanModal: React.FC<LoanModalProps> = ({ isOpen, onClose, onSave, editingLoan, currency = '₹' }) => {
   const [name, setName] = useState('');
   const [loanAmount, setLoanAmount] = useState(0);
   const [interestRate, setInterestRate] = useState(0);
@@ -170,14 +172,13 @@ const LoanModal: React.FC<LoanModalProps> = ({ isOpen, onClose, onSave, editingL
                       </span>
                       Loan Amount
                     </label>
-                    <input 
-                      type="number" 
+                    <CurrencyInput 
                       id="loan-amount" 
                       value={loanAmount || ''} 
-                      onChange={(e) => setLoanAmount(parseFloat(e.target.value) || 0)} 
-                      className="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-[#1A1A1A] dark:border-gray-600 dark:text-white py-3 px-4 transition-all" 
+                      onChange={(value) => setLoanAmount(parseFloat(value) || 0)} 
+                      currency={currency}
+                      className="w-full"
                       placeholder="0"
-                      min="0"
                       required 
                     />
                   </div>
@@ -260,19 +261,17 @@ const LoanModal: React.FC<LoanModalProps> = ({ isOpen, onClose, onSave, editingL
                     EMI (Auto-calculated)
                   </label>
                   <div className="relative">
-                    <input 
-                      type="number" 
+                    <CurrencyInput 
                       id="emi" 
                       value={emi || ''} 
-                      onChange={(e) => setEmi(parseFloat(e.target.value) || 0)} 
-                      className={`w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-[#1A1A1A] dark:border-gray-600 dark:text-white py-3 px-4 transition-all ${!editingLoan ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`} 
+                      onChange={(value) => setEmi(parseFloat(value) || 0)} 
+                      currency={currency}
+                      className={`w-full ${!editingLoan ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`} 
                       placeholder="0"
-                      min="0"
-                      step="0.01"
                       required 
                     />
                     {isCalculating && (
-                      <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-10 pointer-events-none">
                         <div className="h-4 w-4 rounded-full border-2 border-blue-500 border-t-transparent animate-spin"></div>
                       </div>
                     )}

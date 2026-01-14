@@ -4,6 +4,7 @@ import { Budget } from '../../types/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { modalVariants } from '../Common/AnimationVariants';
 import AnimatedDropdown from '../Common/AnimatedDropdown';
+import CurrencyInput from '../Common/CurrencyInput';
 
 interface BudgetModalProps {
   isOpen: boolean;
@@ -144,15 +145,12 @@ const BudgetModal: React.FC<BudgetModalProps> = ({
                   Budget Limit *
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-[#888888]">₹</span>
-                  <input
-                    type="number"
+                  <CurrencyInput
                     required
-                    step="0.01"
-                    min="0"
                     value={formData.limit}
-                    onChange={(e) => setFormData({ ...formData, limit: e.target.value })}
-                    className="w-full pl-8 pr-4 py-3 rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-[#1A1A1A] dark:border-gray-600 dark:text-white placeholder-gray-400 dark:placeholder-[#888888] focus:outline-none transition-all"
+                    onChange={(value) => setFormData({ ...formData, limit: value })}
+                    currency="₹"
+                    className="w-full"
                     placeholder="0.00"
                   />
                 </div>

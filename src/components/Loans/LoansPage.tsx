@@ -16,6 +16,7 @@ import {
 } from '../../lib/loanCalculations';
 import AnimatedDropdown from '../Common/AnimatedDropdown';
 import Tabs from '../Common/Tabs';
+import CurrencyInput from '../Common/CurrencyInput';
 import { 
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend 
 } from 'recharts';
@@ -446,12 +447,11 @@ const LoansPage: React.FC<LoansPageProps> = ({
                                             <div>
                                                 <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Amount</label>
                                                 <div className="relative mt-1">
-                                                    <span className="absolute left-3 top-2 text-gray-400 dark:text-gray-500">{currency}</span>
-                                                    <input 
-                                                        type="number" 
-                                                        value={lumpSumAmount} 
-                                                        onChange={e => setLumpSumAmount(Number(e.target.value))} 
-                                                        className="w-full pl-8 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 outline-none focus:ring-2 focus:ring-blue-500/50" 
+                                                    <CurrencyInput 
+                                                        value={lumpSumAmount || ''} 
+                                                        onChange={(value) => setLumpSumAmount(parseFloat(value) || 0)} 
+                                                        currency={currency}
+                                                        className="w-full" 
                                                         placeholder="0.00"
                                                     />
                                                 </div>

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { modalVariants } from '../Common/AnimationVariants';
 import AnimatedDropdown from '../Common/AnimatedDropdown';
 import { TimezoneManager } from '../../lib/timezone';
+import CurrencyInput from '../Common/CurrencyInput';
 
 interface RecurringTransactionModalProps {
   isOpen: boolean;
@@ -188,7 +189,14 @@ const RecurringTransactionModal: React.FC<RecurringTransactionModalProps> = ({
                         <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2"><DollarSign className="h-4 w-4 text-blue-600 dark:text-blue-400" /></span>
                         Amount *
                       </label>
-                      <input type="number" required step="0.01" min="0" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} className="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-[#1A1A1A] dark:border-gray-600 dark:text-white py-2 px-3 transition-all" placeholder="0.00" />
+                      <CurrencyInput 
+                        value={formData.amount} 
+                        onChange={(value) => setFormData({ ...formData, amount: value })} 
+                        currency={currency}
+                        className="w-full" 
+                        placeholder="0.00"
+                        required 
+                      />
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center">
