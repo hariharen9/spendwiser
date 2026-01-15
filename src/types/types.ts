@@ -50,7 +50,7 @@ export interface Account {
   isMock?: boolean;
   // Credit Card specific fields
   last4Digits?: string;
-  network?: 'visa' | 'mastercard' | 'amex' | 'discover' | 'other';
+  network?: 'visa' | 'mastercard' | 'amex' | 'RuPay' | 'discover' | 'other';
   statementDate?: number; // Day of month (1-31)
   paymentDueDate?: number; // Day of month (1-31)
   theme?: string; // Gradient class or hex

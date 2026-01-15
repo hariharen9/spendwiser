@@ -29,11 +29,7 @@ const NetworkIcon: React.FC<{ network?: string, className?: string }> = ({ netwo
   // Simple SVG or Icon replacements for networks
   switch (network?.toLowerCase()) {
     case 'visa':
-      return (
-        <svg viewBox="0 0 32 10" className={className} fill="currentColor">
-           <path d="M12.3 0L9.1 9.9H6.8L9.9 0h2.4zm5.8 0l-2.2 9.9H13L15.2 0h2.9zm5.9 0c.9 0 1.6.4 1.6.4l-.6 1.4s-.5-.3-1-.3c-.6 0-1 .3-1 .6 0 .4.4.6.6.7.7.3 1.3.7 1.3 1.5 0 1.2-1.3 1.7-2.3 1.7-1 0-1.8-.4-1.8-.4l.6-1.5s.7.4 1.1.4c.5 0 .8-.2.8-.5 0-.4-.4-.5-.6-.6-.7-.3-1.3-.7-1.3-1.6 0-1.2 1.3-1.8 2.3-1.8h.3zm6.5 0L29.3 9.9h-2.1l-.8-4.4c-.1-.4-.3-.6-.7-.8L23 2.8l.2-.7h4.4c.6 0 1.1.4 1.2 1l.9 4.3 1.4-7.4h2.4z"/>
-        </svg>
-      );
+      return <div className={`${className} italic font-black flex items-center text-lg italic tracking-tighter`}>VISA</div>;
     case 'mastercard':
       return (
         <svg viewBox="0 0 24 18" className={className} fill="none">
@@ -45,6 +41,17 @@ const NetworkIcon: React.FC<{ network?: string, className?: string }> = ({ netwo
       return <div className={`${className} bg-blue-500 rounded flex items-center justify-center text-[8px] font-bold tracking-tighter`}>AMEX</div>;
     case 'discover':
       return <div className={`${className} bg-orange-500 rounded flex items-center justify-center text-[8px] font-bold tracking-tighter`}>DISCOVER</div>;
+    case 'rupay':
+      return (
+        <div className={`${className} flex items-center font-black italic text-xs tracking-tighter`}>
+          <span className="text-[#00338D]">Ru</span>
+          <span className="text-[#F6821F]">Pay</span>
+          <div className="ml-0.5 flex">
+            <div className="w-1 h-2 bg-[#00338D] -skew-x-12"></div>
+            <div className="w-1 h-2 bg-[#F6821F] -skew-x-12 ml-px"></div>
+          </div>
+        </div>
+      );
     default:
       return <CreditCardIcon className={className} />;
   }
@@ -62,41 +69,62 @@ const CreditCardVisual: React.FC<{
     if (theme) return theme;
     
     const gradients = [
-      'from-slate-900 via-slate-800 to-slate-900', // Black/Dark
-      'from-blue-900 via-blue-800 to-blue-900',     // Blue
-      'from-emerald-900 via-emerald-800 to-emerald-900', // Green
-      'from-purple-900 via-purple-800 to-purple-900', // Purple
-      'from-rose-900 via-rose-800 to-rose-900',     // Red
-      'from-yellow-700 via-yellow-600 to-yellow-700', // Gold-ish
-      'from-gray-400 via-gray-300 to-gray-400',     // Platinum/Silver
+      'from-slate-900 via-slate-800 to-slate-900', // Midnight
+      'from-blue-900 via-blue-800 to-blue-900',     // Deep Blue
+      'from-cyan-600 via-blue-600 to-indigo-600',   // Ocean
+      'from-emerald-900 via-emerald-800 to-emerald-900', // Forest
+      'from-purple-900 via-purple-800 to-purple-900', // Royal Purple
+      'from-rose-900 via-rose-800 to-rose-900',     // Crimson
+      'from-yellow-600 via-yellow-500 to-yellow-600', // Gold
+      'from-gray-300 via-gray-100 to-gray-300',     // Platinum
+      'from-rose-300 via-rose-100 to-rose-300',     // Rose Gold
+      'from-zinc-800 via-zinc-700 to-zinc-800',     // Carbon
+      'from-rose-500 via-orange-500 to-amber-500', // Sunset
+      'from-violet-300 via-purple-300 to-indigo-300', // Lavender
+      'from-teal-600 via-teal-500 to-teal-700',     // Teal
+      'from-pink-800 via-fuchsia-800 to-purple-900', // Berry
+      'from-sky-300 via-blue-200 to-cyan-300',      // Sky
+      'from-amber-800 via-yellow-700 to-orange-800', // Bronze
     ];
     const index = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % gradients.length;
     return gradients[index];
   };
+
+  const isLightTheme = (theme: string) => {
+    const lightThemes = ['gray-100', 'gray-200', 'gray-300', 'rose-100', 'rose-200', 'rose-300', 'yellow-100', 'yellow-200', 'blue-100', 'blue-200', 'platinum', 'violet-300', 'purple-300', 'indigo-300', 'sky-300', 'cyan-300'];
+    return lightThemes.some(lt => theme.toLowerCase().includes(lt));
+  };
+
+  const currentTheme = getGradient(card.id, card.theme);
+  const isLight = isLightTheme(currentTheme);
+  const textColorClass = isLight ? 'text-slate-900' : 'text-white';
+  const subTextColorClass = isLight ? 'text-slate-600' : 'text-white/70';
+  const iconBgClass = isLight ? 'bg-slate-900/10' : 'bg-white/10';
+  const iconHoverClass = isLight ? 'hover:bg-slate-900/20' : 'hover:bg-white/20';
 
   const limit = card.limit || 0;
   const utilization = limit > 0 ? (balance > 0 ? balance : 0) / limit * 100 : 0;
   const available = limit - balance;
 
   return (
-    <div className={`relative w-full aspect-[1.586/1] rounded-2xl p-6 text-white shadow-xl overflow-hidden bg-gradient-to-br ${getGradient(card.id, card.theme)} transition-all hover:scale-[1.01] duration-300`}>
+    <div className={`relative w-full aspect-[1.586/1] rounded-2xl p-6 ${textColorClass} shadow-xl overflow-hidden bg-gradient-to-br ${currentTheme} transition-all hover:scale-[1.01] duration-300`}>
       {/* Texture overlay */}
-      <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+      <div className={`absolute inset-0 ${isLight ? 'opacity-5' : 'opacity-10'} bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]`}></div>
       
       {/* Shine effect */}
-      <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl"></div>
+      <div className={`absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 ${isLight ? 'bg-black' : 'bg-white'} opacity-5 rounded-full blur-3xl`}></div>
 
       <div className="relative z-10 flex flex-col justify-between h-full">
         <div className="flex justify-between items-start">
           <div className="flex items-center space-x-2">
-            <NetworkIcon network={card.network} className="w-12 h-8 opacity-90" />
-            {!card.network && <span className="font-mono text-sm opacity-60 tracking-widest">CREDIT</span>}
+            <NetworkIcon network={card.network} className={`w-12 h-8 ${isLight ? 'opacity-100' : 'opacity-90'}`} />
+            {!card.network && <span className={`font-mono text-sm ${isLight ? 'opacity-40' : 'opacity-60'} tracking-widest`}>CREDIT</span>}
           </div>
           <div className="flex space-x-2">
-             <button onClick={onEdit} className="p-1.5 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-sm transition-colors">
+             <button onClick={onEdit} className={`p-1.5 ${iconBgClass} ${iconHoverClass} rounded-full backdrop-blur-sm transition-colors`}>
               <Edit className="w-4 h-4" />
             </button>
-            <button onClick={onDelete} className="p-1.5 bg-red-500/10 hover:bg-red-500/30 text-red-200 rounded-full backdrop-blur-sm transition-colors">
+            <button onClick={onDelete} className={`p-1.5 ${isLight ? 'bg-red-600/10 hover:bg-red-600/20 text-red-600' : 'bg-red-500/10 hover:bg-red-500/30 text-red-200'} rounded-full backdrop-blur-sm transition-colors`}>
               <Trash2 className="w-4 h-4" />
             </button>
           </div>
@@ -104,19 +132,19 @@ const CreditCardVisual: React.FC<{
 
         <div className="space-y-1">
           <div className="flex items-center space-x-2">
-             <div className="w-12 h-8 bg-yellow-400/80 rounded-md flex items-center justify-center overflow-hidden relative">
+             <div className="w-12 h-8 bg-yellow-400/80 rounded-md flex items-center justify-center overflow-hidden relative shadow-sm">
                 <div className="absolute inset-0 border border-yellow-600/50 rounded-md"></div>
                 <div className="w-full h-[1px] bg-yellow-600/30 absolute top-1/2"></div>
                 <div className="h-full w-[1px] bg-yellow-600/30 absolute left-1/2"></div>
              </div>
-             <Activity className="w-6 h-6 rotate-90 opacity-50" />
+             <Activity className={`w-6 h-6 rotate-90 ${isLight ? 'opacity-30' : 'opacity-50'}`} />
           </div>
-          <h3 className="text-2xl font-bold tracking-wider drop-shadow-md truncate">{card.name}</h3>
-          <p className="font-mono text-lg opacity-80 tracking-widest">
+          <h3 className={`text-2xl font-bold tracking-wider ${isLight ? '' : 'drop-shadow-md'} truncate`}>{card.name}</h3>
+          <p className={`font-mono text-lg ${isLight ? 'opacity-70' : 'opacity-80'} tracking-widest`}>
             •••• •••• •••• {card.last4Digits || card.id.slice(-4).toUpperCase()}
           </p>
           {(card.paymentDueDate || card.statementDate) && (
-             <p className="text-[10px] opacity-70 mt-1">
+             <p className={`text-[10px] ${subTextColorClass} mt-1`}>
                {card.statementDate && `Statement: ${card.statementDate}th`}
                {card.statementDate && card.paymentDueDate && ' • '}
                {card.paymentDueDate && `Due: ${card.paymentDueDate}th`}
@@ -127,22 +155,22 @@ const CreditCardVisual: React.FC<{
         <div className="flex flex-col space-y-4">
           <div className="flex justify-between items-end">
             <div>
-              <p className="text-xs uppercase tracking-wider opacity-60 mb-1">Outstanding Balance</p>
+              <p className={`text-xs uppercase tracking-wider ${isLight ? 'opacity-50' : 'opacity-60'} mb-1`}>Outstanding Balance</p>
               <p className="text-xl font-bold">{currency}{Math.abs(balance).toLocaleString()}</p>
             </div>
             <div className="text-right">
-               <p className="text-xs uppercase tracking-wider opacity-60 mb-1">Available</p>
-               <p className={`text-lg font-bold ${available < 0 ? 'text-red-300' : 'text-emerald-300'}`}>
+               <p className={`text-xs uppercase tracking-wider ${isLight ? 'opacity-50' : 'opacity-60'} mb-1`}>Available</p>
+               <p className={`text-lg font-bold ${available < 0 ? (isLight ? 'text-red-600' : 'text-red-300') : (isLight ? 'text-emerald-600' : 'text-emerald-300')}`}>
                  {currency}{available.toLocaleString()}
                </p>
             </div>
           </div>
           
           {/* Progress Bar within Card */}
-          <div className="w-full h-1.5 bg-black/30 rounded-full overflow-hidden">
+          <div className={`w-full h-1.5 ${isLight ? 'bg-black/10' : 'bg-black/30'} rounded-full overflow-hidden`}>
             <div 
               className={`h-full transition-all duration-1000 ${
-                utilization > 90 ? 'bg-red-500' : utilization > 50 ? 'bg-yellow-400' : 'bg-emerald-400'
+                utilization > 90 ? 'bg-red-500' : utilization > 50 ? 'bg-yellow-500' : 'bg-emerald-500'
               }`}
               style={{ width: `${Math.min(utilization, 100)}%` }}
             />
@@ -502,7 +530,7 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
                     onSubmit={handleAddCard}
                     actionLabel="Add Card"
                 >
-                    <CardFormFields form={cardForm} setForm={setCardForm} />
+                    <CardFormFields form={cardForm} setForm={setCardForm} currency={currency} />
                 </Modal>
             )}
         </AnimatePresence>
@@ -651,16 +679,18 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
                         <TrendingUp className="w-5 h-5 mr-2 text-blue-500" />
                         {isAllCardsSelected ? 'Combined Spending Trend' : 'Spending Trend'}
                     </h3>
-                    <select 
-                        value={spendingRange}
-                        onChange={(e) => setSpendingRange(parseInt(e.target.value))}
-                        className="bg-gray-100 dark:bg-[#1A1A1A] text-gray-900 dark:text-white text-xs p-1 rounded border-none outline-none cursor-pointer"
-                    >
-                        <option value={1}>Last Month</option>
-                        <option value={3}>Last 3 Months</option>
-                        <option value={6}>Last 6 Months</option>
-                        <option value={12}>Last Year</option>
-                    </select>
+                    <div className="w-40">
+                        <AnimatedDropdown 
+                            options={[
+                                { value: '1', label: 'Last Month' },
+                                { value: '3', label: 'Last 3 Months' },
+                                { value: '6', label: 'Last 6 Months' },
+                                { value: '12', label: 'Last Year' },
+                            ]}
+                            selectedValue={spendingRange.toString()}
+                            onChange={(value) => setSpendingRange(parseInt(value))}
+                        />
+                    </div>
                 </div>
                 <SpendingTrendChart transactions={cardTransactions} currency={currency} range={spendingRange} />
             </div>
@@ -821,6 +851,26 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
                 onClose={() => { setShowAddCardModal(false); setShowEditCardModal(false); }}
                 onSubmit={showEditCardModal ? handleEditCard : handleAddCard}
                 actionLabel={showEditCardModal ? "Save Changes" : "Add Card"}
+                sidePanel={
+                    <CreditCardVisual 
+                        card={{
+                            id: 'preview',
+                            name: cardForm.name || 'Card Name',
+                            type: 'Credit Card',
+                            balance: 0,
+                            limit: parseFloat(cardForm.limit) || 5000,
+                            last4Digits: cardForm.last4Digits || '1234',
+                            network: (cardForm.network as any) || 'visa',
+                            statementDate: parseInt(cardForm.statementDate) || 1,
+                            paymentDueDate: parseInt(cardForm.paymentDueDate) || 1,
+                            theme: cardForm.theme
+                        }}
+                        balance={0}
+                        currency={currency}
+                        onEdit={() => {}}
+                        onDelete={() => {}}
+                    />
+                }
              >
                  <CardFormFields form={cardForm} setForm={setCardForm} />
              </Modal>
@@ -918,13 +968,22 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
 
 const CardFormFields: React.FC<{ form: CardFormData, setForm: React.Dispatch<React.SetStateAction<CardFormData>> }> = ({ form, setForm }) => {
   const themes = [
-    { name: 'Dark', value: 'from-slate-900 via-slate-800 to-slate-900' },
-    { name: 'Blue', value: 'from-blue-900 via-blue-800 to-blue-900' },
-    { name: 'Green', value: 'from-emerald-900 via-emerald-800 to-emerald-900' },
-    { name: 'Purple', value: 'from-purple-900 via-purple-800 to-purple-900' },
-    { name: 'Red', value: 'from-rose-900 via-rose-800 to-rose-900' },
-    { name: 'Gold', value: 'from-yellow-700 via-yellow-600 to-yellow-700' },
-    { name: 'Platinum', value: 'from-gray-400 via-gray-300 to-gray-400' },
+    { name: 'Midnight (Black)', value: 'from-slate-900 via-slate-800 to-slate-900' },
+    { name: 'Deep Blue (Navy)', value: 'from-blue-900 via-blue-800 to-blue-900' },
+    { name: 'Ocean (Cyan/Indigo)', value: 'from-cyan-600 via-blue-600 to-indigo-600' },
+    { name: 'Forest (Green)', value: 'from-emerald-900 via-emerald-800 to-emerald-900' },
+    { name: 'Royal Purple (Purple)', value: 'from-purple-900 via-purple-800 to-purple-900' },
+    { name: 'Crimson (Red)', value: 'from-rose-900 via-rose-800 to-rose-900' },
+    { name: 'Gold (Yellow)', value: 'from-yellow-600 via-yellow-500 to-yellow-600' },
+    { name: 'Platinum (Silver)', value: 'from-gray-300 via-gray-100 to-gray-300' },
+    { name: 'Rose Gold (Pink)', value: 'from-rose-300 via-rose-100 to-rose-300' },
+    { name: 'Carbon (Dark Grey)', value: 'from-zinc-800 via-zinc-700 to-zinc-800' },
+    { name: 'Sunset (Orange/Pink)', value: 'from-rose-500 via-orange-500 to-amber-500' },
+    { name: 'Lavender (Light Purple)', value: 'from-violet-300 via-purple-300 to-indigo-300' },
+    { name: 'Teal (Teal)', value: 'from-teal-600 via-teal-500 to-teal-700' },
+    { name: 'Berry (Dark Pink)', value: 'from-pink-800 via-fuchsia-800 to-purple-900' },
+    { name: 'Sky (Light Blue)', value: 'from-sky-300 via-blue-200 to-cyan-300' },
+    { name: 'Bronze (Brown)', value: 'from-amber-800 via-yellow-700 to-orange-800' },
   ];
 
   return (
@@ -961,28 +1020,29 @@ const CardFormFields: React.FC<{ form: CardFormData, setForm: React.Dispatch<Rea
         </div>
         <div>
             <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Network</label>
-            <select
-                className="w-full p-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#1A1A1A] text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
-                value={form.network}
-                onChange={e => setForm({...form, network: e.target.value})}
-            >
-                <option value="visa">Visa</option>
-                <option value="mastercard">Mastercard</option>
-                <option value="amex">Amex</option>
-                <option value="discover">Discover</option>
-                <option value="other">Other</option>
-            </select>
+            <AnimatedDropdown
+                options={[
+                    { value: 'visa', label: 'Visa' },
+                    { value: 'mastercard', label: 'Mastercard' },
+                    { value: 'amex', label: 'Amex' },
+                    { value: 'rupay', label: 'RuPay' },
+                    { value: 'discover', label: 'Discover' },
+                    { value: 'other', label: 'Other' },
+                ]}
+                selectedValue={form.network}
+                onChange={(value) => setForm({...form, network: value})}
+            />
         </div>
         <div>
              <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Color Theme</label>
-             <select
-                className="w-full p-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#1A1A1A] text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
-                value={form.theme}
-                onChange={e => setForm({...form, theme: e.target.value})}
-             >
-                <option value="">Auto-generate</option>
-                {themes.map(t => <option key={t.value} value={t.value}>{t.name}</option>)}
-             </select>
+             <AnimatedDropdown
+                options={[
+                    { value: '', label: 'Auto-generate' },
+                    ...themes.map(t => ({ value: t.value, label: t.name }))
+                ]}
+                selectedValue={form.theme}
+                onChange={(value) => setForm({...form, theme: value})}
+             />
         </div>
         <div>
             <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Statement Day</label>
@@ -1015,36 +1075,50 @@ const Modal: React.FC<{
     onSubmit: () => void;
     actionLabel: string;
     children: React.ReactNode;
-}> = ({ title, onClose, onSubmit, actionLabel, children }) => (
+    sidePanel?: React.ReactNode;
+}> = ({ title, onClose, onSubmit, actionLabel, children, sidePanel }) => (
     <motion.div 
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto"
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         onClick={onClose}
     >
-        <motion.div 
-            className="bg-white dark:bg-[#242424] rounded-2xl w-full max-w-md overflow-hidden shadow-2xl border border-gray-200 dark:border-gray-700"
-            variants={modalVariants}
-            initial="initial" animate="animate" exit="exit"
-            onClick={e => e.stopPropagation()}
-        >
-            <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">{title}</h3>
-                <button onClick={onClose} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
-                    <X className="w-5 h-5 text-gray-500" />
-                </button>
-            </div>
-            <div className="p-6">
-                {children}
-            </div>
-            <div className="p-6 pt-0 flex justify-end gap-3">
-                <button onClick={onClose} className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
-                    Cancel
-                </button>
-                <button onClick={onSubmit} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors">
-                    {actionLabel}
-                </button>
-            </div>
-        </motion.div>
+        <div className="flex flex-col md:flex-row gap-8 items-center justify-center w-full max-w-5xl" onClick={e => e.stopPropagation()}>
+            {sidePanel && (
+                <motion.div 
+                    className="hidden md:block w-96 shrink-0"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ delay: 0.1 }}
+                >
+                    {sidePanel}
+                </motion.div>
+            )}
+            
+            <motion.div 
+                className="bg-white dark:bg-[#242424] rounded-2xl w-full max-w-md overflow-hidden shadow-2xl border border-gray-200 dark:border-gray-700 relative"
+                variants={modalVariants}
+                initial="initial" animate="animate" exit="exit"
+            >
+                <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">{title}</h3>
+                    <button onClick={onClose} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
+                        <X className="w-5 h-5 text-gray-500" />
+                    </button>
+                </div>
+                <div className="p-6">
+                    {children}
+                </div>
+                <div className="p-6 pt-0 flex justify-end gap-3">
+                    <button onClick={onClose} className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                        Cancel
+                    </button>
+                    <button onClick={onSubmit} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors">
+                        {actionLabel}
+                    </button>
+                </div>
+            </motion.div>
+        </div>
     </motion.div>
 );
 
