@@ -41,6 +41,7 @@ import ShortcutModal from './components/Modals/ShortcutModal';
 import OnboardingWizard from './components/Onboarding/OnboardingWizard';
 import ConfirmationDialog from './components/BillSplitting/ConfirmationDialog';
 import LinkLoanTransactionModal from './components/Modals/LinkLoanTransactionModal';
+import CalculatorModal from './components/Modals/CalculatorModal';
 
 // Icons
 import { LogOut, DollarSign, X, Sun, Moon } from 'lucide-react';
@@ -109,6 +110,7 @@ function App() {
   const [lastProcessingTime, setLastProcessingTime] = useState(0);
   const [isLinkLoanTransactionModalOpen, setIsLinkLoanTransactionModalOpen] = useState(false);
   const [selectedLoanForLinking, setSelectedLoanForLinking] = useState<Loan | null>(null);
+  const [isCalculatorModalOpen, setIsCalculatorModalOpen] = useState(false);
 
   // Toast system
   const { toasts, showToast, removeToast } = useToast();
@@ -2758,6 +2760,7 @@ function App() {
               actionButton={getActionButton()}
               secondaryActionButton={getSecondaryActionButton()}
               onAddTransaction={() => setIsAddTransactionModalOpen(true)}
+              onOpenCalculator={() => setIsCalculatorModalOpen(true)}
             />
           </div>
 
@@ -2800,6 +2803,12 @@ function App() {
       {['transactions', 'credit-cards', 'budgets', 'goals', 'loans'].includes(currentScreen) && (
         <HelpFAB onClick={() => setIsHelpModalOpen(true)} />
       )}
+
+      {/* Calculator Modal */}
+      <CalculatorModal 
+        isOpen={isCalculatorModalOpen} 
+        onClose={() => setIsCalculatorModalOpen(false)} 
+      />
 
       {/* Add Transaction Modal */}
       <AddTransactionModal

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { DollarSign, TrendingUp, TrendingDown, Edit3, Save, X, Download, Grid3X3, Eye, Sun, SunDim, Moon, Sparkles } from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown, Edit3, Save, X, Download, Grid3X3, Eye, EyeOff, Sun, SunDim, Moon, Sparkles } from 'lucide-react';
 import MetricCard from './MetricCard';
 import SpendingChart from './SpendingChart';
 import RecentTransactions from './RecentTransactions';
@@ -96,6 +96,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, recurringTr
   const [timeRange, setTimeRange] = useState<'month' | 'quarter' | 'year'>('month');
   const [isWidgetLibraryOpen, setIsWidgetLibraryOpen] = useState(false);
   const [draggedWidget, setDraggedWidget] = useState<string | null>(null);
+  const [showSensitiveData, setShowSensitiveData] = useState(true);
   
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -359,6 +360,19 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, recurringTr
         <div className="hidden md:flex items-center gap-2 self-center">
           {!isEditMode && (
             <motion.button
+              onClick={() => setShowSensitiveData(!showSensitiveData)}
+              className="flex items-center gap-2 px-3 py-2 text-sm font-bold bg-white dark:bg-white/10 text-slate-700 dark:text-slate-200 rounded-xl hover:bg-slate-50 dark:hover:bg-white/20 border border-slate-200 dark:border-white/10 transition-all shadow-sm"
+              variants={buttonHoverVariants}
+              whileHover="hover"
+              whileTap="tap"
+              title={showSensitiveData ? "Hide sensitive data" : "Show sensitive data"}
+            >
+              {showSensitiveData ? <Eye size={18} className="text-slate-500" /> : <EyeOff size={18} className="text-slate-500" />}
+            </motion.button>
+          )}
+
+          {!isEditMode && (
+            <motion.button
               onClick={() => setIsWidgetLibraryOpen(true)}
               className="group flex items-center gap-2 px-4 py-2 text-sm font-bold bg-white dark:bg-white/10 text-slate-700 dark:text-slate-200 rounded-xl hover:bg-slate-50 dark:hover:bg-white/20 border border-slate-200 dark:border-white/10 transition-all shadow-sm"
               variants={buttonHoverVariants}
@@ -430,7 +444,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, recurringTr
         <motion.div variants={fadeInVariants} initial="initial" animate="animate" transition={{ delay: 0.1 }}>
           <MetricCard
             title="Total Balance"
-            value={`${currency}${totalBalance.toLocaleString()}`}
+            value={showSensitiveData ? `${currency}${totalBalance.toLocaleString()}` : "Bazillions 💰"}
             icon={DollarSign}
             color="bg-[#007BFF]"
           />
@@ -438,7 +452,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, recurringTr
         <motion.div variants={fadeInVariants} initial="initial" animate="animate" transition={{ delay: 0.2 }}>
           <MetricCard
             title="This Month's Income"
-            value={`${currency}${monthlyIncome.toLocaleString()}`}
+            value={showSensitiveData ? `${currency}${monthlyIncome.toLocaleString()}` : "Stonks Only 🚀"}
             icon={TrendingUp}
             color="bg-[#28A745]"
             mobileTitle="Income"
@@ -447,7 +461,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, recurringTr
         <motion.div variants={fadeInVariants} initial="initial" animate="animate" transition={{ delay: 0.3 }}>
           <MetricCard
             title="This Month's Expenses"
-            value={`${currency}${monthlyExpenses.toLocaleString()}`}
+            value={showSensitiveData ? `${currency}${monthlyExpenses.toLocaleString()}` : "Don't Look 🙈"}
             icon={TrendingDown}
             color="bg-[#DC3545]"
             mobileTitle="Expenses"
