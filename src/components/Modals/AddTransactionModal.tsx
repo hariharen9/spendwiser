@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, DollarSign, AlertTriangle, Calendar, Rows, Columns, Tag as TagIcon, Briefcase, MessageSquare, Users, Plus } from 'lucide-react';
+import { X, DollarSign, Calendar, Rows, Columns, Tag as TagIcon, Briefcase, MessageSquare, Users, Plus } from 'lucide-react';
 import { Transaction, Account, Shortcut, Tag, Loan } from '../../types/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { modalVariants } from '../Common/AnimationVariants';
@@ -424,26 +424,19 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                       </span>
                       Amount *
                     </label>
-                    <div className="relative">
-                      <CurrencyInput
-                        required
-                        value={formData.amount}
-                        onChange={(value) => setFormData({ ...formData, amount: value })}
-                        currency={currency}
-                        className={`w-full ${
-                          isLargeAmount 
-                            ? 'border-red-500 focus:ring-red-200 dark:border-red-500 dark:focus:ring-red-900/50' 
-                            : 'border-gray-300 dark:border-gray-600'
-                        }`}
-                        placeholder="0.00"
-                        error={isLargeAmount ? "Large transaction amount" : undefined}
-                      />
-                      {isLargeAmount && (
-                        <div className="absolute inset-y-0 right-0 flex items-center pr-10 pointer-events-none">
-                          <AlertTriangle className="h-5 w-5 text-red-500" />
-                        </div>
-                      )}
-                    </div>
+                    <CurrencyInput
+                      required
+                      value={formData.amount}
+                      onChange={(value) => setFormData({ ...formData, amount: value })}
+                      currency={currency}
+                      className={`w-full ${
+                        isLargeAmount
+                          ? 'border-red-500 focus:ring-red-200 dark:border-red-500 dark:focus:ring-red-900/50'
+                          : 'border-gray-300 dark:border-gray-600'
+                      }`}
+                      placeholder="0.00"
+                      error={isLargeAmount ? "Large amount - please double check" : undefined}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center">
