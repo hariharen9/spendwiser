@@ -58,9 +58,10 @@ const AnimatedDropdown: React.FC<AnimatedDropdownProps> = ({ options, selectedVa
   useEffect(() => {
     if (isOpen && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
+      // For position: fixed, use viewport coordinates directly (no scroll offset)
       setDropdownPosition({
-        top: rect.bottom + window.scrollY,
-        left: rect.left + window.scrollX,
+        top: rect.bottom,
+        left: rect.left,
         width: rect.width
       });
     }
@@ -117,9 +118,12 @@ const AnimatedDropdown: React.FC<AnimatedDropdownProps> = ({ options, selectedVa
             initial="initial"
             animate="animate"
             exit="exit"
-            style={{ 
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            data-lenis-prevent
+            style={{
               position: 'fixed',
-              zIndex: 1000,
+              zIndex: 9999,
               top: dropdownPosition.top,
               left: dropdownPosition.left,
               width: dropdownPosition.width

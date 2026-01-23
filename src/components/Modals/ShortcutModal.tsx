@@ -56,7 +56,7 @@ const ShortcutModal: React.FC<ShortcutModalProps> = ({
         accountId: ''
       });
     }
-  }, [editingShortcut, isOpen]);
+  }, [editingShortcut, isOpen, categories]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -154,6 +154,7 @@ const ShortcutModal: React.FC<ShortcutModalProps> = ({
                     selectedValue={formData.category}
                     options={categories}
                     onChange={(value) => setFormData({ ...formData, category: value })}
+                    placeholder="Select a category"
                   />
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Category for this transaction type</p>
                 </div>
@@ -202,8 +203,12 @@ const ShortcutModal: React.FC<ShortcutModalProps> = ({
                   </label>
                   <AnimatedDropdown
                     selectedValue={formData.accountId}
-                    options={accounts.map(acc => ({ value: acc.id, label: acc.name }))}
+                    options={[
+                      { value: '', label: 'No account (optional)' },
+                      ...accounts.map(acc => ({ value: acc.id, label: acc.name }))
+                    ]}
                     onChange={(value) => setFormData({ ...formData, accountId: value })}
+                    placeholder="Select an account"
                   />
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Select an account to auto-populate in transactions</p>
                 </div>

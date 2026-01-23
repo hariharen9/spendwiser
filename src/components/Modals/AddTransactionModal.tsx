@@ -19,8 +19,9 @@ interface AddTransactionModalProps {
   defaultAccountId?: string | null;
   categories?: string[];
   shortcuts: Shortcut[];
-  currency?: string; // Add currency prop
-  loans?: Loan[]; // Add loans prop
+  currency?: string;
+  loans?: Loan[];
+  defaultType?: 'income' | 'expense' | null; // Pre-select transaction type
 }
 
 // Category keywords mapping for auto-categorization
@@ -53,8 +54,9 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   defaultAccountId,
   categories = ['Home', 'Groceries', 'Food & Dining', 'Transportation', 'Entertainment', 'Shopping', 'Personal', 'Fuel', 'Utilities', 'Healthcare', 'Education', 'Bills & EMIs', 'Rent & Housing', 'Investment', 'Travel', 'Other'],
   shortcuts,
-  currency = '₹', // Add currency prop with default value
-  loans = [], // Add loans prop
+  currency = '₹',
+  loans = [],
+  defaultType = null,
 }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -190,19 +192,19 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
       } else if (allAccounts.length === 1) {
         defaultAccount = allAccounts[0].id;
       }
-      
+
       setFormData({
         name: '',
         amount: '',
         date: new Date().toISOString().split('T')[0],
         category: categories[0],
-        type: 'expense',
+        type: defaultType || 'expense',
         accountId: defaultAccount,
         comments: '',
         loanId: ''
       });
     }
-  }, [editingTransaction, isOpen, accounts, creditCards, defaultAccountId, categories]);
+  }, [editingTransaction, isOpen, accounts, creditCards, defaultAccountId, categories, defaultType]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

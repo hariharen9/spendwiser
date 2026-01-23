@@ -12,7 +12,7 @@ import { TimezoneManager } from './lib/timezone';
 import LoginPage from './components/Login/LoginPage';
 import Sidebar from './components/Layout/Sidebar';
 import Header from './components/Layout/Header';
-import FAB from './components/Common/FAB';
+import EnhancedFAB from './components/Common/EnhancedFAB';
 import HelpFAB from './components/Common/HelpFAB';
 import AnimatedToast from './components/Common/AnimatedToast';
 import ConnectionStatus from './components/Common/ConnectionStatus';
@@ -788,6 +788,61 @@ function App() {
     setHasLoadedMockData(false);
     setHasShownMockDataReminder(false);
     setShowLogoutConfirm(false);
+  };
+
+  // State for pre-selected transaction type (for EnhancedFAB)
+  const [preSelectedTransactionType, setPreSelectedTransactionType] = useState<'income' | 'expense' | null>(null);
+
+  // Handler for Add Income quick action
+  const handleQuickAddIncome = () => {
+    setPreSelectedTransactionType('income');
+    setIsAddTransactionModalOpen(true);
+  };
+
+  // Handler for Add Expense quick action
+  const handleQuickAddExpense = () => {
+    setPreSelectedTransactionType('expense');
+    setIsAddTransactionModalOpen(true);
+  };
+
+  // Handler for Repeat Last Transaction
+  const handleRepeatLastTransaction = () => {
+    if (transactions.length === 0) return;
+
+    // Get the most recent transaction
+    const sortedTransactions = [...transactions].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+    const lastTransaction = sortedTransactions[0];
+
+    // Create a new transaction with today's date
+    const newTransaction: Omit<Transaction, 'id'> = {
+      name: lastTransaction.name,
+      amount: lastTransaction.amount,
+      date: new Date().toISOString(),
+      category: lastTransaction.category,
+      type: lastTransaction.type,
+      ...(lastTransaction.accountId && { accountId: lastTransaction.accountId }),
+      ...(lastTransaction.comments && { comments: lastTransaction.comments }),
+    };
+
+    handleAddTransaction(newTransaction);
+    showToast(`Repeated: ${lastTransaction.name}`, 'success');
+  };
+
+  // Handler for shortcut selection from EnhancedFAB
+  const handleShortcutFromFAB = (shortcut: Shortcut) => {
+    // Pre-fill the transaction modal with shortcut data
+    setEditingTransaction({
+      id: '', // Empty ID means new transaction
+      name: shortcut.name,
+      amount: 0, // User will enter amount
+      date: new Date().toISOString(),
+      category: shortcut.category,
+      type: shortcut.type,
+      accountId: shortcut.accountId,
+    } as Transaction);
+    setIsAddTransactionModalOpen(true);
   };
 
   const handleAddTransaction = async (transactionData: Omit<Transaction, 'id'>, id?: string) => {
@@ -2833,8 +2888,17 @@ function App() {
         </div>
       </div>
 
-      {/* Floating Action Button - Visible on all screens, positioned appropriately for each */}
-      <FAB onClick={() => setIsAddTransactionModalOpen(true)} />
+      {/* Enhanced Floating Action Button - Speed Dial with quick actions */}
+      <EnhancedFAB
+        onAddTransaction={() => setIsAddTransactionModalOpen(true)}
+        onAddIncome={handleQuickAddIncome}
+        onAddExpense={handleQuickAddExpense}
+        onRepeatLast={handleRepeatLastTransaction}
+        onOpenCalculator={() => setIsCalculatorModalOpen(true)}
+        onSelectShortcut={handleShortcutFromFAB}
+        shortcuts={shortcuts}
+        hasLastTransaction={transactions.length > 0}
+      />
 
       {/* Help FAB - Visible on specific screens */}
       {['transactions', 'credit-cards', 'budgets', 'goals', 'loans'].includes(currentScreen) && (
@@ -2853,15 +2917,17 @@ function App() {
         onClose={() => {
           setIsAddTransactionModalOpen(false);
           setEditingTransaction(undefined);
+          setPreSelectedTransactionType(null);
         }}
         onSave={handleAddTransaction}
         editingTransaction={editingTransaction}
         accounts={regularAccounts}
         creditCards={creditCards}
         defaultAccountId={defaultAccountId}
-        categories={userCategories} // Pass user categories to the modal
+        categories={userCategories}
         shortcuts={shortcuts}
         currency={currency}
+        defaultType={preSelectedTransactionType}
       />
 
       {/* Import CSV Modal */}
