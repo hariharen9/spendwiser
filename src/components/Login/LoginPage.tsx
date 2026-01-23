@@ -247,7 +247,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   );
 
   return (
-    <div ref={scrollContainerRef} id="main-scroll-container" className="h-screen overflow-y-auto snap-y snap-mandatory">
+    <div ref={scrollContainerRef} id="main-scroll-container" className="h-screen overflow-y-auto snap-y snap-mandatory scroll-smooth">
       <div className="fixed top-4 right-4 z-[60]">
         <button
           onClick={toggleDarkMode}

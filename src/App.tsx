@@ -53,6 +53,7 @@ import { pageVariants, modalVariants } from './components/Common/AnimationVarian
 // Hooks
 import { useToast } from './hooks/useToast';
 import { useOnboarding } from './hooks/useOnboarding';
+import { useLenis } from './hooks/useLenis';
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -114,6 +115,14 @@ function App() {
 
   // Toast system
   const { toasts, showToast, removeToast } = useToast();
+
+  // Smooth scrolling with Lenis - only when logged in
+  useLenis({
+    lerp: 0.1,
+    duration: 1.2,
+    smoothTouch: false,
+    enabled: !!user, // Only enable when user is logged in
+  });
 
   // Handle URL parameters for notification actions
   useEffect(() => {
@@ -2679,7 +2688,7 @@ function App() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50 dark:bg-[#1A1A1A] overflow-hidden">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#1A1A1A]">
       <ConnectionStatus />
       {/* Toast notifications */}
       <AnimatePresence>
@@ -2694,7 +2703,7 @@ function App() {
       </AnimatePresence>
 
       {/* Top Bar for Mobile */}
-      <div className="md:hidden bg-white dark:bg-[#242424] border-b border-gray-200 dark:border-gray-700 p-4">
+      <div className="md:hidden bg-white dark:bg-[#242424] border-b border-gray-200 dark:border-gray-700 p-4 sticky top-0 z-40">
         <ConnectionStatus />
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -2738,9 +2747,9 @@ function App() {
       </div>
 
       {/* Main Content */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex min-h-screen">
         {/* Sidebar for Desktop */}
-        <div className="hidden md:block w-64">
+        <div className="hidden md:block w-64 fixed top-0 left-0 h-screen z-40">
           <Sidebar
             currentScreen={currentScreen}
             onScreenChange={setCurrentScreen}
@@ -2752,20 +2761,20 @@ function App() {
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col md:ml-64">
           {/* Header for Desktop */}
-          <div className="hidden md:block">
+          <div className="hidden md:block sticky top-0 z-30">
             <Header
               title={getPageTitle()}
               actionButton={getActionButton()}
               secondaryActionButton={getSecondaryActionButton()}
               onAddTransaction={() => setIsAddTransactionModalOpen(true)}
-              onOpenCalculator={() => setIsCalculatorModalOpen(true)}
+              onOpenCalculator={() => setIsCalculatorModalOpen(prev => !prev)}
             />
           </div>
 
           {/* Page Content */}
-          <main className="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-8">
+          <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8">
             <AnimatePresence mode="wait">
               {renderCurrentPage()}
             </AnimatePresence>
