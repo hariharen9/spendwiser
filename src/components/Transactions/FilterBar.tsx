@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Calendar, Filter, X, Clock, DollarSign } from 'lucide-react';
+import { Search, Calendar, Filter, X, Clock, DollarSign, Tag } from 'lucide-react';
 import AnimatedDropdown from '../Common/AnimatedDropdown';
 import StyledCheckbox from '../Common/StyledCheckbox';
+import { Tag as TagType } from '../../types/types';
+import { getTagColorClasses } from '../Common/TagColors';
 
 interface FilterBarProps {
   transactionCount: number;
@@ -28,6 +30,9 @@ interface FilterBarProps {
   onShowOnlyCCChange: (value: boolean) => void;
   showOnlyWithComments: boolean;
   onShowOnlyWithCommentsChange: (value: boolean) => void;
+  userTags?: TagType[];
+  selectedTags?: string[];
+  onSelectedTagsChange?: (tagIds: string[]) => void;
 }
 
 const FilterBar: React.FC<FilterBarProps> = ({
@@ -54,7 +59,10 @@ const FilterBar: React.FC<FilterBarProps> = ({
   showOnlyCC,
   onShowOnlyCCChange,
   showOnlyWithComments,
-  onShowOnlyWithCommentsChange
+  onShowOnlyWithCommentsChange,
+  userTags = [],
+  selectedTags = [],
+  onSelectedTagsChange,
 }) => {
   const [showDateInputs, setShowDateInputs] = useState(false);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
@@ -482,6 +490,58 @@ const FilterBar: React.FC<FilterBarProps> = ({
                         />
                     </div>
                 </div>
+
+                {/* Tag Filter */}
+                {userTags.length > 0 && onSelectedTagsChange && (
+                  <div className="md:col-span-8">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center">
+                      <Tag className="h-4 w-4 mr-1" />
+                      Filter by Tags
+                    </label>
+                    <div className="bg-gray-100 dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-600 rounded-lg p-2 min-h-[42px] max-h-32 overflow-y-auto">
+                      <div className="flex flex-wrap gap-2">
+                        {userTags.map((tag) => {
+                          const colorClasses = getTagColorClasses(tag.color);
+                          const isSelected = selectedTags.includes(tag.id);
+                          return (
+                            <button
+                              key={tag.id}
+                              type="button"
+                              onClick={() => {
+                                if (isSelected) {
+                                  onSelectedTagsChange(selectedTags.filter(id => id !== tag.id));
+                                } else {
+                                  onSelectedTagsChange([...selectedTags, tag.id]);
+                                }
+                              }}
+                              className={`px-2 py-1 text-xs rounded-full transition-all ${
+                                isSelected
+                                  ? `${colorClasses.bg} ${colorClasses.text} ring-2 ring-offset-1 ring-blue-500 dark:ring-offset-gray-800`
+                                  : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600'
+                              }`}
+                            >
+                              {tag.name}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    {selectedTags.length > 0 && (
+                      <div className="mt-1 flex items-center justify-between">
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          {selectedTags.length} tag{selectedTags.length !== 1 ? 's' : ''} selected
+                        </span>
+                        <button
+                          onClick={() => onSelectedTagsChange([])}
+                          className="text-xs text-red-500 hover:text-red-700 dark:hover:text-red-400 flex items-center"
+                        >
+                          <X className="h-3 w-3 mr-1" />
+                          Clear tags
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
             </div>
           </div>
         )}

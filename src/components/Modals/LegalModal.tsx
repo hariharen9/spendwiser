@@ -55,7 +55,7 @@ const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, title, content
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6">
+            <div className="flex-1 overflow-y-auto p-6" data-lenis-prevent>
               {content}
             </div>
 

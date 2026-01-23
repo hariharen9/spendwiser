@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Transaction, Account } from '../../types/types';
+import { Transaction, Account, Tag } from '../../types/types';
 import { motion } from 'framer-motion';
 import { fadeInVariants, staggerContainer, buttonHoverVariants } from '../../components/Common/AnimationVariants';
 import { Edit, Trash2, Check, X, MessageSquare } from 'lucide-react';
+import TagChip from '../Common/TagChip';
 
 interface TransactionTableProps {
   transactions: Transaction[];
@@ -14,6 +15,7 @@ interface TransactionTableProps {
   accounts: Account[]; // Add accounts property
   selectedTransactions: string[]; // For bulk operations
   setSelectedTransactions: React.Dispatch<React.SetStateAction<string[]>>; // For bulk operations
+  userTags?: Tag[]; // User's tags for displaying
 }
 
 const TransactionTable: React.FC<TransactionTableProps> = ({
@@ -25,7 +27,8 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
   categories,
   accounts, // Add accounts parameter
   selectedTransactions, // Add bulk operations parameters
-  setSelectedTransactions // Add bulk operations parameters
+  setSelectedTransactions, // Add bulk operations parameters
+  userTags = [], // Add userTags parameter
 }) => {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [editingCellId, setEditingCellId] = useState<string | null>(null);
@@ -237,6 +240,22 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
                                   <div className="absolute z-50 px-2 py-1 text-xs font-medium text-white bg-gray-900 rounded-md shadow-sm bottom-full left-1/2 transform -translate-x-1/2 -translate-y-2 whitespace-nowrap">
                                     Recurring Transaction
                                   </div>
+                                )}
+                              </div>
+                            )}
+                            {/* Tags */}
+                            {transaction.tags && transaction.tags.length > 0 && (
+                              <div className="flex items-center gap-1 ml-2">
+                                {transaction.tags.slice(0, 3).map(tagId => {
+                                  const tag = userTags.find(t => t.id === tagId);
+                                  return tag ? (
+                                    <TagChip key={tag.id} tag={tag} size="sm" />
+                                  ) : null;
+                                })}
+                                {transaction.tags.length > 3 && (
+                                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                                    +{transaction.tags.length - 3}
+                                  </span>
                                 )}
                               </div>
                             )}

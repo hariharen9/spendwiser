@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Screen, Transaction, Account, Budget, TotalBudget, Goal, Loan, RecurringTransaction, Shortcut } from './types/types';
+import { Screen, Transaction, Account, Budget, TotalBudget, Goal, Loan, RecurringTransaction, Shortcut, Tag } from './types/types';
 import { User, deleteUser, GoogleAuthProvider, reauthenticateWithPopup, updateProfile, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
 import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, writeBatch, getDocs, increment } from 'firebase/firestore';
@@ -101,6 +101,7 @@ function App() {
   const [isImportCSVModalOpen, setIsImportCSVModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [userCategories, setUserCategories] = useState<string[]>([]); // Add user categories state
+  const [userTags, setUserTags] = useState<Tag[]>([]); // User's custom tags
   const [showReauthModal, setShowReauthModal] = useState(false);
   const [showPasswordReauthModal, setShowPasswordReauthModal] = useState(false);
   const [reauthPassword, setReauthPassword] = useState('');
@@ -325,6 +326,10 @@ function App() {
             setUserCategories(userData.categories);
           } else {
             setUserCategories(getDefaultCategories());
+          }
+          // Load user tags if they exist
+          if (userData.tags) {
+            setUserTags(userData.tags);
           }
         } else {
           // If the user document doesn't exist, create it with default categories and dark theme
@@ -1039,6 +1044,69 @@ function App() {
     if (user) {
       const userDocRef = doc(db, 'spenders', user.uid);
       await updateDoc(userDocRef, { categories: categories });
+    }
+  };
+
+  // Tag management functions
+  const handleAddTag = async (name: string, color: string): Promise<Tag | null> => {
+    if (!name.trim() || !user) return null;
+
+    // Check if tag with same name already exists
+    const existingTag = userTags.find(t => t.name.toLowerCase() === name.toLowerCase());
+    if (existingTag) return existingTag;
+
+    const newTag: Tag = {
+      id: `tag_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      name: name.trim(),
+      color,
+    };
+
+    const newTags = [...userTags, newTag];
+    setUserTags(newTags);
+
+    try {
+      const userDocRef = doc(db, 'spenders', user.uid);
+      await updateDoc(userDocRef, { tags: newTags });
+      return newTag;
+    } catch (error) {
+      console.error("Error adding tag: ", error);
+      // Revert on error
+      setUserTags(userTags);
+      return null;
+    }
+  };
+
+  const handleUpdateTag = async (tagId: string, updates: Partial<Omit<Tag, 'id'>>) => {
+    if (!user) return;
+
+    const updatedTags = userTags.map(tag =>
+      tag.id === tagId ? { ...tag, ...updates } : tag
+    );
+    setUserTags(updatedTags);
+
+    try {
+      const userDocRef = doc(db, 'spenders', user.uid);
+      await updateDoc(userDocRef, { tags: updatedTags });
+    } catch (error) {
+      console.error("Error updating tag: ", error);
+      setUserTags(userTags);
+    }
+  };
+
+  const handleDeleteTag = async (tagId: string) => {
+    if (!user) return;
+
+    const updatedTags = userTags.filter(tag => tag.id !== tagId);
+    setUserTags(updatedTags);
+
+    try {
+      const userDocRef = doc(db, 'spenders', user.uid);
+      await updateDoc(userDocRef, { tags: updatedTags });
+      showToast('Tag deleted successfully!', 'success');
+    } catch (error) {
+      console.error("Error deleting tag: ", error);
+      setUserTags(userTags);
+      showToast('Error deleting tag', 'error');
     }
   };
 
@@ -1808,6 +1876,7 @@ function App() {
               sortOption={sortOption}
               setSortOption={setSortOption}
               accounts={accountsWithDynamicBalances} // Pass accounts data for credit card identification
+              userTags={userTags}
             />
           </motion.div>
         );
@@ -2928,6 +2997,13 @@ function App() {
         shortcuts={shortcuts}
         currency={currency}
         defaultType={preSelectedTransactionType}
+        loans={loans}
+        userTags={userTags}
+        onAddTag={handleAddTag}
+        onUpdateTag={async (tagId, name, color) => {
+          await handleUpdateTag(tagId, { name, color });
+        }}
+        onDeleteTag={handleDeleteTag}
       />
 
       {/* Import CSV Modal */}

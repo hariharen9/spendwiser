@@ -1,5 +1,12 @@
 export type Screen = 'dashboard' | 'transactions' | 'credit-cards' | 'budgets' | 'settings' | 'goals' | 'loans' | 'shortcuts';
 
+// Tag for labeling transactions
+export interface Tag {
+  id: string;
+  name: string;
+  color: string; // Color name from TAG_COLORS, e.g., 'blue', 'emerald', 'purple'
+}
+
 export interface Transaction {
   id: string;
   name: string;
@@ -14,6 +21,7 @@ export interface Transaction {
   isRecurring?: boolean;
   recurringTransactionId?: string;
   loanId?: string; // Link transaction to a specific loan payment
+  tags?: string[]; // Array of tag IDs
 }
 
 export interface Budget {
@@ -35,6 +43,7 @@ export type User = {
   fontPreference?: string;
   timezone?: string;
   categories?: string[];
+  tags?: Tag[]; // User's custom tags
   feedbackStars?: number;
   feedbackText?: string;
   hasGivenFeedback?: boolean;

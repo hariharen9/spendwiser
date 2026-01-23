@@ -179,7 +179,7 @@ const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose, page }) => {
                 <X className="h-6 w-6" />
               </button>
             </div>
-            <div className="p-6 text-gray-700 dark:text-gray-300 overflow-y-auto flex-grow">
+            <div className="p-6 text-gray-700 dark:text-gray-300 overflow-y-auto flex-grow" data-lenis-prevent>
               {content}
             </div>
             <div className="p-6 border-t border-gray-200 dark:border-gray-700 text-center flex-shrink-0">

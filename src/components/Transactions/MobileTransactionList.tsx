@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Transaction, Account } from '../../types/types';
+import { Transaction, Account, Tag } from '../../types/types';
 import { Edit, Trash2, ChevronDown, ChevronUp, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import TagChip from '../Common/TagChip';
 
 interface MobileTransactionListProps {
   transactions: Transaction[];
@@ -9,6 +10,7 @@ interface MobileTransactionListProps {
   onDeleteTransaction: (id: string) => void;
   currency: string;
   accounts: Account[]; // Add accounts property
+  userTags?: Tag[]; // User's tags for displaying
 }
 
 const MobileTransactionList: React.FC<MobileTransactionListProps> = ({
@@ -16,7 +18,8 @@ const MobileTransactionList: React.FC<MobileTransactionListProps> = ({
   onEditTransaction,
   onDeleteTransaction,
   currency,
-  accounts // Add accounts parameter
+  accounts, // Add accounts parameter
+  userTags = [], // Add userTags parameter
 }) => {
   const [expandedTransactionId, setExpandedTransactionId] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -169,7 +172,7 @@ const MobileTransactionList: React.FC<MobileTransactionListProps> = ({
                         )}
                         {transaction.isRecurring && (
                           <div className="relative ml-2">
-                            <span 
+                            <span
                               className="px-2 py-1 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 text-xs font-medium rounded-full cursor-pointer"
                               onMouseEnter={() => setTooltipId(`recurring-${transaction.id}`)}
                               onMouseLeave={() => setTooltipId(null)}
@@ -184,6 +187,22 @@ const MobileTransactionList: React.FC<MobileTransactionListProps> = ({
                           </div>
                         )}
                       </div>
+                      {/* Tags - displayed below name */}
+                      {transaction.tags && transaction.tags.length > 0 && (
+                        <div className="flex items-center gap-1 mt-1 flex-wrap">
+                          {transaction.tags.slice(0, 2).map(tagId => {
+                            const tag = userTags.find(t => t.id === tagId);
+                            return tag ? (
+                              <TagChip key={tag.id} tag={tag} size="sm" />
+                            ) : null;
+                          })}
+                          {transaction.tags.length > 2 && (
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              +{transaction.tags.length - 2}
+                            </span>
+                          )}
+                        </div>
+                      )}
                       <p className="text-sm text-gray-500 dark:text-[#888888]">
                         {transaction.category}
                       </p>

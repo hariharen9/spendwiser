@@ -166,7 +166,7 @@ const RecurringTransactionModal: React.FC<RecurringTransactionModalProps> = ({
               </button>
             </div>
 
-            <div className="flex-grow overflow-y-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="flex-grow overflow-y-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-2 gap-8" data-lenis-prevent>
               {/* Form Section */}
               <div className="space-y-6">
                 <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 border-b dark:border-gray-600 pb-2">

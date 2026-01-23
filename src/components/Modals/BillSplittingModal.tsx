@@ -235,7 +235,7 @@ const BillSplittingModal: React.FC<BillSplittingModalProps> = ({
               </button>
             </div>
 
-            <div className="flex-grow overflow-y-auto p-4 md:p-6">
+            <div className="flex-grow overflow-y-auto p-4 md:p-6" data-lenis-prevent>
               {loading ? (
                 <div className="space-y-6 animate-pulse">
                   <div className="bg-gray-50 dark:bg-[#1A1A1A] rounded-lg p-4">

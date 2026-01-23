@@ -100,7 +100,7 @@ const ShortcutModal: React.FC<ShortcutModalProps> = ({
               </motion.button>
             </div>
 
-            <div className="p-4 md:p-6 overflow-y-auto">
+            <div className="p-4 md:p-6 overflow-y-auto" data-lenis-prevent>
               <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 mb-6">
                 <p className="text-sm text-blue-800 dark:text-blue-200">
                   <span className="font-semibold">How to use shortcuts:</span> After creating a shortcut, use it in the Add Transaction form by typing the keyword followed by a dot and amount (e.g., "coffee.50") and then clicking away from the field.

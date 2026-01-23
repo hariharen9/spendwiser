@@ -3,7 +3,7 @@ import FilterBar from './FilterBar';
 import TransactionTable from './TransactionTable';
 import MobileTransactionList from './MobileTransactionList';
 import TransactionSummary from './TransactionSummary';
-import { Transaction, Account, RecurringTransaction } from '../../types/types';
+import { Transaction, Account, RecurringTransaction, Tag } from '../../types/types';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Trash2, Calendar, List } from 'lucide-react';
 import { fadeInVariants, staggerContainer } from '../../components/Common/AnimationVariants';
@@ -31,6 +31,7 @@ interface TransactionsPageProps {
   sortOption: string;
   setSortOption: (value: string) => void;
   accounts: Account[]; // Add accounts property
+  userTags?: Tag[]; // User's tags for displaying
 }
 
 const TransactionsPage: React.FC<TransactionsPageProps> = ({
@@ -54,7 +55,8 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
   sortOption,
   setSortOption,
   accounts, // Add accounts parameter
-  recurringTransactions
+  recurringTransactions,
+  userTags = [], // Add userTags parameter
 }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
@@ -65,6 +67,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]); // For multiple category selection
   const [showOnlyCC, setShowOnlyCC] = useState(false);
   const [showOnlyWithComments, setShowOnlyWithComments] = useState(false);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]); // For tag filtering
 
   const formatDate = (date: Date) => date.toISOString().split('T')[0];
 
@@ -136,8 +139,12 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
       const matchesCC = !showOnlyCC || isCCTransaction;
 
       const matchesComments = !showOnlyWithComments || (transaction.comments && transaction.comments.trim() !== '');
-      
-      return matchesSearch && matchesType && matchesCategory && matchesAmount && matchesDate && matchesCC && matchesComments;
+
+      // Tag filter - match any selected tag
+      const matchesTags = selectedTags.length === 0 ||
+        (transaction.tags && transaction.tags.some(tagId => selectedTags.includes(tagId)));
+
+      return matchesSearch && matchesType && matchesCategory && matchesAmount && matchesDate && matchesCC && matchesComments && matchesTags;
     });
 
 
@@ -229,7 +236,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
     }
 
     return filtered;
-  }, [transactions, searchTerm, transactionType, selectedCategory, selectedCategories, minAmount, maxAmount, startDate, endDate, sortOption, showOnlyCC, showOnlyWithComments, accounts]);
+  }, [transactions, searchTerm, transactionType, selectedCategory, selectedCategories, minAmount, maxAmount, startDate, endDate, sortOption, showOnlyCC, showOnlyWithComments, selectedTags, accounts]);
 
   // Separate filter for Calendar View: Applies all filters EXCEPT date range
   // This ensures the calendar can show transactions for "padding days" (prev/next month days visible in grid)
@@ -265,10 +272,14 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
 
       // Comments filter
       const matchesComments = !showOnlyWithComments || (transaction.comments && transaction.comments.trim() !== '');
-      
-      return matchesSearch && matchesType && matchesCategory && matchesAmount && matchesCC && matchesComments;
+
+      // Tag filter - match any selected tag
+      const matchesTags = selectedTags.length === 0 ||
+        (transaction.tags && transaction.tags.some(tagId => selectedTags.includes(tagId)));
+
+      return matchesSearch && matchesType && matchesCategory && matchesAmount && matchesCC && matchesComments && matchesTags;
     });
-  }, [transactions, searchTerm, transactionType, selectedCategory, selectedCategories, minAmount, maxAmount, showOnlyCC, showOnlyWithComments, accounts]);
+  }, [transactions, searchTerm, transactionType, selectedCategory, selectedCategories, minAmount, maxAmount, showOnlyCC, showOnlyWithComments, selectedTags, accounts]);
 
   const summary = useMemo(() => {
     const incomeTransactions = sortedAndFilteredTransactions.filter(t => t.type === 'income');
@@ -454,6 +465,9 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
           onShowOnlyCCChange={setShowOnlyCC}
           showOnlyWithComments={showOnlyWithComments}
           onShowOnlyWithCommentsChange={setShowOnlyWithComments}
+          userTags={userTags}
+          selectedTags={selectedTags}
+          onSelectedTagsChange={setSelectedTags}
         />
       </motion.div>
 
@@ -509,6 +523,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
             accounts={accounts} // Pass accounts data
             selectedTransactions={selectedTransactions}
             setSelectedTransactions={setSelectedTransactions}
+            userTags={userTags}
             />
         ) : (
             <CalendarView 
@@ -533,6 +548,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
           onDeleteTransaction={onDeleteTransaction}
           currency={currency}
           accounts={accounts} // Pass accounts data
+          userTags={userTags}
         />
       </motion.div>
 

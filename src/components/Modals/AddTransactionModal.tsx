@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { X, DollarSign, AlertTriangle, Calendar, Rows, Columns, Tag, Briefcase, MessageSquare, Users } from 'lucide-react';
-import { Transaction, Account, Shortcut } from '../../types/types';
+import { X, DollarSign, AlertTriangle, Calendar, Rows, Columns, Tag as TagIcon, Briefcase, MessageSquare, Users, Plus } from 'lucide-react';
+import { Transaction, Account, Shortcut, Tag, Loan } from '../../types/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { modalVariants } from '../Common/AnimationVariants';
 import AnimatedDropdown from '../Common/AnimatedDropdown';
 import AccountDropdown from '../Common/AccountDropdown';
 import BillSplittingModal from './BillSplittingModal';
 import CurrencyInput from '../Common/CurrencyInput';
+import TagInput from '../Common/TagInput';
 import { hapticFeedback } from '../../hooks/useHaptic';
 
 interface AddTransactionModalProps {
@@ -22,6 +23,10 @@ interface AddTransactionModalProps {
   currency?: string;
   loans?: Loan[];
   defaultType?: 'income' | 'expense' | null; // Pre-select transaction type
+  userTags?: Tag[];
+  onAddTag?: (name: string, color: string) => Promise<Tag | null>;
+  onUpdateTag?: (tagId: string, name: string, color: string) => Promise<void>;
+  onDeleteTag?: (tagId: string) => Promise<void>;
 }
 
 // Category keywords mapping for auto-categorization
@@ -57,6 +62,10 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   currency = '₹',
   loans = [],
   defaultType = null,
+  userTags = [],
+  onAddTag,
+  onUpdateTag,
+  onDeleteTag,
 }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -66,7 +75,8 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
     type: 'expense' as 'income' | 'expense',
     accountId: '',
     comments: '',
-    loanId: '' // Add loanId to formData
+    loanId: '', // Add loanId to formData
+    tags: [] as string[], // Array of tag IDs
   });
   
   const [isLargeAmount, setIsLargeAmount] = useState(false);
@@ -76,6 +86,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
     return savedMode ? JSON.parse(savedMode) : false;
   });
   const [isBillSplittingOpen, setIsBillSplittingOpen] = useState(false);
+  const [showTagInput, setShowTagInput] = useState(false);
 
   const allAccounts = [...accounts, ...creditCards];
 
@@ -182,8 +193,11 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
         type: editingTransaction.type,
         accountId: editingTransaction.accountId || '',
         comments: editingTransaction.comments || '',
-        loanId: editingTransaction.loanId || ''
+        loanId: editingTransaction.loanId || '',
+        tags: editingTransaction.tags || [],
       });
+      // Show tag input if editing transaction has tags
+      setShowTagInput(editingTransaction.tags && editingTransaction.tags.length > 0);
     } else {
       // Set default account based on the rules
       let defaultAccount = '';
@@ -201,8 +215,11 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
         type: defaultType || 'expense',
         accountId: defaultAccount,
         comments: '',
-        loanId: ''
+        loanId: '',
+        tags: [],
       });
+      // Reset tag input visibility
+      setShowTagInput(false);
     }
   }, [editingTransaction, isOpen, accounts, creditCards, defaultAccountId, categories, defaultType]);
 
@@ -232,6 +249,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
       ...(formData.accountId && { accountId: formData.accountId }),
       ...(formData.comments && { comments: formData.comments }),
       ...(formData.loanId && { loanId: formData.loanId }), // Add loanId to the saved transaction
+      ...(formData.tags.length > 0 && { tags: formData.tags }), // Add tags
     };
 
     // Haptic feedback on successful save
@@ -338,6 +356,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
               <motion.form
                 onSubmit={handleSubmit}
                 className={`p-4 md:p-6 space-y-4 md:space-y-6 flex-grow ${!isCompact ? 'overflow-y-auto' : ''}`}
+                data-lenis-prevent
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
@@ -373,7 +392,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                       animate={{ opacity: 1, y: 0 }}
                     >
                       <div className="flex items-center">
-                        <Tag className="h-4 w-4 text-blue-500 mr-2" />
+                        <TagIcon className="h-4 w-4 text-blue-500 mr-2" />
                         <span className="text-blue-800 dark:text-blue-200 text-sm">
                           Suggested category: <span className="font-semibold">{suggestedCategory}</span>
                         </span>
@@ -511,7 +530,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                   </motion.div>
                 )}
 
-                {/* Category */}
+                {/* Category and Tags Row */}
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -520,15 +539,72 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                 >
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center">
                     <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2">
-                      <Tag className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      <TagIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                     </span>
                     Category *
                   </label>
-                  <AnimatedDropdown
-                    selectedValue={formData.category}
-                    options={categories}
-                    onChange={(value) => setFormData({ ...formData, category: value })}
-                  />
+                  <div className="flex gap-3 items-stretch">
+                    {/* Category - 70% */}
+                    <div className="flex-[7]">
+                      <AnimatedDropdown
+                        selectedValue={formData.category}
+                        options={categories}
+                        onChange={(value) => setFormData({ ...formData, category: value })}
+                      />
+                    </div>
+
+                    {/* Add Tags Button - 30% */}
+                    {onAddTag && (
+                      <div className="flex-[3]">
+                        <motion.button
+                          type="button"
+                          onClick={() => setShowTagInput(!showTagInput)}
+                          className={`w-full h-full min-h-[42px] flex items-center justify-center gap-1.5 rounded-lg border transition-all text-sm font-medium ${
+                            showTagInput || formData.tags.length > 0
+                              ? 'bg-purple-100 dark:bg-purple-900/30 border-purple-300 dark:border-purple-700 text-purple-700 dark:text-purple-300'
+                              : 'bg-gray-50 dark:bg-[#1A1A1A] border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-purple-400 hover:text-purple-600 dark:hover:text-purple-400'
+                          }`}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          {formData.tags.length > 0 ? (
+                            <>
+                              <TagIcon className="h-4 w-4" />
+                              <span>{formData.tags.length}</span>
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="h-4 w-4" />
+                              <span>Tags</span>
+                            </>
+                          )}
+                        </motion.button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Expandable Tags Input */}
+                  <AnimatePresence>
+                    {showTagInput && onAddTag && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0, marginTop: 0 }}
+                        animate={{ height: 'auto', opacity: 1, marginTop: 12 }}
+                        exit={{ height: 0, opacity: 0, marginTop: 0 }}
+                        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                        className="overflow-hidden"
+                      >
+                        <TagInput
+                          selectedTagIds={formData.tags}
+                          availableTags={userTags}
+                          onChange={(tagIds) => setFormData({ ...formData, tags: tagIds })}
+                          onCreateTag={onAddTag}
+                          onUpdateTag={onUpdateTag}
+                          onDeleteTag={onDeleteTag}
+                          placeholder="Search or create tags..."
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </motion.div>
 
                 {/* Loan Selector - Only show for Bills & EMIs */}
