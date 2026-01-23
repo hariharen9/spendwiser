@@ -35,6 +35,7 @@ const EnhancedFAB: React.FC<EnhancedFABProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const hoverTimer = useRef<NodeJS.Timeout | null>(null);
   const fabRef = useRef<HTMLButtonElement>(null);
@@ -149,13 +150,16 @@ const EnhancedFAB: React.FC<EnhancedFABProps> = ({
     // Only trigger hover menu on desktop
     if (window.innerWidth < 768) return;
 
+    setIsHovering(true);
     hoverTimer.current = setTimeout(() => {
       setIsOpen(true);
+      setIsHovering(false);
     }, 2000); // 2 second delay
   };
 
   // Handle mouse leave (cancel hover timer)
   const handleMouseLeave = () => {
+    setIsHovering(false);
     if (hoverTimer.current) {
       clearTimeout(hoverTimer.current);
       hoverTimer.current = null;
@@ -322,19 +326,22 @@ const EnhancedFAB: React.FC<EnhancedFABProps> = ({
         </motion.div>
       </motion.button>
 
-      {/* Hint text for first-time users */}
-      {!isOpen && (
-        <motion.div
-          className="absolute -top-8 right-0 hidden md:block"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 2 }}
-        >
-          <span className="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap">
-            Hover for more
-          </span>
-        </motion.div>
-      )}
+      {/* Hint text - only shows when hovering before menu opens */}
+      <AnimatePresence>
+        {isHovering && !isOpen && (
+          <motion.div
+            className="absolute -top-8 right-0 hidden md:block"
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 5 }}
+            transition={{ duration: 0.2 }}
+          >
+            <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap bg-white dark:bg-gray-800 px-2 py-1 rounded-md shadow-sm">
+              Hold to see more
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
