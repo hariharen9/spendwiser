@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import { X, GripVertical } from 'lucide-react';
 
 interface DraggableWidgetProps {
@@ -19,6 +19,25 @@ const DraggableWidget: React.FC<DraggableWidgetProps> = ({
   onRemove,
   index
 }) => {
+  const widgetRef = useRef<HTMLDivElement>(null);
+
+  // Parallax scroll effect
+  const { scrollYProgress } = useScroll({
+    target: widgetRef,
+    offset: ["start end", "end start"]
+  });
+
+  // Subtle parallax - widgets move slightly based on their index
+  // Even indexed widgets move up slightly, odd ones move down
+  const parallaxOffset = index % 2 === 0 ? 15 : -15;
+  const y = useTransform(scrollYProgress, [0, 1], [parallaxOffset, -parallaxOffset]);
+
+  // Subtle scale effect on scroll
+  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.98, 1, 0.98]);
+
+  // Opacity fade in/out at edges
+  const opacity = useTransform(scrollYProgress, [0, 0.1, 0.9, 1], [0.8, 1, 1, 0.8]);
+
   const {
     attributes,
     listeners,
@@ -46,8 +65,15 @@ const DraggableWidget: React.FC<DraggableWidgetProps> = ({
 
   return (
     <motion.div
-      ref={setNodeRef}
-      style={style}
+      ref={(node) => {
+        setNodeRef(node);
+        // Also set the widgetRef for parallax
+        (widgetRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+      }}
+      style={{
+        ...style,
+        y: isEditMode || isDragging ? 0 : y,
+      }}
       className={`
         relative group transition-all duration-200
         ${isDragging ? 'opacity-20 scale-[1.01] shadow-2xl z-50' : ''}
@@ -55,7 +81,10 @@ const DraggableWidget: React.FC<DraggableWidgetProps> = ({
         ${isOver && !isDragging ? 'ring-4 ring-blue-400 ring-opacity-75 bg-blue-50 dark:bg-blue-900/30 scale-[1.02]' : ''}
       `}
       initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: isDragging ? 0.2 : 1, y: 0 }}
+      animate={{
+        opacity: isDragging ? 0.2 : 1,
+        scale: isEditMode ? 1 : undefined,
+      }}
       transition={{ delay: index * 0.1, duration: isDragging ? 0.1 : 0.3 }}
     >
       {/* Edit Mode Overlay */}
