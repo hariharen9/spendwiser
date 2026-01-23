@@ -7,6 +7,7 @@ import AnimatedDropdown from '../Common/AnimatedDropdown';
 import AccountDropdown from '../Common/AccountDropdown';
 import BillSplittingModal from './BillSplittingModal';
 import CurrencyInput from '../Common/CurrencyInput';
+import { hapticFeedback } from '../../hooks/useHaptic';
 
 interface AddTransactionModalProps {
   isOpen: boolean;
@@ -207,10 +208,11 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
     e.preventDefault();
 
     if (isAccountRequired && !formData.accountId) {
+      hapticFeedback('error');
       alert('Please select an account for the transaction.');
       return;
     }
-    
+
     const amount = parseFloat(formData.amount);
     const finalAmount = formData.type === 'expense' ? -amount : amount;
 
@@ -230,6 +232,8 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
       ...(formData.loanId && { loanId: formData.loanId }), // Add loanId to the saved transaction
     };
 
+    // Haptic feedback on successful save
+    hapticFeedback('success');
     onSave(transaction);
     onClose();
   };

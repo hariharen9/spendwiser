@@ -1,10 +1,10 @@
 import React from 'react';
-import { 
-  Home, 
-  CreditCard, 
-  Receipt, 
-  PieChart, 
-  Settings, 
+import {
+  Home,
+  CreditCard,
+  Receipt,
+  PieChart,
+  Settings,
   LogOut,
   DollarSign,
   Target,
@@ -16,6 +16,7 @@ import { Screen } from '../../types/types';
 import { User } from 'firebase/auth';
 import { motion } from 'framer-motion';
 import { buttonHoverVariants, fadeInVariants } from '../../components/Common/AnimationVariants';
+import { hapticFeedback } from '../../hooks/useHaptic';
 
 interface SidebarProps {
   currentScreen: Screen;
@@ -70,7 +71,10 @@ const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onScreenChange, user, 
           return (
             <motion.button
               key={item.id}
-              onClick={() => onScreenChange(item.id)}
+              onClick={() => {
+                hapticFeedback('light');
+                onScreenChange(item.id);
+              }}
               className={`flex flex-col items-center justify-center py-2 rounded-lg transition-all duration-200 ${
                 isActive
                   ? 'text-[#007BFF]'
