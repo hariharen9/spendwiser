@@ -7,6 +7,7 @@ import { categories, getDefaultCategories, mockTransactions, mockAccounts, mockB
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { TimezoneManager } from './lib/timezone';
+import { useStreaks } from './hooks/useStreaks';
 
 // Components
 import LoginPage from './components/Login/LoginPage';
@@ -16,6 +17,7 @@ import EnhancedFAB from './components/Common/EnhancedFAB';
 import HelpFAB from './components/Common/HelpFAB';
 import AnimatedToast from './components/Common/AnimatedToast';
 import ConnectionStatus from './components/Common/ConnectionStatus';
+import StreakBadge from './components/Common/StreakBadge';
 
 // Pages
 import DashboardPage from './components/Dashboard/DashboardPage';
@@ -102,6 +104,10 @@ function App() {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [userCategories, setUserCategories] = useState<string[]>([]); // Add user categories state
   const [userTags, setUserTags] = useState<Tag[]>([]); // User's custom tags
+
+  // Streak tracking
+  const streakData = useStreaks(transactions, user?.uid);
+
   const [showReauthModal, setShowReauthModal] = useState(false);
   const [showPasswordReauthModal, setShowPasswordReauthModal] = useState(false);
   const [reauthPassword, setReauthPassword] = useState('');
@@ -2870,7 +2876,13 @@ function App() {
             </div>
           </div>
           {user && (
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
+              {/* Streak Badges */}
+              <StreakBadge
+                visitStreak={streakData.visitStreak}
+                transactionStreak={streakData.transactionStreak}
+                compact
+              />
               <img
                 src={user.photoURL || undefined}
                 alt={user.displayName || 'User'}
@@ -2909,6 +2921,8 @@ function App() {
             onLogout={handleLogout}
             darkMode={darkMode}
             onToggleDarkMode={onToggleDarkMode}
+            visitStreak={streakData.visitStreak}
+            transactionStreak={streakData.transactionStreak}
           />
         </div>
 

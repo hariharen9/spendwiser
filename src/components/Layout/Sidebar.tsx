@@ -17,6 +17,7 @@ import { User } from 'firebase/auth';
 import { motion } from 'framer-motion';
 import { buttonHoverVariants, fadeInVariants } from '../../components/Common/AnimationVariants';
 import { hapticFeedback } from '../../hooks/useHaptic';
+import StreakBadge from '../Common/StreakBadge';
 
 interface SidebarProps {
   currentScreen: Screen;
@@ -25,9 +26,11 @@ interface SidebarProps {
   onLogout: () => void;
   darkMode: boolean;
   onToggleDarkMode: () => void;
+  visitStreak?: number;
+  transactionStreak?: number;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onScreenChange, user, onLogout, darkMode, onToggleDarkMode }) => {
+const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onScreenChange, user, onLogout, darkMode, onToggleDarkMode, visitStreak = 0, transactionStreak = 0 }) => {
   const navItems = [
     { id: 'dashboard' as Screen, label: 'Dashboard', icon: Home },
     { id: 'transactions' as Screen, label: 'Transactions', icon: Receipt },
@@ -173,12 +176,19 @@ const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onScreenChange, user, 
             <motion.img
               src={user.photoURL || "https://i.pinimg.com/474x/18/b9/ff/18b9ffb2a8a791d50213a9d595c4dd52.jpg"} // Use photoURL
               alt={user.displayName || 'User'} // Use displayName
-              className="h-10 w-10 rounded-full object-cover"
+              className="h-10 w-10 rounded-full object-cover flex-shrink-0"
               whileHover={{ scale: 1.1 }}
               transition={{ type: "spring", stiffness: 300 }}
             />
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 flex items-center gap-2">
               <p className="text-sm font-medium text-gray-900 dark:text-[#F5F5F5] truncate">{user.displayName}</p>
+              {(visitStreak > 0 || transactionStreak > 0) && (
+                <StreakBadge
+                  visitStreak={visitStreak}
+                  transactionStreak={transactionStreak}
+                  compact
+                />
+              )}
             </div>
           </div>
 
