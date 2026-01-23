@@ -444,27 +444,39 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, recurringTr
         <motion.div variants={fadeInVariants} initial="initial" animate="animate" transition={{ delay: 0.1 }}>
           <MetricCard
             title="Total Balance"
-            value={showSensitiveData ? `${currency}${totalBalance.toLocaleString()}` : "Bazillions 💰"}
+            value={`${currency}${totalBalance.toLocaleString()}`}
+            numericValue={showSensitiveData ? totalBalance : undefined}
+            currency={currency}
             icon={DollarSign}
             color="bg-[#007BFF]"
+            hideValue={!showSensitiveData}
+            hiddenText="Bazillions 💰"
           />
         </motion.div>
         <motion.div variants={fadeInVariants} initial="initial" animate="animate" transition={{ delay: 0.2 }}>
           <MetricCard
             title="This Month's Income"
-            value={showSensitiveData ? `${currency}${monthlyIncome.toLocaleString()}` : "Stonks Only 🚀"}
+            value={`${currency}${monthlyIncome.toLocaleString()}`}
+            numericValue={showSensitiveData ? monthlyIncome : undefined}
+            currency={currency}
             icon={TrendingUp}
             color="bg-[#28A745]"
             mobileTitle="Income"
+            hideValue={!showSensitiveData}
+            hiddenText="Stonks Only 🚀"
           />
         </motion.div>
         <motion.div variants={fadeInVariants} initial="initial" animate="animate" transition={{ delay: 0.3 }}>
           <MetricCard
             title="This Month's Expenses"
-            value={showSensitiveData ? `${currency}${monthlyExpenses.toLocaleString()}` : "Don't Look 🙈"}
+            value={`${currency}${monthlyExpenses.toLocaleString()}`}
+            numericValue={showSensitiveData ? monthlyExpenses : undefined}
+            currency={currency}
             icon={TrendingDown}
             color="bg-[#DC3545]"
             mobileTitle="Expenses"
+            hideValue={!showSensitiveData}
+            hiddenText="Don't Look 🙈"
           />
         </motion.div>
       </motion.div>

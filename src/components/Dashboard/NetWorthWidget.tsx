@@ -5,6 +5,7 @@ import { Account, Loan } from '../../types/types';
 import { cardHoverVariants } from '../../components/Common/AnimationVariants';
 import { FiTrendingUp, FiTrendingDown, FiMinus } from 'react-icons/fi';
 import { CircleDollarSign } from 'lucide-react';
+import AnimatedNumber from '../Common/AnimatedNumber';
 
 interface NetWorthWidgetProps {
   accounts: Account[];
@@ -18,7 +19,7 @@ const NetWorthWidget: React.FC<NetWorthWidgetProps> = ({ accounts, loans, curren
     .filter(acc => acc.type !== 'Credit Card')
     .reduce((sum, acc) => sum + acc.balance, 0);
 
-  const liabilities = 
+  const liabilities =
     loans.reduce((sum, loan) => sum + loan.loanAmount, 0) +
     accounts
       .filter(acc => acc.type === 'Credit Card')
@@ -76,7 +77,11 @@ const NetWorthWidget: React.FC<NetWorthWidgetProps> = ({ accounts, loans, curren
           <div className={`text-4xl font-bold ${color} flex items-center justify-center`}>
             {icon}
             <span className="ml-2">
-              {currency}{Math.abs(netWorth).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+              <AnimatedNumber
+                value={Math.abs(netWorth)}
+                currency={currency}
+                decimals={0}
+              />
             </span>
           </div>
           <p className="text-gray-500 dark:text-[#888888] mt-1">
@@ -89,13 +94,21 @@ const NetWorthWidget: React.FC<NetWorthWidgetProps> = ({ accounts, loans, curren
         <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3">
           <p className="text-xs text-green-600 dark:text-green-400">Assets</p>
           <p className="text-sm font-medium text-green-600 dark:text-green-400">
-            {currency}{assets.toLocaleString()}
+            <AnimatedNumber
+              value={assets}
+              currency={currency}
+              decimals={0}
+            />
           </p>
         </div>
         <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-3">
           <p className="text-xs text-red-600 dark:text-red-400">Liabilities</p>
           <p className="text-sm font-medium text-red-600 dark:text-red-400">
-            {currency}{liabilities.toLocaleString()}
+            <AnimatedNumber
+              value={liabilities}
+              currency={currency}
+              decimals={0}
+            />
           </p>
         </div>
       </div>

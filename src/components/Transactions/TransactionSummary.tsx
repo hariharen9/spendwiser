@@ -3,6 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { fadeInVariants } from '../../components/Common/AnimationVariants';
 import CategoryChart from './CategoryChart';
+import AnimatedNumber from '../Common/AnimatedNumber';
 
 interface TransactionSummaryProps {
   totalExpenses: number;
@@ -52,13 +53,13 @@ const TransactionSummary: React.FC<TransactionSummaryProps> = ({
               <div className="bg-red-100 dark:bg-red-900/30 p-4 rounded-lg w-1/2">
                 <p className="text-sm text-red-800 dark:text-red-300">Total Expenses</p>
                 <p className="text-2xl font-bold text-red-600 dark:text-red-400">
-                  {currency}{totalExpenses.toFixed(2)}
+                  <AnimatedNumber value={totalExpenses} currency={currency} decimals={2} />
                 </p>
               </div>
               <div className="bg-gray-100 dark:bg-gray-700/50 p-4 rounded-lg w-1/2">
                 <p className="text-sm text-gray-800 dark:text-gray-300">Net Total</p>
                 <p className={`text-2xl font-bold ${netTotal >= 0 ? 'text-gray-600 dark:text-gray-100' : 'text-red-600 dark:text-red-400'}`}>
-                  {netTotal >= 0 ? `${currency}${netTotal.toFixed(2)}` : `-${currency}${Math.abs(netTotal).toFixed(2)}`}
+                  <AnimatedNumber value={Math.abs(netTotal)} currency={netTotal >= 0 ? currency : `-${currency}`} decimals={2} />
                 </p>
               </div>
             </div>
@@ -67,7 +68,9 @@ const TransactionSummary: React.FC<TransactionSummaryProps> = ({
               {dailyAverage > 0 && (
                 <div className="bg-gray-100 dark:bg-gray-700/50 p-4 rounded-lg col-span-2 md:col-span-3">
                   <p className="text-sm text-gray-800 dark:text-gray-300">Avg. Daily Spend</p>
-                  <p className="text-2xl font-bold text-red-600 dark:text-red-400">{currency}{dailyAverage.toFixed(2)}</p>
+                  <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+                    <AnimatedNumber value={dailyAverage} currency={currency} decimals={2} />
+                  </p>
                 </div>
               )}
 

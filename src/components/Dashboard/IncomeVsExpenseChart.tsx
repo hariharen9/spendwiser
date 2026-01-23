@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cardHoverVariants } from '../../components/Common/AnimationVariants';
 import { FiTrendingUp, FiTrendingDown, FiDollarSign, FiBarChart2, FiActivity } from 'react-icons/fi';
 import { BarChart3 } from 'lucide-react';
+import AnimatedNumber from '../Common/AnimatedNumber';
 
 interface IncomeVsExpenseChartProps {
   transactions: Transaction[];
@@ -103,14 +104,22 @@ const IncomeVsExpenseChart: React.FC<IncomeVsExpenseChartProps> = ({ transaction
         <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg text-center">
           <FiTrendingUp className="w-4 h-4 text-green-500 mx-auto mb-1" />
           <p className="text-xs text-green-600 dark:text-green-400 font-medium">
-            {currency}{currentMonth?.income.toLocaleString() || '0'}
+            <AnimatedNumber
+              value={currentMonth?.income || 0}
+              currency={currency}
+              decimals={0}
+            />
           </p>
           <p className="text-xs text-gray-500 dark:text-gray-400">Income</p>
         </div>
         <div className="p-2 bg-red-50 dark:bg-red-900/20 rounded-lg text-center">
           <FiTrendingDown className="w-4 h-4 text-red-500 mx-auto mb-1" />
           <p className="text-xs text-red-600 dark:text-red-400 font-medium">
-            {currency}{currentMonth?.expense.toLocaleString() || '0'}
+            <AnimatedNumber
+              value={currentMonth?.expense || 0}
+              currency={currency}
+              decimals={0}
+            />
           </p>
           <p className="text-xs text-gray-500 dark:text-gray-400">Expenses</p>
         </div>
@@ -119,7 +128,11 @@ const IncomeVsExpenseChart: React.FC<IncomeVsExpenseChartProps> = ({ transaction
           <p className={`text-xs font-medium ${
             (currentMonth?.savings || 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
           }`}>
-            {currency}{Math.abs(currentMonth?.savings || 0).toLocaleString()}
+            <AnimatedNumber
+              value={Math.abs(currentMonth?.savings || 0)}
+              currency={currency}
+              decimals={0}
+            />
           </p>
           <p className="text-xs text-gray-500 dark:text-gray-400">
             {(currentMonth?.savings || 0) >= 0 ? 'Saved' : 'Deficit'}

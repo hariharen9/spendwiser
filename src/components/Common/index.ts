@@ -8,3 +8,4 @@ export * from './FAB';
 export * from './HelpFAB';
 export * from './ImageCarousel';
 export { default as Shuffle } from './Shuffle';
+export { default as AnimatedNumber } from './AnimatedNumber';

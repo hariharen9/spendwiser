@@ -1,17 +1,18 @@
 import React, { useState, useMemo } from 'react';
-import { 
-  Target, TrendingUp, Plus, Edit, Trash2, X, DollarSign, 
-  PieChart as PieChartIcon, Activity, Calendar, AlertTriangle, CheckCircle, 
+import {
+  Target, TrendingUp, Plus, Edit, Trash2, X, DollarSign,
+  PieChart as PieChartIcon, Activity, Calendar, AlertTriangle, CheckCircle,
   TrendingDown, ArrowUpRight, ArrowDownRight, Search
 } from 'lucide-react';
 import { Budget, Transaction, TotalBudget } from '../../types/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fadeInVariants, staggerContainer, buttonHoverVariants, modalVariants } from '../../components/Common/AnimationVariants';
-import { 
+import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend, AreaChart, Area
 } from 'recharts';
 import Tabs from '../Common/Tabs';
+import AnimatedNumber from '../Common/AnimatedNumber';
 
 interface BudgetsPageProps {
   budgets: Budget[];
@@ -54,7 +55,9 @@ const BudgetHealthGauge: React.FC<{ spent: number; limit: number; currency: stri
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span className="text-sm text-gray-500 dark:text-gray-400 uppercase tracking-widest">Spent</span>
-          <span className="text-3xl font-bold text-gray-900 dark:text-white mt-1">{currency}{spent.toLocaleString()}</span>
+          <span className="text-3xl font-bold text-gray-900 dark:text-white mt-1">
+            <AnimatedNumber value={spent} currency={currency} decimals={0} />
+          </span>
           <div className="h-px w-12 bg-gray-300 dark:bg-gray-600 my-2"></div>
           <span className="text-sm font-medium text-gray-500 dark:text-gray-400">of {currency}{limit.toLocaleString()}</span>
         </div>

@@ -3,6 +3,7 @@ import { TotalBudget, Transaction } from '../../types/types';
 import { motion } from 'framer-motion';
 import { cardHoverVariants } from '../../components/Common/AnimationVariants';
 import { TrendingUp, TrendingDown, AlertTriangle, PiggyBank } from 'lucide-react';
+import AnimatedNumber from '../Common/AnimatedNumber';
 
 interface TotalBudgetWidgetProps {
   totalBudget: TotalBudget | null;
@@ -11,15 +12,15 @@ interface TotalBudgetWidgetProps {
 }
 
 const TotalBudgetWidget: React.FC<TotalBudgetWidgetProps> = ({ totalBudget, transactions, currency }) => {
-  
+
   const calculateMonthlyExpenses = () => {
     if (!totalBudget) return 0;
-    
+
     const currentMonth = new Date().toISOString().slice(0, 7);
     return transactions
       .filter(t => {
         const txDate = new Date(t.date);
-        return t.type === 'expense' && 
+        return t.type === 'expense' &&
                txDate.toISOString().slice(0, 7) === currentMonth;
       })
       .reduce((sum, t) => sum + Math.abs(t.amount), 0);
@@ -27,7 +28,7 @@ const TotalBudgetWidget: React.FC<TotalBudgetWidgetProps> = ({ totalBudget, tran
 
   if (!totalBudget) {
     return (
-      <motion.div 
+      <motion.div
         className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700"
         variants={cardHoverVariants}
         initial="initial"
@@ -46,27 +47,24 @@ const TotalBudgetWidget: React.FC<TotalBudgetWidgetProps> = ({ totalBudget, tran
   const monthlyExpenses = calculateMonthlyExpenses();
   const percentageUsed = totalBudget.limit > 0 ? (monthlyExpenses / totalBudget.limit) * 100 : 0;
   const remaining = totalBudget.limit - monthlyExpenses;
-  
+
   // Determine status and colors
-  let status = 'normal';
   let progressColor = 'bg-green-500';
   let statusIcon = <TrendingUp className="h-4 w-4 text-green-500" />;
   let statusText = 'On track';
-  
+
   if (percentageUsed >= 80 && percentageUsed < 100) {
-    status = 'warning';
     progressColor = 'bg-yellow-500';
     statusIcon = <AlertTriangle className="h-4 w-4 text-yellow-500" />;
     statusText = 'Near limit';
   } else if (percentageUsed >= 100) {
-    status = 'danger';
     progressColor = 'bg-red-500';
     statusIcon = <TrendingDown className="h-4 w-4 text-red-500" />;
     statusText = 'Over budget';
   }
 
   return (
-    <motion.div 
+    <motion.div
       className="bg-white dark:bg-[#242424] rounded-lg p-6 border border-gray-200 dark:border-gray-700"
       variants={cardHoverVariants}
       initial="initial"
@@ -86,16 +84,28 @@ const TotalBudgetWidget: React.FC<TotalBudgetWidgetProps> = ({ totalBudget, tran
       <div className="mb-4">
         <div className="flex justify-between mb-2">
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            {currency}{monthlyExpenses.toLocaleString()} spent
+            <AnimatedNumber
+              value={monthlyExpenses}
+              currency={currency}
+              decimals={0}
+            />
+            {' '}spent
           </span>
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            {currency}{totalBudget.limit.toLocaleString()} limit
+            <AnimatedNumber
+              value={totalBudget.limit}
+              currency={currency}
+              decimals={0}
+            />
+            {' '}limit
           </span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-3 dark:bg-gray-700">
-          <div 
-            className={`${progressColor} h-3 rounded-full transition-all duration-300`} 
-            style={{ width: `${Math.min(percentageUsed, 100)}%` }}
+          <motion.div
+            className={`${progressColor} h-3 rounded-full`}
+            initial={{ width: 0 }}
+            animate={{ width: `${Math.min(percentageUsed, 100)}%` }}
+            transition={{ duration: 1, ease: 'easeOut' }}
           />
         </div>
       </div>
@@ -105,7 +115,11 @@ const TotalBudgetWidget: React.FC<TotalBudgetWidgetProps> = ({ totalBudget, tran
         <div>
           <p className="text-gray-500 dark:text-[#888888]">Percentage used</p>
           <p className="font-semibold text-gray-900 dark:text-[#F5F5F5]">
-            {Math.round(percentageUsed)}%
+            <AnimatedNumber
+              value={Math.round(percentageUsed)}
+              decimals={0}
+              suffix="%"
+            />
           </p>
         </div>
         <div>
@@ -113,7 +127,11 @@ const TotalBudgetWidget: React.FC<TotalBudgetWidgetProps> = ({ totalBudget, tran
           <p className={`font-semibold ${
             remaining >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
           }`}>
-            {currency}{Math.abs(remaining).toLocaleString()}
+            <AnimatedNumber
+              value={Math.abs(remaining)}
+              currency={currency}
+              decimals={0}
+            />
           </p>
         </div>
       </div>

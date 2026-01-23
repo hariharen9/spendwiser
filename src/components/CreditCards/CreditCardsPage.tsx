@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { 
-  CreditCard as CreditCardIcon, Plus, X, Edit, Trash2, 
+import {
+  CreditCard as CreditCardIcon, Plus, X, Edit, Trash2,
   TrendingUp, TrendingDown, DollarSign, Calendar, PieChart as PieChartIcon,
   Activity, ArrowRight, CheckCircle, AlertCircle, Layers
 } from 'lucide-react';
@@ -8,7 +8,8 @@ import { Account, Transaction } from '../../types/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { modalVariants, cardHoverVariants } from '../Common/AnimationVariants';
 import AnimatedDropdown from '../Common/AnimatedDropdown';
-import { 
+import AnimatedNumber from '../Common/AnimatedNumber';
+import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend
 } from 'recharts';
@@ -156,12 +157,14 @@ const CreditCardVisual: React.FC<{
           <div className="flex justify-between items-end">
             <div>
               <p className={`text-xs uppercase tracking-wider ${isLight ? 'opacity-50' : 'opacity-60'} mb-1`}>Outstanding Balance</p>
-              <p className="text-xl font-bold">{currency}{Math.abs(balance).toLocaleString()}</p>
+              <p className="text-xl font-bold">
+                <AnimatedNumber value={Math.abs(balance)} currency={currency} decimals={0} />
+              </p>
             </div>
             <div className="text-right">
                <p className={`text-xs uppercase tracking-wider ${isLight ? 'opacity-50' : 'opacity-60'} mb-1`}>Available</p>
                <p className={`text-lg font-bold ${available < 0 ? (isLight ? 'text-red-600' : 'text-red-300') : (isLight ? 'text-emerald-600' : 'text-emerald-300')}`}>
-                 {currency}{available.toLocaleString()}
+                 <AnimatedNumber value={available} currency={currency} decimals={0} />
                </p>
             </div>
           </div>
@@ -590,11 +593,15 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
                                 <div className="flex justify-between items-end">
                                     <div>
                                         <p className="text-xs uppercase tracking-wider opacity-60 mb-1">Total Debt</p>
-                                        <p className="text-xl font-bold">{currency}{Math.abs(aggregateStats.totalDebt).toLocaleString()}</p>
+                                        <p className="text-xl font-bold">
+                                            <AnimatedNumber value={Math.abs(aggregateStats.totalDebt)} currency={currency} decimals={0} />
+                                        </p>
                                     </div>
                                     <div className="text-right">
                                         <p className="text-xs uppercase tracking-wider opacity-60 mb-1">Total Available</p>
-                                        <p className="text-lg font-bold text-emerald-300">{currency}{aggregateStats.available.toLocaleString()}</p>
+                                        <p className="text-lg font-bold text-emerald-300">
+                                            <AnimatedNumber value={aggregateStats.available} currency={currency} decimals={0} />
+                                        </p>
                                     </div>
                                 </div>
                                 <div className="w-full h-1.5 bg-black/30 rounded-full overflow-hidden">

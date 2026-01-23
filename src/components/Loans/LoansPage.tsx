@@ -15,6 +15,7 @@ import {
   LoanStatus 
 } from '../../lib/loanCalculations';
 import AnimatedDropdown from '../Common/AnimatedDropdown';
+import AnimatedNumber from '../Common/AnimatedNumber';
 import Tabs from '../Common/Tabs';
 import CurrencyInput from '../Common/CurrencyInput';
 import { 
@@ -264,7 +265,9 @@ const LoansPage: React.FC<LoansPageProps> = ({
                             <div className="flex justify-between items-end mt-2">
                                 <div>
                                     <p className="text-[10px] text-gray-500 uppercase tracking-wide">Outstanding</p>
-                                    <p className="text-sm font-bold text-gray-900 dark:text-white">{currency}{status.currentBalance.toLocaleString()}</p>
+                                    <p className="text-sm font-bold text-gray-900 dark:text-white">
+                                      <AnimatedNumber value={status.currentBalance} currency={currency} decimals={0} />
+                                    </p>
                                 </div>
                                 <div className="text-right">
                                      <p className="text-[10px] text-gray-500 uppercase tracking-wide">EMI</p>
@@ -283,7 +286,11 @@ const LoansPage: React.FC<LoansPageProps> = ({
                      <span className="text-sm font-medium tracking-wide">TOTAL DEBT LOAD</span>
                  </div>
                  <div className="text-3xl font-bold mb-1">
-                     {currency}{loans.reduce((acc, loan) => acc + calculateCurrentBalance(loan, transactions).currentBalance, 0).toLocaleString()}
+                     <AnimatedNumber
+                       value={loans.reduce((acc, loan) => acc + calculateCurrentBalance(loan, transactions).currentBalance, 0)}
+                       currency={currency}
+                       decimals={0}
+                     />
                  </div>
                  <p className="text-sm opacity-60">Across {loans.length} active loans</p>
             </div>
@@ -366,7 +373,9 @@ const LoansPage: React.FC<LoansPageProps> = ({
                              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                                  <div className="p-4 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700">
                                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Total Outstanding</p>
-                                     <p className="text-2xl font-bold text-gray-900 dark:text-white">{currency}{selectedLoanStatus.currentBalance.toLocaleString()}</p>
+                                     <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                                       <AnimatedNumber value={selectedLoanStatus.currentBalance} currency={currency} decimals={0} />
+                                     </p>
                                  </div>
                                  <div className="p-4 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700">
                                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Interest Rate</p>

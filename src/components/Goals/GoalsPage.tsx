@@ -2,16 +2,17 @@ import React, { useState, useMemo } from 'react';
 import { Goal, Transaction, Account } from '../../types/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { staggerContainer, fadeInVariants, modalVariants } from '../../components/Common/AnimationVariants';
-import { 
-  Plus, Target, Edit, Trash2, TrendingUp, Calendar, 
+import {
+  Plus, Target, Edit, Trash2, TrendingUp, Calendar,
   CheckCircle, ArrowRight, DollarSign, Wallet
 } from 'lucide-react';
 import GoalDetailsModal from './GoalDetailsModal';
-import { 
+import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
   AreaChart, Area
 } from 'recharts';
 import Tabs from '../Common/Tabs';
+import AnimatedNumber from '../Common/AnimatedNumber';
 
 interface GoalsPageProps {
   goals: Goal[];
@@ -59,9 +60,13 @@ const GoalHealthGauge: React.FC<{ current: number; target: number; currency: str
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span className="text-sm text-gray-500 dark:text-gray-400 uppercase tracking-widest">Saved</span>
-          <span className="text-3xl font-bold text-gray-900 dark:text-white mt-1">{currency}{current.toLocaleString()}</span>
+          <span className="text-3xl font-bold text-gray-900 dark:text-white mt-1">
+            <AnimatedNumber value={current} currency={currency} decimals={0} />
+          </span>
           <div className="h-px w-12 bg-gray-300 dark:bg-gray-600 my-2"></div>
-          <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Target: {currency}{target.toLocaleString()}</span>
+          <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+            Target: <AnimatedNumber value={target} currency={currency} decimals={0} />
+          </span>
         </div>
       </div>
       <div className="mt-6 px-4 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-full text-sm font-bold flex items-center">
