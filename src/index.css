@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Disable native pull-to-refresh on mobile */
+html, body {
+  overscroll-behavior-y: contain;
+}
+
 /* Lenis smooth scroll styles */
 html.lenis, html.lenis body {
   height: auto;

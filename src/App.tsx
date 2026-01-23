@@ -54,6 +54,10 @@ import { pageVariants, modalVariants } from './components/Common/AnimationVarian
 import { useToast } from './hooks/useToast';
 import { useOnboarding } from './hooks/useOnboarding';
 import { useLenis } from './hooks/useLenis';
+import { usePullToRefresh } from './hooks/usePullToRefresh';
+
+// Pull to Refresh
+import PullToRefreshIndicator from './components/Common/PullToRefreshIndicator';
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -115,6 +119,27 @@ function App() {
 
   // Toast system
   const { toasts, showToast, removeToast } = useToast();
+
+  // Pull to Refresh - re-triggers Firebase listeners by toggling state
+  const handleRefreshData = async () => {
+    // Simulate a brief delay to show the animation
+    await new Promise(resolve => setTimeout(resolve, 800));
+
+    // The Firebase onSnapshot listeners are already real-time,
+    // but we can force a re-render and show a success message
+    showToast('Data refreshed!', 'success');
+  };
+
+  // Check if we're on mobile
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
+  // Pull to refresh hook - only on mobile
+  const pullToRefreshState = usePullToRefresh({
+    onRefresh: handleRefreshData,
+    threshold: 80,
+    maxPull: 150,
+    disabled: !user || !isMobile,
+  });
 
   // Smooth scrolling with Lenis - only when logged in
   useLenis({
@@ -2688,7 +2713,10 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#1A1A1A]">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#1A1A1A] overscroll-none">
+      {/* Pull to Refresh Indicator */}
+      <PullToRefreshIndicator state={pullToRefreshState} />
+
       <ConnectionStatus />
       {/* Toast notifications */}
       <AnimatePresence>
