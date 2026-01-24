@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   CreditCard as CreditCardIcon, Plus, X, Edit, Trash2,
   TrendingUp, TrendingDown, DollarSign, Calendar, PieChart as PieChartIcon,
@@ -184,7 +184,7 @@ const CreditCardVisual: React.FC<{
   );
 };
 
-const SpendingTrendChart: React.FC<{ transactions: Transaction[]; currency: string; range: number }> = ({ transactions, currency, range }) => {
+const SpendingTrendChart: React.FC<{ transactions: Transaction[]; currency: string; range: number; className?: string }> = ({ transactions, currency, range, className = "h-64" }) => {
   const data = useMemo(() => {
     const months = Array.from({ length: range }, (_, i) => {
       const d = new Date();
@@ -210,7 +210,7 @@ const SpendingTrendChart: React.FC<{ transactions: Transaction[]; currency: stri
   }, [transactions, range]);
 
   return (
-    <div className="h-64 w-full">
+    <div className={`${className} w-full`}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
@@ -238,7 +238,7 @@ const SpendingTrendChart: React.FC<{ transactions: Transaction[]; currency: stri
   );
 };
 
-const CategoryBreakdownChart: React.FC<{ transactions: Transaction[]; currency: string }> = ({ transactions, currency }) => {
+const CategoryBreakdownChart: React.FC<{ transactions: Transaction[]; currency: string; className?: string }> = ({ transactions, currency, className = "h-64" }) => {
   const data = useMemo(() => {
     const categories: Record<string, number> = {};
     transactions.forEach(t => {
@@ -256,14 +256,14 @@ const CategoryBreakdownChart: React.FC<{ transactions: Transaction[]; currency: 
 
   if (data.length === 0) {
     return (
-        <div className="h-64 flex items-center justify-center text-gray-400 text-sm">
+        <div className={`${className} flex items-center justify-center text-gray-400 text-sm`}>
             No spending data yet
         </div>
     );
   }
 
   return (
-    <div className="h-64 w-full">
+    <div className={`${className} w-full`}>
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
@@ -335,6 +335,16 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
   const [showPayBillModal, setShowPayBillModal] = useState(false);
   const [showReconcileModal, setShowReconcileModal] = useState(false);
   
+  // Mobile detection
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   // Forms
   const [cardForm, setCardForm] = useState<CardFormData>({ 
     name: '', limit: '', last4Digits: '', network: 'visa', statementDate: '', paymentDueDate: '', theme: '' 
@@ -552,16 +562,16 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
              <div className="w-full sm:w-64">
-                <AnimatedDropdown 
+                <AnimatedDropdown
                     options={[
-                        { value: 'all', label: 'All Credit Cards' }, 
+                        { value: 'all', label: 'All Credit Cards' },
                         ...creditCards.map(c => ({ value: c.id, label: c.name }))
                     ]}
                     selectedValue={selectedCardId}
                     onChange={setSelectedCardId}
                 />
              </div>
-             <button 
+             <button
                 onClick={() => { resetCardForm(); setShowAddCardModal(true); }}
                 className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
              >
@@ -570,8 +580,132 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
+      {isMobile && isAllCardsSelected ? (
+        // Mobile-Only "All Cards" View
+        <div className="space-y-6">
+            {/* Aggregate Summary Card */}
+            {aggregateStats && (
+                <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
+                    <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+                    <div className="relative z-10">
+                        <div className="flex justify-between items-start mb-4">
+                            <div>
+                                <p className="text-xs uppercase tracking-wider opacity-60">Total Debt</p>
+                                <h2 className="text-3xl font-bold mt-1">
+                                    <AnimatedNumber value={Math.abs(aggregateStats.totalDebt)} currency={currency} decimals={0} />
+                                </h2>
+                            </div>
+                            <div className="p-2 bg-white/10 rounded-full">
+                                <Layers className="w-6 h-6 text-blue-300" />
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-end text-sm">
+                                <span className="opacity-70">Total Limit</span>
+                                <span className="font-semibold">{currency}{(aggregateStats.totalLimit).toLocaleString()}</span>
+                            </div>
+
+                            <div>
+                                <div className="flex justify-between text-xs mb-1">
+                                    <span className="opacity-70">Utilization</span>
+                                    <span className={`${aggregateStats.utilization > 30 ? 'text-yellow-400' : 'text-emerald-400'} font-bold`}>
+                                        {Math.round(aggregateStats.utilization)}%
+                                    </span>
+                                </div>
+                                <div className="w-full h-2 bg-black/30 rounded-full overflow-hidden">
+                                    <div
+                                        className={`h-full transition-all duration-1000 ${
+                                            aggregateStats.utilization > 50 ? 'bg-yellow-400' : 'bg-emerald-400'
+                                        }`}
+                                        style={{ width: `${Math.min(aggregateStats.utilization, 100)}%` }}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="pt-4 border-t border-white/10 flex justify-between items-center">
+                                <span className="text-sm opacity-70">Available Credit</span>
+                                <span className="text-lg font-bold text-emerald-300">
+                                    <AnimatedNumber value={aggregateStats.available} currency={currency} decimals={0} />
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* List of Cards */}
+            <div className="space-y-4">
+                <h3 className="font-bold text-lg text-gray-900 dark:text-white flex items-center">
+                    <CreditCardIcon className="w-5 h-5 mr-2 text-blue-500" />
+                    Your Cards
+                </h3>
+                <div className="grid gap-4">
+                    {creditCards.map(card => {
+                        const cardBalance = -transactions
+                            .filter(t => t.accountId === card.id)
+                            .reduce((sum, t) => sum + t.amount, 0);
+                        const util = card.limit ? (cardBalance / card.limit) * 100 : 0;
+                        const available = (card.limit || 0) - cardBalance;
+
+                        return (
+                            <motion.div
+                                key={card.id}
+                                layoutId={card.id}
+                                onClick={() => setSelectedCardId(card.id)}
+                                className="bg-white dark:bg-[#242424] p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm active:scale-[0.98] transition-transform"
+                            >
+                                <div className="flex justify-between items-start mb-3">
+                                    <div className="flex items-center space-x-3">
+                                        <div className={`w-10 h-6 rounded flex items-center justify-center bg-gradient-to-r ${card.theme || 'from-gray-700 to-gray-900'}`}>
+                                            <NetworkIcon network={card.network} className="w-6 h-4 text-white opacity-90" />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-gray-900 dark:text-white text-sm">{card.name}</h4>
+                                            <p className="text-xs text-gray-500">•••• {card.last4Digits || 'XXXX'}</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-xs text-gray-500 mb-0.5">Balance</p>
+                                        <p className="font-bold text-gray-900 dark:text-white">{currency}{cardBalance.toLocaleString()}</p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <div className="w-full h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                                        <div
+                                            className={`h-full ${util > 80 ? 'bg-red-500' : util > 50 ? 'bg-yellow-500' : 'bg-green-500'}`}
+                                            style={{ width: `${Math.min(util, 100)}%` }}
+                                        />
+                                    </div>
+                                    <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+                                        <span>Limit: {currency}{(card.limit || 0).toLocaleString()}</span>
+                                        <span className={available < 0 ? 'text-red-500' : 'text-emerald-500'}>
+                                            Avail: {currency}{available.toLocaleString()}
+                                        </span>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* Mobile Analytics Summary (Simplified) */}
+            <div className="bg-white dark:bg-[#242424] rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                <h3 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center">
+                    <TrendingUp className="w-4 h-4 mr-2 text-purple-500" />
+                    Spending Trend (6M)
+                </h3>
+                <div className="h-40">
+                    <SpendingTrendChart transactions={cardTransactions} currency={currency} range={6} className="h-full" />
+                </div>
+            </div>
+        </div>
+      ) : (
+        // Desktop / Tablet / Mobile Single Card View (Original Layout)
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
         {/* Left Column: Card Visual & Actions */}
         <div className="lg:col-span-5 space-y-6">
             <motion.div layout>
@@ -605,7 +739,7 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
                                     </div>
                                 </div>
                                 <div className="w-full h-1.5 bg-black/30 rounded-full overflow-hidden">
-                                    <div 
+                                    <div
                                         className={`h-full transition-all duration-1000 ${
                                             aggregateStats.utilization > 50 ? 'bg-yellow-400' : 'bg-emerald-400'
                                         }`}
@@ -616,9 +750,9 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
                         </div>
                     </div>
                 ) : selectedCard && (
-                    <CreditCardVisual 
-                        card={selectedCard} 
-                        balance={currentBalance} 
+                    <CreditCardVisual
+                        card={selectedCard}
+                        balance={currentBalance}
                         currency={currency}
                         onEdit={() => openEditModal(selectedCard)}
                         onDelete={() => setShowDeleteConfirm(selectedCard.id)}
@@ -628,7 +762,7 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
 
             {!isAllCardsSelected && (
                 <div className="grid grid-cols-2 gap-3">
-                    <button 
+                    <button
                         onClick={() => setShowPayBillModal(true)}
                         className="flex flex-col items-center justify-center p-4 bg-white dark:bg-[#242424] border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-[#2a2a2a] transition-all group text-gray-900 dark:text-gray-100"
                     >
@@ -637,7 +771,7 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
                         </div>
                         <span className="font-medium text-sm">Pay Bill</span>
                     </button>
-                    <button 
+                    <button
                         onClick={() => { setReconcileForm({actualBalance: ''}); setShowReconcileModal(true); }}
                         className="flex flex-col items-center justify-center p-4 bg-white dark:bg-[#242424] border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-[#2a2a2a] transition-all group text-gray-900 dark:text-gray-100"
                     >
@@ -665,8 +799,8 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
                         </span>
                     </div>
                     <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2">
-                        <div 
-                            className="bg-blue-600 h-2 rounded-full" 
+                        <div
+                            className="bg-blue-600 h-2 rounded-full"
                             style={{ width: `${Math.min((isAllCardsSelected ? aggregateStats?.utilization || 0 : ((currentBalance / (selectedCard?.limit || 1)) * 100)), 100)}%` }}
                         />
                     </div>
@@ -687,7 +821,7 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
                         {isAllCardsSelected ? 'Combined Spending Trend' : 'Spending Trend'}
                     </h3>
                     <div className="w-40">
-                        <AnimatedDropdown 
+                        <AnimatedDropdown
                             options={[
                                 { value: '1', label: 'Last Month' },
                                 { value: '3', label: 'Last 3 Months' },
@@ -735,9 +869,10 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
             </div>
         </div>
       </div>
+      )}
 
-      {/* Card Portfolio (Detailed list of all cards in Summary View) */}
-      {isAllCardsSelected && (
+      {/* Card Portfolio (Detailed list of all cards in Summary View) - Desktop Only or NOT Mobile All Cards View */}
+      {isAllCardsSelected && !isMobile && (
           <div className="bg-white dark:bg-[#242424] border border-gray-200 dark:border-gray-700 rounded-xl p-6">
               <h3 className="font-bold text-lg mb-6 text-gray-900 dark:text-white flex items-center">
                   <Layers className="w-5 h-5 mr-2 text-blue-500" />
@@ -761,7 +896,7 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
                                   .filter(t => t.accountId === card.id)
                                   .reduce((sum, t) => sum + t.amount, 0);
                               const util = card.limit ? (cardBalance / card.limit) * 100 : 0;
-                              
+
                               return (
                                   <tr key={card.id} className="hover:bg-gray-50/50 dark:hover:bg-[#1A1A1A]/50 transition-colors">
                                       <td className="py-4">
@@ -782,7 +917,7 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
                                       <td className="py-4">
                                           <div className="flex items-center space-x-2">
                                               <div className="flex-1 h-1.5 w-16 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                                                  <div 
+                                                  <div
                                                       className={`h-full ${util > 80 ? 'bg-red-500' : util > 50 ? 'bg-yellow-500' : 'bg-green-500'}`}
                                                       style={{ width: `${Math.min(util, 100)}%` }}
                                                   ></div>
@@ -791,7 +926,7 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
                                           </div>
                                       </td>
                                       <td className="py-4 text-right">
-                                          <button 
+                                          <button
                                               onClick={() => setSelectedCardId(card.id)}
                                               className="text-blue-600 dark:text-blue-400 text-sm font-medium hover:underline"
                                           >
@@ -807,7 +942,8 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
           </div>
       )}
 
-      {/* Transaction History */}
+      {/* Transaction History - Show if NOT Mobile All Cards view (or add condition if desired, but kept for desktop/individual) */}
+      {(!isMobile || !isAllCardsSelected) && (
       <div className="bg-white dark:bg-[#242424] border border-gray-200 dark:border-gray-700 rounded-xl p-6">
         <h3 className="font-bold text-lg mb-4 text-gray-900 dark:text-white">{isAllCardsSelected ? 'All Card Transactions' : 'Recent Activity'}</h3>
         <div className="space-y-6">
@@ -849,6 +985,7 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
             )}
         </div>
       </div>
+      )}
 
       {/* --- Modals --- */}
       <AnimatePresence>
