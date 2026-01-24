@@ -177,13 +177,22 @@ const LoansPage: React.FC<LoansPageProps> = ({
 
   const pieData = useMemo(() => {
       if(!selectedLoanStatus || !originalLoanSummary) return [];
-      const paidPrincipal = originalLoanSummary.totalPrincipal - selectedLoanStatus.currentBalance;
-      // Simplification for chart:
+      const paidPrincipal = selectedLoan.loanAmount - selectedLoanStatus.currentBalance;
+
+      // Calculate paid interest based on schedule up to payments made
+      let paidInterest = 0;
+      if (selectedLoanStatus.paymentsMade > 0) {
+        paidInterest = originalLoanSummary.amortizationSchedule
+          .slice(0, selectedLoanStatus.paymentsMade)
+          .reduce((sum, entry) => sum + entry.interest, 0);
+      }
+
       return [
           { name: 'Paid Principal', value: paidPrincipal > 0 ? paidPrincipal : 0, color: '#10b981' },
+          { name: 'Paid Interest', value: paidInterest, color: '#f59e0b' },
           { name: 'Outstanding', value: selectedLoanStatus.currentBalance, color: '#ef4444' },
       ];
-  }, [selectedLoanStatus, originalLoanSummary]);
+  }, [selectedLoanStatus, originalLoanSummary, selectedLoan]);
 
   // --- Render Empty State ---
   if (loans.length === 0) {
@@ -404,14 +413,36 @@ const LoansPage: React.FC<LoansPageProps> = ({
                                               <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
                                               <span className="text-gray-500 dark:text-gray-400">Paid Principal</span>
                                           </div>
-                                          <p className="font-semibold text-gray-900 dark:text-white pl-4">{currency}{pieData[0].value.toLocaleString(undefined, { maximumFractionDigits:0 })}</p>
+                                          <p className="font-semibold text-gray-900 dark:text-white pl-4">
+                                            <AnimatedNumber value={pieData[0].value} currency={currency} decimals={0} />
+                                          </p>
                                       </div>
                                       <div>
+                                          <div className="flex items-center space-x-2 mb-1">
+                                              <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                                              <span className="text-gray-500 dark:text-gray-400">Paid Interest</span>
+                                          </div>
+                                          <p className="font-semibold text-gray-900 dark:text-white pl-4">
+                                            <AnimatedNumber value={pieData[1].value} currency={currency} decimals={0} />
+                                          </p>
+                                      </div>
+                                      <div>
+                                          <div className="flex items-center space-x-2 mb-1">
+                                              <div className="w-2 h-2 rounded-full bg-blue-600"></div>
+                                              <span className="text-gray-500 dark:text-gray-400">Total Paid</span>
+                                          </div>
+                                          <p className="font-semibold text-gray-900 dark:text-white pl-4">
+                                            <AnimatedNumber value={pieData[0].value + pieData[1].value} currency={currency} decimals={0} />
+                                          </p>
+                                      </div>
+                                      <div className="col-span-1">
                                           <div className="flex items-center space-x-2 mb-1">
                                               <div className="w-2 h-2 rounded-full bg-red-500"></div>
                                               <span className="text-gray-500 dark:text-gray-400">Remaining</span>
                                           </div>
-                                          <p className="font-semibold text-gray-900 dark:text-white pl-4">{currency}{pieData[1].value.toLocaleString(undefined, { maximumFractionDigits:0 })}</p>
+                                          <p className="font-semibold text-gray-900 dark:text-white pl-4">
+                                            <AnimatedNumber value={pieData[2].value} currency={currency} decimals={0} />
+                                          </p>
                                       </div>
                                   </div>
                              </div>
