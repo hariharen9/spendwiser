@@ -266,7 +266,9 @@ const LoansPage: React.FC<LoansPageProps> = ({
                                     </div>
                                     <div>
                                         <h4 className={`font-semibold ${isSelected ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>{loan.name}</h4>
-                                        <p className="text-xs text-gray-500">{loan.interestRate}% APR</p>
+                                        <p className="text-xs text-gray-500">
+                                            {currency}{loan.loanAmount.toLocaleString()} • {loan.interestRate}%
+                                        </p>
                                     </div>
                                 </div>
                                 <LoanProgressRing percentage={status.percentagePaid} size={40} strokeWidth={4} color={isSelected ? 'text-blue-500' : 'text-gray-400'} />
