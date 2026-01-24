@@ -49,6 +49,9 @@ const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onScreenChange, user, 
       if (item.id === 'credit-cards') {
         return { ...item, label: 'CCs' };
       }
+      if (item.id === 'transactions') {
+        return { ...item, label: 'Trans' };
+      }
       return item;
     });
     // Mobile bottom navigation with icons only

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, DollarSign, Calendar, Rows, Columns, Tag as TagIcon, Briefcase, MessageSquare, Users, Plus } from 'lucide-react';
 import { Transaction, Account, Shortcut, Tag, Loan } from '../../types/types';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -87,8 +87,113 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   });
   const [isBillSplittingOpen, setIsBillSplittingOpen] = useState(false);
   const [showTagInput, setShowTagInput] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const modalRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const amountInputRef = useRef<HTMLDivElement>(null);
+  const dateInputRef = useRef<HTMLInputElement>(null);
+  const accountInputRef = useRef<HTMLDivElement>(null);
+
+  // Prevent unwanted auto-focus on mobile
+  useEffect(() => {
+    if (isOpen) {
+      const isMobile = window.innerWidth < 768;
+      if (isMobile) {
+        // Blur any focused element after modal opens
+        setTimeout(() => {
+          if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur();
+          }
+        }, 100);
+      }
+    }
+  }, [isOpen]);
 
   const allAccounts = [...accounts, ...creditCards];
+
+  // Determine if account selection is required (moved up for validation)
+  const isAccountRequired = allAccounts.length > 0;
+  const shouldShowAccountField = !isCompact || (allAccounts.length > 1 && !defaultAccountId);
+
+  // Validation function
+  const validateField = (field: string, value: string): string => {
+    switch (field) {
+      case 'name':
+        if (!value.trim()) return 'Transaction name is required';
+        if (value.trim().length < 2) return 'Name must be at least 2 characters';
+        return '';
+      case 'amount':
+        if (!value) return 'Amount is required';
+        const numValue = parseFloat(value);
+        if (isNaN(numValue) || numValue <= 0) return 'Please enter a valid amount';
+        return '';
+      case 'date':
+        if (!value) return 'Date is required';
+        return '';
+      case 'accountId':
+        if (isAccountRequired && !value) return 'Please select an account';
+        return '';
+      default:
+        return '';
+    }
+  };
+
+  // Validate all fields
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    newErrors.name = validateField('name', formData.name);
+    newErrors.amount = validateField('amount', formData.amount);
+    if (!isCompact) {
+      newErrors.date = validateField('date', formData.date);
+    }
+    if (shouldShowAccountField && isAccountRequired) {
+      newErrors.accountId = validateField('accountId', formData.accountId);
+    }
+
+    // Filter out empty errors
+    const filteredErrors: Record<string, string> = {};
+    Object.entries(newErrors).forEach(([key, value]) => {
+      if (value) filteredErrors[key] = value;
+    });
+
+    setErrors(filteredErrors);
+    return Object.keys(filteredErrors).length === 0;
+  };
+
+  // Handle field blur for individual validation
+  const handleFieldBlur = (field: string, value: string) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+    const error = validateField(field, value);
+    setErrors(prev => ({ ...prev, [field]: error }));
+  };
+
+  // Scroll to first error
+  const scrollToFirstError = (errorFields: Record<string, string>) => {
+    const fieldRefs: Record<string, React.RefObject<HTMLElement | HTMLDivElement | HTMLInputElement>> = {
+      name: nameInputRef,
+      amount: amountInputRef,
+      date: dateInputRef,
+      accountId: accountInputRef,
+    };
+
+    for (const field of ['name', 'amount', 'date', 'accountId']) {
+      if (errorFields[field]) {
+        const ref = fieldRefs[field];
+        if (ref?.current) {
+          ref.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // Focus the input if possible
+          const input = ref.current.querySelector('input') || ref.current;
+          if (input instanceof HTMLElement) {
+            setTimeout(() => input.focus(), 300);
+          }
+          break;
+        }
+      }
+    }
+  };
 
   const handleNameBlur = () => {
     const lowerName = formData.name.toLowerCase();
@@ -220,15 +325,38 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
       });
       // Reset tag input visibility
       setShowTagInput(false);
+      // Reset validation state
+      setErrors({});
+      setTouched({});
     }
   }, [editingTransaction, isOpen, accounts, creditCards, defaultAccountId, categories, defaultType]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (isAccountRequired && !formData.accountId) {
+    // Validate all fields
+    const isValid = validateForm();
+
+    if (!isValid) {
       hapticFeedback('error');
-      alert('Please select an account for the transaction.');
+      // Mark all fields as touched to show errors
+      setTouched({
+        name: true,
+        amount: true,
+        date: true,
+        accountId: true,
+      });
+      // Scroll to first error
+      setTimeout(() => {
+        const currentErrors: Record<string, string> = {};
+        currentErrors.name = validateField('name', formData.name);
+        currentErrors.amount = validateField('amount', formData.amount);
+        if (!isCompact) currentErrors.date = validateField('date', formData.date);
+        if (shouldShowAccountField && isAccountRequired) {
+          currentErrors.accountId = validateField('accountId', formData.accountId);
+        }
+        scrollToFirstError(currentErrors);
+      }, 100);
       return;
     }
 
@@ -257,10 +385,6 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
     onSave(transaction);
     onClose();
   };
-
-  // Determine if account selection is required
-  const isAccountRequired = allAccounts.length > 0;
-  const shouldShowAccountField = !isCompact || (allAccounts.length > 1 && !defaultAccountId);
 
   // Handle quick date selection
   const setQuickDate = (daysOffset: number) => {
@@ -354,7 +478,9 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
 
               {/* Form */}
               <motion.form
+                ref={formRef}
                 onSubmit={handleSubmit}
+                noValidate
                 className={`p-4 md:p-6 space-y-4 md:space-y-6 flex-grow ${!isCompact ? 'overflow-y-auto' : ''}`}
                 data-lenis-prevent
                 initial={{ opacity: 0, y: 20 }}
@@ -363,6 +489,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                 transition={{ delay: 0.2 }}
               >              {/* Transaction Name */}
                 <motion.div
+                  ref={nameInputRef as React.RefObject<HTMLDivElement>}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
@@ -376,13 +503,34 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                   </label>
                   <input
                     type="text"
-                    required
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    onBlur={handleNameBlur}
-                    className="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-[#1A1A1A] dark:border-gray-600 dark:text-white py-2 md:py-3 px-3 md:px-4 transition-all placeholder-gray-400 dark:placeholder-[#888888]"
+                    onChange={(e) => {
+                      setFormData({ ...formData, name: e.target.value });
+                      if (touched.name) {
+                        setErrors(prev => ({ ...prev, name: validateField('name', e.target.value) }));
+                      }
+                    }}
+                    onBlur={(e) => {
+                      handleNameBlur();
+                      handleFieldBlur('name', e.target.value);
+                    }}
+                    className={`w-full rounded-lg border shadow-sm focus:ring focus:ring-opacity-50 dark:bg-[#1A1A1A] dark:text-white py-2 md:py-3 px-3 md:px-4 transition-all placeholder-gray-400 dark:placeholder-[#888888] ${
+                      errors.name && touched.name
+                        ? 'border-red-500 focus:border-red-500 focus:ring-red-200 dark:border-red-500 dark:focus:ring-red-900/50'
+                        : 'border-gray-300 focus:border-blue-500 focus:ring-blue-200 dark:border-gray-600'
+                    }`}
                     placeholder="e.g., Coffee Shop, Salary, Gas Station"
                   />
+                  {errors.name && touched.name && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-1 text-sm text-red-500 flex items-center"
+                    >
+                      <span className="inline-block w-1 h-1 bg-red-500 rounded-full mr-2"></span>
+                      {errors.name}
+                    </motion.p>
+                  )}
                   
                   {/* Category suggestion */}
                   {suggestedCategory && (
@@ -417,7 +565,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                   transition={{ delay: 0.4 }}
                 >
 
-                  <div>
+                  <div ref={amountInputRef}>
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center">
                       <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2">
                         <DollarSign className="h-4 w-4 text-blue-600 dark:text-blue-400" />
@@ -425,17 +573,27 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                       Amount *
                     </label>
                     <CurrencyInput
-                      required
                       value={formData.amount}
-                      onChange={(value) => setFormData({ ...formData, amount: value })}
+                      onChange={(value) => {
+                        setFormData({ ...formData, amount: value });
+                        if (touched.amount) {
+                          setErrors(prev => ({ ...prev, amount: validateField('amount', value) }));
+                        }
+                      }}
                       currency={currency}
                       className={`w-full ${
-                        isLargeAmount
+                        (errors.amount && touched.amount) || isLargeAmount
                           ? 'border-red-500 focus:ring-red-200 dark:border-red-500 dark:focus:ring-red-900/50'
                           : 'border-gray-300 dark:border-gray-600'
                       }`}
                       placeholder="0.00"
-                      error={isLargeAmount ? "Large amount - please double check" : undefined}
+                      error={
+                        errors.amount && touched.amount
+                          ? errors.amount
+                          : isLargeAmount
+                          ? "Large amount - please double check"
+                          : undefined
+                      }
                     />
                   </div>
                   <div>
@@ -514,12 +672,32 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                       </button>
                     </div>
                     <input
+                      ref={dateInputRef}
                       type="date"
-                      required
                       value={formData.date}
-                      onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                      className="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-[#1A1A1A] dark:border-gray-600 dark:text-white py-2 md:py-3 px-3 md:px-4 transition-all"
+                      onChange={(e) => {
+                        setFormData({ ...formData, date: e.target.value });
+                        if (touched.date) {
+                          setErrors(prev => ({ ...prev, date: validateField('date', e.target.value) }));
+                        }
+                      }}
+                      onBlur={(e) => handleFieldBlur('date', e.target.value)}
+                      className={`w-full rounded-lg border shadow-sm focus:ring focus:ring-opacity-50 dark:bg-[#1A1A1A] dark:text-white py-2 md:py-3 px-3 md:px-4 transition-all ${
+                        errors.date && touched.date
+                          ? 'border-red-500 focus:border-red-500 focus:ring-red-200 dark:border-red-500 dark:focus:ring-red-900/50'
+                          : 'border-gray-300 focus:border-blue-500 focus:ring-blue-200 dark:border-gray-600'
+                      }`}
                     />
+                    {errors.date && touched.date && (
+                      <motion.p
+                        initial={{ opacity: 0, y: -5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mt-1 text-sm text-red-500 flex items-center"
+                      >
+                        <span className="inline-block w-1 h-1 bg-red-500 rounded-full mr-2"></span>
+                        {errors.date}
+                      </motion.p>
+                    )}
                   </motion.div>
                 )}
 
@@ -626,6 +804,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                 {/* Account */}
                 {shouldShowAccountField && (
                   <motion.div
+                    ref={accountInputRef}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
@@ -647,14 +826,31 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                         <input type="hidden" name="accountId" value={allAccounts[0].id} />
                       </div>
                     ) : (
-                      <AccountDropdown
-                        accounts={accounts}
-                        creditCards={creditCards}
-                        selectedValue={formData.accountId}
-                        onChange={(value) => setFormData({ ...formData, accountId: value })}
-                        defaultAccountId={defaultAccountId}
-                        currency={currency}
-                      />
+                      <>
+                        <AccountDropdown
+                          accounts={accounts}
+                          creditCards={creditCards}
+                          selectedValue={formData.accountId}
+                          onChange={(value) => {
+                            setFormData({ ...formData, accountId: value });
+                            if (touched.accountId) {
+                              setErrors(prev => ({ ...prev, accountId: validateField('accountId', value) }));
+                            }
+                          }}
+                          defaultAccountId={defaultAccountId}
+                          currency={currency}
+                        />
+                        {errors.accountId && touched.accountId && (
+                          <motion.p
+                            initial={{ opacity: 0, y: -5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mt-1 text-sm text-red-500 flex items-center"
+                          >
+                            <span className="inline-block w-1 h-1 bg-red-500 rounded-full mr-2"></span>
+                            {errors.accountId}
+                          </motion.p>
+                        )}
+                      </>
                     )}
                   </motion.div>
                 )}
