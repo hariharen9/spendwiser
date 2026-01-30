@@ -17,6 +17,7 @@ interface TransactionTableProps {
   selectedTransactions: string[]; // For bulk operations
   setSelectedTransactions: React.Dispatch<React.SetStateAction<string[]>>; // For bulk operations
   userTags?: Tag[]; // User's tags for displaying
+  sortOption: string;
 }
 
 const TransactionTable: React.FC<TransactionTableProps> = ({
@@ -30,6 +31,7 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
   selectedTransactions, // Add bulk operations parameters
   setSelectedTransactions, // Add bulk operations parameters
   userTags = [], // Add userTags parameter
+  sortOption,
 }) => {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [editingCellId, setEditingCellId] = useState<string | null>(null);
@@ -67,32 +69,21 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
     );
   };
 
-  // Group transactions by date, sorted by transaction date first, then by creation time
-  const groupedTransactions = transactions
-    .sort((a, b) => {
-      // First sort by transaction date (newest first) using normalized dates
-      const dateComparison = TimezoneManager.compareDates(b.date, a.date);
-      if (dateComparison !== 0) {
-        return dateComparison;
-      }
+  const shouldGroup = sortOption.startsWith('date');
 
-      // For transactions on the same date, sort by creation time (newest first)
-      if (a.createdAt && b.createdAt) {
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      }
-
-      // If createdAt is not available for either transaction, maintain original order
-      return 0;
-    })
-    .reduce((groups, transaction) => {
-      // Use TimezoneManager to normalize date for grouping (handles both formats)
-      const date = TimezoneManager.normalizeDate(transaction.date);
-      if (!groups[date]) {
-        groups[date] = [];
-      }
-      groups[date].push(transaction);
-      return groups;
-    }, {} as Record<string, Transaction[]>);
+  // Group transactions by date only if sorting by date.
+  // Otherwise, render a single group with all transactions (preserving the passed-in sort order).
+  const groupedTransactions = shouldGroup 
+    ? transactions.reduce((groups, transaction) => {
+        // Use TimezoneManager to normalize date for grouping (handles both formats)
+        const date = TimezoneManager.normalizeDate(transaction.date);
+        if (!groups[date]) {
+          groups[date] = [];
+        }
+        groups[date].push(transaction);
+        return groups;
+      }, {} as Record<string, Transaction[]>)
+    : { 'all': transactions };
 
   // Format date for display as header
   const formatHeaderDate = (dateString: string) => {
@@ -159,16 +150,18 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
             {Object.entries(groupedTransactions).map(([date, dateTransactions]) => (
               <React.Fragment key={date}>
                 {/* Date Header Row */}
-                <tr>
-                  <td colSpan={7} className="px-6 py-2 bg-gray-50 dark:bg-[#1A1A1A]">
-                    <div className="flex items-center">
-                      <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                        {formatHeaderDate(date)}
+                {shouldGroup && (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-2 bg-gray-50 dark:bg-[#1A1A1A]">
+                      <div className="flex items-center">
+                        <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                          {formatHeaderDate(date)}
+                        </div>
+                        <div className="flex-grow border-t border-gray-300 dark:border-gray-600 ml-4"></div>
                       </div>
-                      <div className="flex-grow border-t border-gray-300 dark:border-gray-600 ml-4"></div>
-                    </div>
-                  </td>
-                </tr>
+                    </td>
+                  </tr>
+                )}
                 {/* Transaction Rows */}
                 {dateTransactions.map((transaction) => {
                   const currentIndex = rowIndex++;

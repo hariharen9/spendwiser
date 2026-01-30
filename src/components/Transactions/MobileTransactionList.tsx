@@ -12,6 +12,7 @@ interface MobileTransactionListProps {
   currency: string;
   accounts: Account[]; // Add accounts property
   userTags?: Tag[]; // User's tags for displaying
+  sortOption: string;
 }
 
 const MobileTransactionList: React.FC<MobileTransactionListProps> = ({
@@ -21,6 +22,7 @@ const MobileTransactionList: React.FC<MobileTransactionListProps> = ({
   currency,
   accounts, // Add accounts parameter
   userTags = [], // Add userTags parameter
+  sortOption,
 }) => {
   const [expandedTransactionId, setExpandedTransactionId] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -54,32 +56,21 @@ const MobileTransactionList: React.FC<MobileTransactionListProps> = ({
     return iconMap[category] || '💰';
   };
 
-  // Group transactions by date, sorted by transaction date first, then by creation time
-  const groupedTransactions = transactions
-    .sort((a, b) => {
-      // First sort by transaction date (newest first) using normalized dates
-      const dateComparison = TimezoneManager.compareDates(b.date, a.date);
-      if (dateComparison !== 0) {
-        return dateComparison;
-      }
+  const shouldGroup = sortOption.startsWith('date');
 
-      // For transactions on the same date, sort by creation time (newest first)
-      if (a.createdAt && b.createdAt) {
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      }
-
-      // If createdAt is not available for either transaction, maintain original order
-      return 0;
-    })
-    .reduce((groups, transaction) => {
-      // Use TimezoneManager to normalize date for grouping (handles both formats)
-      const date = TimezoneManager.normalizeDate(transaction.date);
-      if (!groups[date]) {
-        groups[date] = [];
-      }
-      groups[date].push(transaction);
-      return groups;
-    }, {} as Record<string, Transaction[]>);
+  // Group transactions by date only if sorting by date.
+  // Otherwise, render a single group with all transactions (preserving the passed-in sort order).
+  const groupedTransactions = shouldGroup
+    ? transactions.reduce((groups, transaction) => {
+        // Use TimezoneManager to normalize date for grouping (handles both formats)
+        const date = TimezoneManager.normalizeDate(transaction.date);
+        if (!groups[date]) {
+          groups[date] = [];
+        }
+        groups[date].push(transaction);
+        return groups;
+      }, {} as Record<string, Transaction[]>)
+    : { 'all': transactions };
 
   // Format date for display as header
   const formatHeaderDate = (dateString: string) => {
@@ -101,12 +92,14 @@ const MobileTransactionList: React.FC<MobileTransactionListProps> = ({
       {Object.entries(groupedTransactions).map(([date, dateTransactions]) => (
         <div key={date} className="space-y-3">
           {/* Date Header with Visual Separator - Rounded pill shape with darker color in dark mode */}
-          <div className="flex items-center">
-            <div className="text-sm font-semibold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-[#1A1A1A] px-4 py-2 rounded-full">
-              {formatHeaderDate(date)}
+          {shouldGroup && (
+            <div className="flex items-center">
+              <div className="text-sm font-semibold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-[#1A1A1A] px-4 py-2 rounded-full">
+                {formatHeaderDate(date)}
+              </div>
+              <div className="flex-grow border-t border-gray-300 dark:border-gray-600 ml-3"></div>
             </div>
-            <div className="flex-grow border-t border-gray-300 dark:border-gray-600 ml-3"></div>
-          </div>
+          )}
           
           {/* Transactions for this date */}
           {dateTransactions.map((transaction) => {

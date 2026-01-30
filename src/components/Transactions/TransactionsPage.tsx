@@ -290,8 +290,10 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
   }, [transactions, searchTerm, transactionType, selectedCategory, selectedCategories, minAmount, maxAmount, showOnlyCC, showOnlyWithComments, selectedTags, accounts]);
 
   const summary = useMemo(() => {
-    // Use visibleTransactions instead of sortedAndFilteredTransactions
-    const transactionsToSummarize = visibleTransactions;
+    // Use sortedAndFilteredTransactions instead of visibleTransactions
+    // This ensures the summary reflects the TOTAL of the selected range (Filter),
+    // not just the partial list currently rendered on screen (Pagination).
+    const transactionsToSummarize = sortedAndFilteredTransactions;
     
     const incomeTransactions = transactionsToSummarize.filter(t => t.type === 'income');
     const expenseTransactions = transactionsToSummarize.filter(t => t.type === 'expense');
@@ -568,6 +570,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
             selectedTransactions={selectedTransactions}
             setSelectedTransactions={setSelectedTransactions}
             userTags={userTags}
+            sortOption={sortOption}
             />
             
             {hasMore && (
@@ -620,6 +623,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
           currency={currency}
           accounts={accounts} // Pass accounts data
           userTags={userTags}
+          sortOption={sortOption}
         />
         
         {hasMore && viewMode === 'list' && (
