@@ -71,6 +71,8 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
   const [showOnlyCC, setShowOnlyCC] = useState(false);
   const [showOnlyWithComments, setShowOnlyWithComments] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]); // For tag filtering
+  const [visibleCount, setVisibleCount] = useState(50);
+  const [showLoadMoreTooltip, setShowLoadMoreTooltip] = useState(false);
 
   const formatDate = (date: Date) => TimezoneManager.toDateString(date);
 
@@ -101,6 +103,11 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
     newDate.setMonth(newDate.getMonth() + 1);
     setMonth(newDate);
   };
+
+  // Reset visible count when filters change
+  useEffect(() => {
+    setVisibleCount(50);
+  }, [searchTerm, transactionType, selectedCategory, startDate, endDate, sortOption, minAmount, maxAmount, showOnlyCC, showOnlyWithComments, selectedTags, selectedCategories]);
   
   const sortedAndFilteredTransactions = useMemo(() => {
     let filtered = transactions.filter(transaction => {
@@ -235,6 +242,10 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
     return filtered;
   }, [transactions, searchTerm, transactionType, selectedCategory, selectedCategories, minAmount, maxAmount, startDate, endDate, sortOption, showOnlyCC, showOnlyWithComments, selectedTags, accounts]);
 
+  const visibleTransactions = useMemo(() => {
+    return sortedAndFilteredTransactions.slice(0, visibleCount);
+  }, [sortedAndFilteredTransactions, visibleCount]);
+
   // Separate filter for Calendar View: Applies all filters EXCEPT date range
   // This ensures the calendar can show transactions for "padding days" (prev/next month days visible in grid)
   const calendarTransactions = useMemo(() => {
@@ -279,8 +290,11 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
   }, [transactions, searchTerm, transactionType, selectedCategory, selectedCategories, minAmount, maxAmount, showOnlyCC, showOnlyWithComments, selectedTags, accounts]);
 
   const summary = useMemo(() => {
-    const incomeTransactions = sortedAndFilteredTransactions.filter(t => t.type === 'income');
-    const expenseTransactions = sortedAndFilteredTransactions.filter(t => t.type === 'expense');
+    // Use visibleTransactions instead of sortedAndFilteredTransactions
+    const transactionsToSummarize = visibleTransactions;
+    
+    const incomeTransactions = transactionsToSummarize.filter(t => t.type === 'income');
+    const expenseTransactions = transactionsToSummarize.filter(t => t.type === 'expense');
 
     const totalIncome = incomeTransactions.reduce((sum, t) => sum + t.amount, 0);
     const totalExpenses = expenseTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
@@ -307,6 +321,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
     .sort((a, b) => b.value - a.value);
 
     let dailyAverage = 0;
+    // Calculate daily average based on the date range of visible transactions if no specific date range is selected
     if (startDate && endDate) {
       const start = new Date(startDate);
       const end = new Date(endDate);
@@ -315,6 +330,16 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
       if (diffDays > 0) {
         dailyAverage = totalExpenses / diffDays;
       }
+    } else if (transactionsToSummarize.length > 0) {
+        // Estimate based on range of visible transactions
+        const dates = transactionsToSummarize.map(t => new Date(t.date).getTime());
+        const minDate = Math.min(...dates);
+        const maxDate = Math.max(...dates);
+        const diffTime = Math.abs(maxDate - minDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+         if (diffDays > 0) {
+            dailyAverage = totalExpenses / diffDays;
+        }
     }
 
     return {
@@ -331,14 +356,14 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
       dailyAverage,
       categorySpending
     };
-  }, [sortedAndFilteredTransactions, startDate, endDate]);
+  }, [visibleTransactions, startDate, endDate]);
 
   // Bulk operations handlers
   const handleSelectAll = () => {
-    if (selectedTransactions.length === sortedAndFilteredTransactions.length) {
+    if (selectedTransactions.length === visibleTransactions.length) {
       setSelectedTransactions([]);
     } else {
-      setSelectedTransactions(sortedAndFilteredTransactions.map(t => t.id));
+      setSelectedTransactions(visibleTransactions.map(t => t.id));
     }
   };
 
@@ -348,6 +373,13 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
       setSelectedTransactions([]);
     }
   };
+
+  const hasMore = sortedAndFilteredTransactions.length > visibleCount;
+
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+  const recentTransactionsCount = sortedAndFilteredTransactions.filter(t => new Date(t.date) >= sixMonthsAgo).length;
+  const remainingCount = sortedAndFilteredTransactions.length - visibleTransactions.length;
 
   return (
     <motion.div 
@@ -370,7 +402,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.1 }}
         >
-          {transactions.length} Transaction{transactions.length !== 1 ? 's' : ''}
+          {visibleTransactions.length} Transaction{visibleTransactions.length !== 1 ? 's' : ''}
         </motion.h2>
 
         {/* Center: Month Navigator (prominent) */}
@@ -498,7 +530,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
               onClick={handleSelectAll}
               className="text-sm text-blue-600 dark:text-blue-300 hover:underline"
             >
-              {selectedTransactions.length === sortedAndFilteredTransactions.length ? 'Deselect all' : 'Select all'}
+              {selectedTransactions.length === visibleTransactions.length ? 'Deselect all' : 'Select all'}
             </button>
           </div>
           <div className="flex space-x-2">
@@ -524,8 +556,9 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
         transition={{ delay: 0.3 }}
       >
         {viewMode === 'list' ? (
+          <>
             <TransactionTable
-            transactions={sortedAndFilteredTransactions}
+            transactions={visibleTransactions}
             onEditTransaction={onEditTransaction}
             onSaveTransaction={onSaveTransaction}
             onDeleteTransaction={onDeleteTransaction}
@@ -536,6 +569,33 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
             setSelectedTransactions={setSelectedTransactions}
             userTags={userTags}
             />
+            
+            {hasMore && (
+              <div className="mt-6 flex justify-center relative">
+                <button
+                  onClick={() => setVisibleCount(prev => prev + 50)}
+                  onMouseEnter={() => setShowLoadMoreTooltip(true)}
+                  onMouseLeave={() => setShowLoadMoreTooltip(false)}
+                  className="px-6 py-2 bg-white dark:bg-[#242424] border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm font-medium"
+                >
+                  Load More
+                </button>
+                {showLoadMoreTooltip && (
+                  <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 w-48 bg-gray-900 dark:bg-gray-800 text-white text-xs rounded-lg py-2 px-3 shadow-xl z-10 pointer-events-none">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-gray-400">Remaining:</span>
+                      <span className="font-semibold">{remainingCount}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-400">Last 6 Months:</span>
+                      <span className="font-semibold">{recentTransactionsCount}</span>
+                    </div>
+                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rotate-45 w-2 h-2 bg-gray-900 dark:bg-gray-800"></div>
+                  </div>
+                )}
+              </div>
+            )}
+          </>
         ) : (
             <CalendarView 
                 currentMonth={currentMonth}
@@ -554,13 +614,24 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
         transition={{ delay: 0.3 }}
       >
         <MobileTransactionList
-          transactions={sortedAndFilteredTransactions}
+          transactions={visibleTransactions}
           onEditTransaction={onEditTransaction}
           onDeleteTransaction={onDeleteTransaction}
           currency={currency}
           accounts={accounts} // Pass accounts data
           userTags={userTags}
         />
+        
+        {hasMore && viewMode === 'list' && (
+          <div className="mt-6 flex justify-center">
+             <button
+              onClick={() => setVisibleCount(prev => prev + 50)}
+              className="px-6 py-2 bg-white dark:bg-[#242424] border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm font-medium"
+            >
+              Load More
+            </button>
+          </div>
+        )}
       </motion.div>
 
       <TransactionSummary

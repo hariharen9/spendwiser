@@ -216,16 +216,8 @@ function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [transactionType, setTransactionType] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [startDate, setStartDate] = useState(() => {
-    const today = TimezoneManager.today();
-    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-    return TimezoneManager.toDateString(firstDay);
-  });
-  const [endDate, setEndDate] = useState(() => {
-    const today = TimezoneManager.today();
-    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-    return TimezoneManager.toDateString(lastDay);
-  });
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [sortOption, setSortOption] = useState('date');
 
   const [hasLoadedMockData, setHasLoadedMockData] = useState(false);

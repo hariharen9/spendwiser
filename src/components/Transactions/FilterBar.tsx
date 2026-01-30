@@ -68,7 +68,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
   const [showDateInputs, setShowDateInputs] = useState(false);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [showMobileAdvanced, setShowMobileAdvanced] = useState(false);
-  const [selectedPreset, setSelectedPreset] = useState('this-month');
+  const [selectedPreset, setSelectedPreset] = useState('');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false); // For advanced filters toggle
 
   const clearDateRange = () => {
@@ -95,6 +95,12 @@ const FilterBar: React.FC<FilterBarProps> = ({
       case 'today':
         start = today;
         end = today;
+        break;
+      case 'yesterday':
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+        start = yesterday;
+        end = yesterday;
         break;
       case 'this-week':
         const weekStart = new Date(today);
@@ -145,6 +151,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
   const datePresetOptions = [
     { value: 'custom', label: 'Custom Range' },
     { value: 'today', label: 'Today' },
+    { value: 'yesterday', label: 'Yesterday' },
     { value: 'this-week', label: 'This Week' },
     { value: 'this-month', label: 'This Month' },
     { value: 'this-year', label: 'This Year' },
@@ -208,7 +215,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
             <div className="flex items-center gap-2">
               <span className="text-xs text-gray-500 dark:text-gray-400">Quick:</span>
               <div className="flex gap-1 flex-1">
-                {['today', 'this-week', 'this-month'].map((preset) => (
+                {['today', 'yesterday', 'this-week', 'this-month'].map((preset) => (
                   <button
                     key={preset}
                     onClick={() => handlePillClick(preset)}
@@ -218,7 +225,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
                         : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                     }`}
                   >
-                    {preset === 'today' ? 'Today' : preset === 'this-week' ? 'Week' : 'Month'}
+                    {preset === 'today' ? 'Today' : preset === 'yesterday' ? 'Yday' : preset === 'this-week' ? 'Week' : 'Month'}
                   </button>
                 ))}
               </div>
@@ -477,6 +484,13 @@ const FilterBar: React.FC<FilterBarProps> = ({
                 onClick={() => handlePillClick('today')} 
                 className={`px-3 py-1 text-sm rounded-full transition-colors ${selectedPreset === 'today' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'}`}>
                 Today
+              </button>
+            </div>
+            <div>
+              <button 
+                onClick={() => handlePillClick('yesterday')} 
+                className={`px-3 py-1 text-sm rounded-full transition-colors ${selectedPreset === 'yesterday' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'}`}>
+                Yesterday
               </button>
             </div>
             <div>
