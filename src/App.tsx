@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { Screen, Transaction, Account, Budget, TotalBudget, Goal, Loan, RecurringTransaction, Shortcut, Tag } from './types/types';
 import { User, deleteUser, GoogleAuthProvider, reauthenticateWithPopup, updateProfile, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
@@ -19,31 +19,38 @@ import AnimatedToast from './components/Common/AnimatedToast';
 import ConnectionStatus from './components/Common/ConnectionStatus';
 import StreakBadge from './components/Common/StreakBadge';
 
-// Pages
-import DashboardPage from './components/Dashboard/DashboardPage';
-import TransactionsPage from './components/Transactions/TransactionsPage';
-import CreditCardsPage from './components/CreditCards/CreditCardsPage';
-import BudgetsPage from './components/Budgets/BudgetsPage';
-import GoalsPage from './components/Goals/GoalsPage';
-import SettingsPage from './components/Settings/SettingsPage';
-import LoansPage from './components/Loans/LoansPage';
+// Lazy Load Pages
+const DashboardPage = React.lazy(() => import('./components/Dashboard/DashboardPage'));
+const TransactionsPage = React.lazy(() => import('./components/Transactions/TransactionsPage'));
+const CreditCardsPage = React.lazy(() => import('./components/CreditCards/CreditCardsPage'));
+const BudgetsPage = React.lazy(() => import('./components/Budgets/BudgetsPage'));
+const GoalsPage = React.lazy(() => import('./components/Goals/GoalsPage'));
+const SettingsPage = React.lazy(() => import('./components/Settings/SettingsPage'));
+const LoansPage = React.lazy(() => import('./components/Loans/LoansPage'));
 
-// Modals
-import AddTransactionModal from './components/Modals/AddTransactionModal';
-import BudgetModal from './components/Modals/BudgetModal';
-import GoalModal from './components/Modals/GoalModal';
-import AddFundsModal from './components/Modals/AddFundsModal';
-import HelpModal from './components/Modals/HelpModal';
-import ImportCSVModal from './components/Modals/ImportCSVModal';
-import ExportModal from './components/Modals/ExportModal';
-import LoanModal from './components/Modals/LoanModal';
-import RecurringTransactionModal from './components/Modals/RecurringTransactionModal';
-import FeedbackModal from './components/Modals/FeedbackModal';
-import ShortcutModal from './components/Modals/ShortcutModal';
-import OnboardingWizard from './components/Onboarding/OnboardingWizard';
-import ConfirmationDialog from './components/BillSplitting/ConfirmationDialog';
-import LinkLoanTransactionModal from './components/Modals/LinkLoanTransactionModal';
-import CalculatorModal from './components/Modals/CalculatorModal';
+// Lazy Load Modals
+const AddTransactionModal = React.lazy(() => import('./components/Modals/AddTransactionModal'));
+const BudgetModal = React.lazy(() => import('./components/Modals/BudgetModal'));
+const GoalModal = React.lazy(() => import('./components/Modals/GoalModal'));
+const AddFundsModal = React.lazy(() => import('./components/Modals/AddFundsModal'));
+const HelpModal = React.lazy(() => import('./components/Modals/HelpModal'));
+const ImportCSVModal = React.lazy(() => import('./components/Modals/ImportCSVModal'));
+const ExportModal = React.lazy(() => import('./components/Modals/ExportModal'));
+const LoanModal = React.lazy(() => import('./components/Modals/LoanModal'));
+const RecurringTransactionModal = React.lazy(() => import('./components/Modals/RecurringTransactionModal'));
+const FeedbackModal = React.lazy(() => import('./components/Modals/FeedbackModal'));
+const ShortcutModal = React.lazy(() => import('./components/Modals/ShortcutModal'));
+const OnboardingWizard = React.lazy(() => import('./components/Onboarding/OnboardingWizard'));
+const ConfirmationDialog = React.lazy(() => import('./components/BillSplitting/ConfirmationDialog'));
+const LinkLoanTransactionModal = React.lazy(() => import('./components/Modals/LinkLoanTransactionModal'));
+const CalculatorModal = React.lazy(() => import('./components/Modals/CalculatorModal'));
+
+// Loading Fallback Component
+const PageLoader = () => (
+  <div className="flex items-center justify-center h-full min-h-[400px]">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+  </div>
+);
 
 // Icons
 import { LogOut, DollarSign, X, Sun, Moon } from 'lucide-react';
@@ -2926,9 +2933,11 @@ function App() {
 
           {/* Page Content */}
           <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8">
-            <AnimatePresence mode="wait">
-              {renderCurrentPage()}
-            </AnimatePresence>
+            <Suspense fallback={<PageLoader />}>
+              <AnimatePresence mode="wait">
+                {renderCurrentPage()}
+              </AnimatePresence>
+            </Suspense>
           </main>
 
           {/* Footer with attribution */}
