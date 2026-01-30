@@ -5,7 +5,7 @@ import MobileTransactionList from './MobileTransactionList';
 import TransactionSummary from './TransactionSummary';
 import { Transaction, Account, RecurringTransaction, Tag } from '../../types/types';
 import { motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Trash2, Calendar, List } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Trash2, Calendar, List, FileText } from 'lucide-react';
 import { fadeInVariants, staggerContainer } from '../../components/Common/AnimationVariants';
 import CalendarView from './CalendarView';
 import { TimezoneManager } from '../../lib/timezone';
@@ -33,6 +33,7 @@ interface TransactionsPageProps {
   setSortOption: (value: string) => void;
   accounts: Account[]; // Add accounts property
   userTags?: Tag[]; // User's tags for displaying
+  onOpenMonthlyReport?: () => void;
 }
 
 const TransactionsPage: React.FC<TransactionsPageProps> = ({
@@ -58,6 +59,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
   accounts, // Add accounts parameter
   recurringTransactions,
   userTags = [], // Add userTags parameter
+  onOpenMonthlyReport,
 }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
@@ -426,6 +428,20 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
             >
             Manage Recurring
             </motion.button>
+
+            {/* Monthly Report button */}
+            {onOpenMonthlyReport && (
+              <motion.button
+                onClick={onOpenMonthlyReport}
+                className="hidden md:flex px-3 py-1 text-sm md:px-4 md:py-2 bg-purple-500 text-white rounded-lg font-medium hover:bg-purple-600 transition-colors items-center space-x-1 shadow-sm md:shadow-md hover:shadow-lg"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.15 }}
+              >
+                <FileText size={16} />
+                <span>Report</span>
+              </motion.button>
+            )}
         </div>
       </motion.div>
 

@@ -44,6 +44,7 @@ const OnboardingWizard = React.lazy(() => import('./components/Onboarding/Onboar
 const ConfirmationDialog = React.lazy(() => import('./components/BillSplitting/ConfirmationDialog'));
 const LinkLoanTransactionModal = React.lazy(() => import('./components/Modals/LinkLoanTransactionModal'));
 const CalculatorModal = React.lazy(() => import('./components/Modals/CalculatorModal'));
+const MonthlyReportModal = React.lazy(() => import('./components/Modals/MonthlyReportModal'));
 
 // Loading Fallback Component
 const PageLoader = () => (
@@ -130,6 +131,7 @@ function App() {
   const [isLinkLoanTransactionModalOpen, setIsLinkLoanTransactionModalOpen] = useState(false);
   const [selectedLoanForLinking, setSelectedLoanForLinking] = useState<Loan | null>(null);
   const [isCalculatorModalOpen, setIsCalculatorModalOpen] = useState(false);
+  const [isMonthlyReportModalOpen, setIsMonthlyReportModalOpen] = useState(false);
 
   // Toast system
   const { toasts, showToast, removeToast } = useToast();
@@ -1875,6 +1877,7 @@ function App() {
               setSortOption={setSortOption}
               accounts={accountsWithDynamicBalances} // Pass accounts data for credit card identification
               userTags={userTags}
+              onOpenMonthlyReport={() => setIsMonthlyReportModalOpen(true)}
             />
           </motion.div>
         );
@@ -2000,7 +2003,6 @@ function App() {
               onClearMockData={handleClearMockData}
               onDeleteUserAccount={handleDeleteUserAccount}
               onBackupData={handleBackupData}
-              onExportPDF={handleExportPDF}
               onRestoreData={handleRestoreData}
               selectedFont={selectedFont}
               onUpdateFont={onUpdateFont}
@@ -2025,6 +2027,7 @@ function App() {
                 showToast('Starting onboarding tour...', 'info');
               }}
               onShowToast={showToast}
+              onOpenMonthlyReport={() => setIsMonthlyReportModalOpen(true)}
             />
           </motion.div>
         );
@@ -3121,6 +3124,19 @@ function App() {
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
         onExport={handleExportDashboard}
+      />
+
+      {/* Monthly Report Modal */}
+      <MonthlyReportModal
+        isOpen={isMonthlyReportModalOpen}
+        onClose={() => setIsMonthlyReportModalOpen(false)}
+        transactions={transactions}
+        accounts={accountsWithDynamicBalances}
+        budgets={budgets}
+        loans={loans}
+        currency={currency}
+        userCategories={userCategories}
+        darkMode={darkMode}
       />
 
       {/* Re-authentication Info Modal */}

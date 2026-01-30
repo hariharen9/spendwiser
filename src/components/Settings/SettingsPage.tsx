@@ -38,7 +38,6 @@ interface SettingsPageProps {
   onClearMockData?: () => void;
   onDeleteUserAccount?: () => void;
   onBackupData?: () => void;
-  onExportPDF?: () => void;
   onRestoreData?: (data: any) => void;
   selectedFont: string;
   onUpdateFont: (font: string) => void;
@@ -54,6 +53,7 @@ interface SettingsPageProps {
   onResetOnboarding: () => void;
   onTriggerOnboarding: () => void;
   onShowToast: (message: string, type: 'success' | 'error' | 'warning' | 'info') => void;
+  onOpenMonthlyReport?: () => void;
 }
 
 const SettingsPage: React.FC<SettingsPageProps> = (props) => {
@@ -115,10 +115,10 @@ const SettingsPage: React.FC<SettingsPageProps> = (props) => {
           />
           <DataManagement
             onBackupData={props.onBackupData}
-            onExportPDF={props.onExportPDF}
             onRestoreData={props.onRestoreData}
             onLoadMockData={props.onLoadMockData}
             onClearMockData={props.onClearMockData}
+            onOpenMonthlyReport={props.onOpenMonthlyReport}
           />
           <FeedbackAndSupport onOpenFeedbackModal={props.onOpenFeedbackModal} />
           <SecuritySettings onDeleteUserAccount={props.onDeleteUserAccount} />
