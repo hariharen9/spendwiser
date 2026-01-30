@@ -19,14 +19,14 @@ import AnimatedToast from './components/Common/AnimatedToast';
 import ConnectionStatus from './components/Common/ConnectionStatus';
 import StreakBadge from './components/Common/StreakBadge';
 
-// Lazy Load Pages
-const DashboardPage = React.lazy(() => import('./components/Dashboard/DashboardPage'));
-const TransactionsPage = React.lazy(() => import('./components/Transactions/TransactionsPage'));
-const CreditCardsPage = React.lazy(() => import('./components/CreditCards/CreditCardsPage'));
-const BudgetsPage = React.lazy(() => import('./components/Budgets/BudgetsPage'));
-const GoalsPage = React.lazy(() => import('./components/Goals/GoalsPage'));
-const SettingsPage = React.lazy(() => import('./components/Settings/SettingsPage'));
-const LoansPage = React.lazy(() => import('./components/Loans/LoansPage'));
+// Pages
+import DashboardPage from './components/Dashboard/DashboardPage';
+import TransactionsPage from './components/Transactions/TransactionsPage';
+import CreditCardsPage from './components/CreditCards/CreditCardsPage';
+import BudgetsPage from './components/Budgets/BudgetsPage';
+import GoalsPage from './components/Goals/GoalsPage';
+import SettingsPage from './components/Settings/SettingsPage';
+import LoansPage from './components/Loans/LoansPage';
 
 // Lazy Load Modals
 const AddTransactionModal = React.lazy(() => import('./components/Modals/AddTransactionModal'));
@@ -2936,11 +2936,9 @@ function App() {
 
           {/* Page Content */}
           <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8">
-            <Suspense fallback={<PageLoader />}>
-              <AnimatePresence mode="wait">
-                {renderCurrentPage()}
-              </AnimatePresence>
-            </Suspense>
+            <AnimatePresence mode="wait">
+              {renderCurrentPage()}
+            </AnimatePresence>
           </main>
 
           {/* Footer with attribution */}
@@ -2985,10 +2983,11 @@ function App() {
         <HelpFAB onClick={() => setIsHelpModalOpen(true)} />
       )}
 
+      <Suspense fallback={null}>
       {/* Calculator Modal */}
-      <CalculatorModal 
-        isOpen={isCalculatorModalOpen} 
-        onClose={() => setIsCalculatorModalOpen(false)} 
+      <CalculatorModal
+        isOpen={isCalculatorModalOpen}
+        onClose={() => setIsCalculatorModalOpen(false)}
       />
 
       {/* Add Transaction Modal */}
@@ -3339,6 +3338,7 @@ function App() {
           currency={currency}
         />
       )}
+      </Suspense>
     </div>
   );
 }
