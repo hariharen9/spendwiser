@@ -4,6 +4,7 @@ import AnimatedDropdown from '../Common/AnimatedDropdown';
 import StyledCheckbox from '../Common/StyledCheckbox';
 import { Tag as TagType } from '../../types/types';
 import { getTagColorClasses } from '../Common/TagColors';
+import { TimezoneManager } from '../../lib/timezone';
 
 interface FilterBarProps {
   transactionCount: number;
@@ -82,13 +83,13 @@ const FilterBar: React.FC<FilterBarProps> = ({
   };
 
   const formatDate = (date: Date) => {
-    return date.toISOString().split('T')[0];
+    return TimezoneManager.toDateString(date);
   };
 
   const handleDatePresetChange = (preset: string) => {
     setSelectedPreset(preset);
-    const today = new Date();
-    let start = new Date(), end = new Date();
+    const today = TimezoneManager.today();
+    let start: Date, end: Date;
 
     switch (preset) {
       case 'today':
@@ -99,7 +100,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
         const weekStart = new Date(today);
         weekStart.setDate(today.getDate() - today.getDay());
         start = new Date(weekStart);
-        
+
         const weekEnd = new Date(weekStart);
         weekEnd.setDate(weekStart.getDate() + 6);
         end = new Date(weekEnd);

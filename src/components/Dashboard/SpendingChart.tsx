@@ -1,18 +1,19 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Transaction } from '../../types/types';
-import { 
+import {
   PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line, Area, AreaChart
 } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cardHoverVariants } from '../../components/Common/AnimationVariants';
-import { 
-  FiBarChart2, FiPieChart, FiTrendingUp, FiDollarSign, FiDownload, FiZap, 
+import {
+  FiBarChart2, FiPieChart, FiTrendingUp, FiDollarSign, FiDownload, FiZap,
   FiChevronDown, FiChevronUp, FiTarget, FiAlertTriangle, FiTrendingDown,
   FiActivity, FiCalendar, FiFilter, FiRefreshCw
 } from 'react-icons/fi';
 import { PieChart as PieChartIcon } from 'lucide-react';
 import CategoryTransactionsModal from './CategoryTransactionsModal';
+import { TimezoneManager } from '../../lib/timezone';
 
 interface ChartData {
   name: string;
@@ -254,7 +255,7 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, currency, t
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `spending-${timeRange}-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `spending-${timeRange}-${TimezoneManager.getInputDate()}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
     

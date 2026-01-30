@@ -8,6 +8,7 @@ import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Trash2, Calendar, List } from 'lucide-react';
 import { fadeInVariants, staggerContainer } from '../../components/Common/AnimationVariants';
 import CalendarView from './CalendarView';
+import { TimezoneManager } from '../../lib/timezone';
 
 interface TransactionsPageProps {
   transactions: Transaction[];
@@ -69,7 +70,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
   const [showOnlyWithComments, setShowOnlyWithComments] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]); // For tag filtering
 
-  const formatDate = (date: Date) => date.toISOString().split('T')[0];
+  const formatDate = (date: Date) => TimezoneManager.toDateString(date);
 
   const setMonth = (date: Date) => {
     const year = date.getFullYear();
@@ -125,15 +126,9 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
         matchesAmount = false;
       }
       
-      // Date filter
-      const transactionDate = new Date(transaction.date);
-      transactionDate.setMinutes(transactionDate.getMinutes() + transactionDate.getTimezoneOffset());
-      const start = startDate ? new Date(startDate) : null;
-      if(start) start.setMinutes(start.getMinutes() + start.getTimezoneOffset());
-      const end = endDate ? new Date(endDate) : null;
-      if(end) end.setMinutes(end.getMinutes() + end.getTimezoneOffset());
-      
-      const matchesDate = (!start || transactionDate >= start) && (!end || transactionDate <= end);
+      // Date filter - use TimezoneManager for backward-compatible date comparison
+      // This handles both legacy ISO timestamps and new YYYY-MM-DD strings
+      const matchesDate = TimezoneManager.isDateInRange(transaction.date, startDate, endDate);
 
       const isCCTransaction = accounts.find(acc => acc.id === transaction.accountId)?.type === 'Credit Card';
       const matchesCC = !showOnlyCC || isCCTransaction;
@@ -151,34 +146,34 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
     switch (sortOption) {
       case 'date-desc':
         filtered.sort((a, b) => {
-          // First sort by transaction date (newest first)
-          const dateComparison = new Date(b.date).getTime() - new Date(a.date).getTime();
+          // First sort by transaction date (newest first) using normalized dates
+          const dateComparison = TimezoneManager.compareDates(b.date, a.date);
           if (dateComparison !== 0) {
             return dateComparison;
           }
-          
+
           // For transactions on the same date, sort by creation time (newest first)
           if (a.createdAt && b.createdAt) {
             return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
           }
-          
+
           // If createdAt is not available for either transaction, maintain original order
           return 0;
         });
         break;
       case 'date-asc':
         filtered.sort((a, b) => {
-          // First sort by transaction date (oldest first)
-          const dateComparison = new Date(a.date).getTime() - new Date(b.date).getTime();
+          // First sort by transaction date (oldest first) using normalized dates
+          const dateComparison = TimezoneManager.compareDates(a.date, b.date);
           if (dateComparison !== 0) {
             return dateComparison;
           }
-          
+
           // For transactions on the same date, sort by creation time (newest first)
           if (a.createdAt && b.createdAt) {
             return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
           }
-          
+
           // If createdAt is not available for either transaction, maintain original order
           return 0;
         });

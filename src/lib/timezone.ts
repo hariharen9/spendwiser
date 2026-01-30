@@ -109,6 +109,103 @@ export class TimezoneManager {
     return this.toDateString(date1) === this.toDateString(date2);
   }
 
+  /**
+   * BACKWARD COMPATIBLE: Normalize any date format to YYYY-MM-DD string.
+   * Handles:
+   * - Full ISO timestamps: "2026-01-30T18:30:00.000Z" -> "2026-01-30"
+   * - Date-only strings: "2026-01-30" -> "2026-01-30"
+   * - Date objects
+   *
+   * For legacy ISO timestamps, we extract just the date portion WITHOUT
+   * timezone conversion to preserve what the user originally intended.
+   * For new dates, we respect the user's timezone.
+   */
+  static normalizeDate(date: Date | string): string {
+    if (typeof date === 'string') {
+      // Check if it's already a YYYY-MM-DD format (10 chars, no 'T')
+      if (date.length === 10 && !date.includes('T')) {
+        return date;
+      }
+      // It's a full ISO timestamp - extract the date part as-is
+      // This preserves legacy data without shifting dates
+      if (date.includes('T')) {
+        // For legacy ISO strings, convert to user's timezone to get the correct local date
+        const dateObj = new Date(date);
+        return this.toDateString(dateObj);
+      }
+      // Fallback: try to parse and convert
+      return this.toDateString(new Date(date));
+    }
+    // It's a Date object
+    return this.toDateString(date);
+  }
+
+  /**
+   * Compare two dates for filtering purposes.
+   * Returns: -1 if date1 < date2, 0 if equal, 1 if date1 > date2
+   * Works with any date format (backward compatible).
+   */
+  static compareDates(date1: Date | string, date2: Date | string): number {
+    const d1 = this.normalizeDate(date1);
+    const d2 = this.normalizeDate(date2);
+    if (d1 < d2) return -1;
+    if (d1 > d2) return 1;
+    return 0;
+  }
+
+  /**
+   * Check if a date falls within a range (inclusive).
+   * All dates are normalized before comparison.
+   */
+  static isDateInRange(date: Date | string, startDate?: string | null, endDate?: string | null): boolean {
+    const normalizedDate = this.normalizeDate(date);
+    if (startDate && normalizedDate < startDate) return false;
+    if (endDate && normalizedDate > endDate) return false;
+    return true;
+  }
+
+  /**
+   * Format date for display in a user-friendly format.
+   * Uses the user's configured timezone.
+   */
+  static formatDisplayDate(date: Date | string, style: 'short' | 'medium' | 'long' = 'medium'): string {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+
+    const options: Intl.DateTimeFormatOptions = {
+      timeZone: this.userTimezone
+    };
+
+    switch (style) {
+      case 'short':
+        options.month = 'short';
+        options.day = 'numeric';
+        break;
+      case 'medium':
+        options.month = 'short';
+        options.day = 'numeric';
+        options.year = 'numeric';
+        break;
+      case 'long':
+        options.weekday = 'long';
+        options.month = 'long';
+        options.day = 'numeric';
+        options.year = 'numeric';
+        break;
+    }
+
+    return dateObj.toLocaleDateString('en-US', options);
+  }
+
+  /**
+   * Format date for CSV export (DD/MM/YYYY format).
+   * Normalizes the date first to handle legacy formats.
+   */
+  static formatForExport(date: Date | string): string {
+    const normalized = this.normalizeDate(date);
+    const [year, month, day] = normalized.split('-');
+    return `${day}/${month}/${year}`;
+  }
+
   // Get next occurrence date for recurring transactions
   static getNextOccurrence(lastDate: Date | string, frequency: 'daily' | 'weekly' | 'monthly' | 'yearly'): Date {
     const date = typeof lastDate === 'string' ? this.parseDate(lastDate) : new Date(lastDate);

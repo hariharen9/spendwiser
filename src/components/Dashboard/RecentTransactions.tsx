@@ -4,6 +4,7 @@ import { Transaction } from '../../types/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cardHoverVariants } from '../../components/Common/AnimationVariants';
 import { FiClock, FiTag } from 'react-icons/fi';
+import { TimezoneManager } from '../../lib/timezone';
 
 interface RecentTransactionsProps {
   transactions: Transaction[];
@@ -21,7 +22,7 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({ transactions, o
 
   const recentTransactions = transactions
     .sort((a, b) => {
-      const dateComparison = new Date(b.date).getTime() - new Date(a.date).getTime();
+      const dateComparison = TimezoneManager.compareDates(b.date, a.date);
       if (dateComparison !== 0) return dateComparison;
       if (a.createdAt && b.createdAt) return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       return 0;
@@ -79,12 +80,15 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({ transactions, o
     const diffInMinutes = Math.floor(diffInMilliseconds / (1000 * 60));
     const diffInHours = Math.floor(diffInMilliseconds / (1000 * 60 * 60));
 
-    const today = new Date();
-    const isToday = today.toDateString() === txDate.toDateString();
+    // Use TimezoneManager for consistent date comparison
+    const todayStr = TimezoneManager.getInputDate();
+    const txDateStr = TimezoneManager.normalizeDate(date);
 
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const isYesterday = yesterday.toDateString() === txDate.toDateString();
+    const isToday = todayStr === txDateStr;
+
+    const yesterday = TimezoneManager.addDays(TimezoneManager.today(), -1);
+    const yesterdayStr = TimezoneManager.toDateString(yesterday);
+    const isYesterday = yesterdayStr === txDateStr;
 
     if (isToday) {
       if (diffInMinutes < 1) return 'Just now';
@@ -96,7 +100,7 @@ const RecentTransactions: React.FC<RecentTransactionsProps> = ({ transactions, o
       return 'Yesterday';
     }
 
-    return txDate.toLocaleDateString();
+    return TimezoneManager.formatDisplayDate(date, 'short');
   };
 
   return (

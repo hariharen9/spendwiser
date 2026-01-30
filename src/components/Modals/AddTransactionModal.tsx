@@ -9,6 +9,7 @@ import BillSplittingModal from './BillSplittingModal';
 import CurrencyInput from '../Common/CurrencyInput';
 import TagInput from '../Common/TagInput';
 import { hapticFeedback } from '../../hooks/useHaptic';
+import { TimezoneManager } from '../../lib/timezone';
 
 interface AddTransactionModalProps {
   isOpen: boolean;
@@ -70,7 +71,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   const [formData, setFormData] = useState({
     name: '',
     amount: '',
-    date: new Date().toISOString().split('T')[0],
+    date: TimezoneManager.getInputDate(),
     category: categories[0],
     type: 'expense' as 'income' | 'expense',
     accountId: '',
@@ -363,10 +364,9 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
     const amount = parseFloat(formData.amount);
     const finalAmount = formData.type === 'expense' ? -amount : amount;
 
-    const isToday = formData.date === new Date().toISOString().split('T')[0];
-    const finalDateString = (isToday && !editingTransaction)
-      ? new Date().toISOString()
-      : formData.date;
+    // Always store date as YYYY-MM-DD format - no more ISO timestamp mixing
+    // The date from the input is already in YYYY-MM-DD format
+    const finalDateString = formData.date;
 
     const transaction: Omit<Transaction, 'id'> = {
       name: formData.name,
@@ -388,9 +388,8 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
 
   // Handle quick date selection
   const setQuickDate = (daysOffset: number) => {
-    const newDate = new Date();
-    newDate.setDate(newDate.getDate() + daysOffset);
-    setFormData({ ...formData, date: newDate.toISOString().split('T')[0] });
+    const newDate = TimezoneManager.addDays(TimezoneManager.today(), daysOffset);
+    setFormData({ ...formData, date: TimezoneManager.toDateString(newDate) });
   };
 
   // Apply suggested category

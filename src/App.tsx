@@ -208,14 +208,14 @@ function App() {
   const [transactionType, setTransactionType] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [startDate, setStartDate] = useState(() => {
-    const today = new Date();
+    const today = TimezoneManager.today();
     const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-    return firstDay.toISOString().split('T')[0];
+    return TimezoneManager.toDateString(firstDay);
   });
   const [endDate, setEndDate] = useState(() => {
-    const today = new Date();
+    const today = TimezoneManager.today();
     const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-    return lastDay.toISOString().split('T')[0];
+    return TimezoneManager.toDateString(lastDay);
   });
   const [sortOption, setSortOption] = useState('date');
 
@@ -745,22 +745,8 @@ function App() {
 
       const matchesCategory = selectedCategory === '' || transaction.category === selectedCategory;
 
-      // Date filtering
-      let matchesDate = true;
-      if (startDate && endDate) {
-        const transactionDate = new Date(transaction.date);
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        matchesDate = transactionDate >= start && transactionDate <= end;
-      } else if (startDate) {
-        const transactionDate = new Date(transaction.date);
-        const start = new Date(startDate);
-        matchesDate = transactionDate >= start;
-      } else if (endDate) {
-        const transactionDate = new Date(transaction.date);
-        const end = new Date(endDate);
-        matchesDate = transactionDate <= end;
-      }
+      // Date filtering - use TimezoneManager for backward-compatible comparison
+      const matchesDate = TimezoneManager.isDateInRange(transaction.date, startDate, endDate);
 
       return matchesSearch && matchesType && matchesCategory && matchesDate;
     });
@@ -1241,7 +1227,7 @@ function App() {
       const transactionData = {
         name: `Contribution to ${goal.name}`,
         amount: -amount, // Expense
-        date: new Date().toISOString().split('T')[0],
+        date: TimezoneManager.getInputDate(),
         category: 'Goal Contribution',
         type: 'expense' as const,
         accountId: accountId,
@@ -1359,13 +1345,12 @@ function App() {
       const recurringTransactionsRef = collection(db, 'spenders', user.uid, 'recurring_transactions');
 
       // Set lastProcessedDate to one day before startDate so the first transaction gets created
-      const startDate = new Date(recurringTransactionData.startDate);
-      const lastProcessedDate = new Date(startDate);
-      lastProcessedDate.setDate(lastProcessedDate.getDate() - 1);
+      const startDate = TimezoneManager.parseDate(recurringTransactionData.startDate);
+      const lastProcessedDate = TimezoneManager.addDays(startDate, -1);
 
       await addDoc(recurringTransactionsRef, {
         ...recurringTransactionData,
-        lastProcessedDate: lastProcessedDate.toISOString().split('T')[0],
+        lastProcessedDate: TimezoneManager.toDateString(lastProcessedDate),
       });
       showToast('Recurring transaction added successfully!', 'success');
       // Increment global analytics
@@ -1473,7 +1458,7 @@ function App() {
     const csvContent = [
       ['Date', 'Name', 'Category', 'Amount', 'Type'],
       ...filteredTransactions.map(t => [
-        t.date,
+        TimezoneManager.formatForExport(t.date),
         t.name,
         t.category,
         t.amount,

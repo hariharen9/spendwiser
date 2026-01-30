@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Transaction } from '../../types/types';
 import CalendarDay from './CalendarDay';
 import DayTooltip from './DayTooltip';
+import { TimezoneManager } from '../../lib/timezone';
 
 interface CalendarViewProps {
   currentMonth: Date;
@@ -69,31 +70,15 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   // Map transactions to dates for faster lookup
   // Key: "YYYY-MM-DD" (Local time)
   const toLocalDateString = (date: Date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return TimezoneManager.toDateString(date);
   };
 
   const transactionsByDate = transactions.reduce((acc, t) => {
       if (!t.date) return acc;
-      
-      // Robust normalization:
-      // 1. Remove time component if exists
-      let datePart = t.date.split('T')[0];
-      
-      // 2. Handle potential non-standard formats (e.g. 2024-3-1 vs 2024-03-01)
-      // We assume the format is roughly YYYY-MM-DD or similar separator
-      if (datePart.includes('-')) {
-          const parts = datePart.split('-');
-          if (parts.length === 3) {
-              const year = parts[0];
-              const month = parts[1].padStart(2, '0');
-              const day = parts[2].padStart(2, '0');
-              datePart = `${year}-${month}-${day}`;
-          }
-      }
-      
+
+      // Use TimezoneManager for consistent date normalization (handles both legacy and new formats)
+      const datePart = TimezoneManager.normalizeDate(t.date);
+
       if (!acc[datePart]) acc[datePart] = [];
       acc[datePart].push(t);
       return acc;

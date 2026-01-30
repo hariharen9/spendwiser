@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Transaction } from '../types/types';
+import { TimezoneManager } from '../lib/timezone';
 
 interface StreakData {
   visitStreak: number;
@@ -11,18 +12,17 @@ interface StreakData {
 const STORAGE_KEY = 'spendwise_streaks';
 
 const getToday = (): string => {
-  return new Date().toISOString().split('T')[0];
+  return TimezoneManager.getInputDate();
 };
 
 const getYesterday = (): string => {
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  return yesterday.toISOString().split('T')[0];
+  const yesterday = TimezoneManager.addDays(TimezoneManager.today(), -1);
+  return TimezoneManager.toDateString(yesterday);
 };
 
 const isConsecutiveDay = (lastDate: string, checkDate: string): boolean => {
-  const last = new Date(lastDate);
-  const check = new Date(checkDate);
+  const last = TimezoneManager.parseDate(lastDate);
+  const check = TimezoneManager.parseDate(checkDate);
   const diffTime = check.getTime() - last.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   return diffDays === 1;
@@ -106,33 +106,32 @@ export const useStreaks = (transactions: Transaction[], userId: string | undefin
     if (!userId || transactions.length === 0) return;
 
     const today = getToday();
-    const yesterday = getYesterday();
 
     // Find the most recent transaction date
     const sortedTransactions = [...transactions].sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      (a, b) => TimezoneManager.compareDates(b.date, a.date)
     );
 
     // Check if user has added any transactions today
     const hasTransactionToday = sortedTransactions.some(t => {
-      const txDate = t.date.split('T')[0];
+      const txDate = TimezoneManager.normalizeDate(t.date);
       return txDate === today;
     });
 
     // Calculate consecutive days with transactions (looking backwards)
     let transactionStreak = 0;
-    let checkDate = new Date(today);
+    let checkDate = TimezoneManager.today();
 
     for (let i = 0; i < 365; i++) { // Check up to a year back
-      const dateStr = checkDate.toISOString().split('T')[0];
+      const dateStr = TimezoneManager.toDateString(checkDate);
       const hasTransaction = sortedTransactions.some(t => {
-        const txDate = t.date.split('T')[0];
+        const txDate = TimezoneManager.normalizeDate(t.date);
         return txDate === dateStr;
       });
 
       if (hasTransaction) {
         transactionStreak++;
-        checkDate.setDate(checkDate.getDate() - 1);
+        checkDate = TimezoneManager.addDays(checkDate, -1);
       } else {
         break;
       }

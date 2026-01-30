@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { fadeInVariants, staggerContainer, buttonHoverVariants } from '../../components/Common/AnimationVariants';
 import { Edit, Trash2, Check, X, MessageSquare } from 'lucide-react';
 import TagChip from '../Common/TagChip';
+import { TimezoneManager } from '../../lib/timezone';
 
 interface TransactionTableProps {
   transactions: Transaction[];
@@ -69,22 +70,23 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
   // Group transactions by date, sorted by transaction date first, then by creation time
   const groupedTransactions = transactions
     .sort((a, b) => {
-      // First sort by transaction date (newest first)
-      const dateComparison = new Date(b.date).getTime() - new Date(a.date).getTime();
+      // First sort by transaction date (newest first) using normalized dates
+      const dateComparison = TimezoneManager.compareDates(b.date, a.date);
       if (dateComparison !== 0) {
         return dateComparison;
       }
-      
+
       // For transactions on the same date, sort by creation time (newest first)
       if (a.createdAt && b.createdAt) {
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       }
-      
+
       // If createdAt is not available for either transaction, maintain original order
       return 0;
     })
     .reduce((groups, transaction) => {
-      const date = transaction.date.split('T')[0];
+      // Use TimezoneManager to normalize date for grouping (handles both formats)
+      const date = TimezoneManager.normalizeDate(transaction.date);
       if (!groups[date]) {
         groups[date] = [];
       }
@@ -94,13 +96,7 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
 
   // Format date for display as header
   const formatHeaderDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric'
-    });
+    return TimezoneManager.formatDisplayDate(dateString, 'long');
   };
 
   // Find credit card account by ID
