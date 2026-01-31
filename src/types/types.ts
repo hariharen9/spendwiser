@@ -1,4 +1,4 @@
-export type Screen = 'dashboard' | 'transactions' | 'credit-cards' | 'budgets' | 'settings' | 'goals' | 'loans' | 'shortcuts';
+export type Screen = 'dashboard' | 'transactions' | 'credit-cards' | 'budgets' | 'settings' | 'goals' | 'investments' | 'loans' | 'shortcuts';
 
 // Tag for labeling transactions
 export interface Tag {

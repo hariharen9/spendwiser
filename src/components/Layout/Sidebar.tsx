@@ -7,7 +7,7 @@ import {
   Settings,
   LogOut,
   DollarSign,
-  Target,
+  TrendingUp,
   Landmark,
   Sun,
   Moon
@@ -36,7 +36,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onScreenChange, user, 
     { id: 'transactions' as Screen, label: 'Transactions', icon: Receipt },
     { id: 'credit-cards' as Screen, label: 'Credit Cards', icon: CreditCard },
     { id: 'budgets' as Screen, label: 'Budgets', icon: PieChart },
-    { id: 'goals' as Screen, label: 'Goals', icon: Target },
+    { id: 'investments' as Screen, label: 'Investments', icon: TrendingUp },
     { id: 'loans' as Screen, label: 'EMIs', icon: Landmark },
     { id: 'settings' as Screen, label: 'Settings', icon: Settings },
   ];
@@ -45,7 +45,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onScreenChange, user, 
   const isMobile = !user;
 
   if (isMobile) {
-    const mobileNavItems = navItems.filter(item => item.id !== 'goals').map(item => {
+    const mobileNavItems = navItems.filter(item => item.id !== 'investments').map(item => {
       if (item.id === 'credit-cards') {
         return { ...item, label: 'CCs' };
       }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { Screen, Transaction, Account, Budget, TotalBudget, Goal, Loan, RecurringTransaction, Shortcut, Tag } from './types/types';
+import { Asset, InvestmentTransaction } from './types/investments';
 import { User, deleteUser, GoogleAuthProvider, reauthenticateWithPopup, updateProfile, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
 import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, writeBatch, getDocs, increment } from 'firebase/firestore';
@@ -25,6 +26,7 @@ import TransactionsPage from './components/Transactions/TransactionsPage';
 import CreditCardsPage from './components/CreditCards/CreditCardsPage';
 import BudgetsPage from './components/Budgets/BudgetsPage';
 import GoalsPage from './components/Goals/GoalsPage';
+import InvestmentsPage from './components/Investments/InvestmentsPage';
 import SettingsPage from './components/Settings/SettingsPage';
 import LoansPage from './components/Loans/LoansPage';
 
@@ -32,6 +34,8 @@ import LoansPage from './components/Loans/LoansPage';
 const AddTransactionModal = React.lazy(() => import('./components/Modals/AddTransactionModal'));
 const BudgetModal = React.lazy(() => import('./components/Modals/BudgetModal'));
 const GoalModal = React.lazy(() => import('./components/Modals/GoalModal'));
+const AddAssetModal = React.lazy(() => import('./components/Investments/AddAssetModal'));
+const TradeModal = React.lazy(() => import('./components/Investments/TradeModal'));
 const AddFundsModal = React.lazy(() => import('./components/Modals/AddFundsModal'));
 const HelpModal = React.lazy(() => import('./components/Modals/HelpModal'));
 const ImportCSVModal = React.lazy(() => import('./components/Modals/ImportCSVModal'));
@@ -85,6 +89,10 @@ function App() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [investmentTransactions, setInvestmentTransactions] = useState<InvestmentTransaction[]>([]);
+  const [assetsLoaded, setAssetsLoaded] = useState(false);
+  const [isRefreshingPrices, setIsRefreshingPrices] = useState(false);
   const [loans, setLoans] = useState<Loan[]>([]);
   const [recurringTransactions, setRecurringTransactions] = useState<RecurringTransaction[]>([]);
   const [shortcuts, setShortcuts] = useState<Shortcut[]>([]);
@@ -100,6 +108,11 @@ function App() {
   const [isRecurringTransactionModalOpen, setIsRecurringTransactionModalOpen] = useState(false);
   const [isAddFundsModalOpen, setIsAddFundsModalOpen] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
+  const [isAddAssetModalOpen, setIsAddAssetModalOpen] = useState(false);
+  const [editingAsset, setEditingAsset] = useState<Asset | undefined>();
+  const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
+  const [selectedAssetForTrade, setSelectedAssetForTrade] = useState<Asset | null>(null);
+  const [tradeType, setTradeType] = useState<'BUY' | 'SELL' | 'DIVIDEND'>('BUY');
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [helpModalPage, setHelpModalPage] = useState('transactions'); // Add this state for help modal page
   const [isShortcutModalOpen, setIsShortcutModalOpen] = useState(false);
@@ -459,6 +472,31 @@ function App() {
         const goalsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Goal[];
         setGoals(goalsData);
         setGoalsLoaded(true);
+      });
+      return () => unsubscribe();
+    }
+  }, [user]);
+
+  // Investment Assets Listener
+  useEffect(() => {
+    if (user) {
+      const assetsRef = collection(db, 'spenders', user.uid, 'assets');
+      const unsubscribe = onSnapshot(assetsRef, snapshot => {
+        const assetsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Asset[];
+        setAssets(assetsData);
+        setAssetsLoaded(true);
+      });
+      return () => unsubscribe();
+    }
+  }, [user]);
+
+  // Investment Transactions Listener
+  useEffect(() => {
+    if (user) {
+      const investmentTxRef = collection(db, 'spenders', user.uid, 'investmentTransactions');
+      const unsubscribe = onSnapshot(investmentTxRef, snapshot => {
+        const txData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as InvestmentTransaction[];
+        setInvestmentTransactions(txData);
       });
       return () => unsubscribe();
     }
@@ -1242,6 +1280,112 @@ function App() {
     }
   };
 
+  // ==================== Investment Handlers ====================
+
+  const handleAddAsset = async (assetData: Omit<Asset, 'id' | 'lastUpdated'>) => {
+    if (!user) return;
+    try {
+      const assetsRef = collection(db, 'spenders', user.uid, 'assets');
+      await addDoc(assetsRef, {
+        ...assetData,
+        lastUpdated: new Date().toISOString(),
+      });
+      showToast('Asset added successfully!', 'success');
+    } catch (error) {
+      console.error("Error adding asset: ", error);
+      showToast('Error adding asset', 'error');
+    }
+  };
+
+  const handleEditAsset = async (asset: Asset) => {
+    if (!user) return;
+    try {
+      const assetDoc = doc(db, 'spenders', user.uid, 'assets', asset.id);
+      const { id, ...assetData } = asset;
+      await updateDoc(assetDoc, {
+        ...assetData,
+        lastUpdated: new Date().toISOString(),
+      });
+      showToast('Asset updated successfully!', 'success');
+    } catch (error) {
+      console.error("Error updating asset: ", error);
+      showToast('Error updating asset', 'error');
+    }
+  };
+
+  const handleDeleteAsset = async (assetId: string) => {
+    if (!user) return;
+    try {
+      const assetDoc = doc(db, 'spenders', user.uid, 'assets', assetId);
+      await deleteDoc(assetDoc);
+      showToast('Asset deleted successfully!', 'success');
+    } catch (error) {
+      console.error("Error deleting asset: ", error);
+      showToast('Error deleting asset', 'error');
+    }
+  };
+
+  const handleAddInvestmentTransaction = async (
+    txData: Omit<InvestmentTransaction, 'id'>,
+    assetUpdate: { quantity: number; avgBuyPrice: number }
+  ) => {
+    if (!user) return;
+    try {
+      // Add the transaction
+      const txRef = collection(db, 'spenders', user.uid, 'investmentTransactions');
+      await addDoc(txRef, txData);
+
+      // Update the asset
+      const asset = assets.find(a => a.id === txData.assetId);
+      if (asset) {
+        await handleEditAsset({
+          ...asset,
+          quantity: assetUpdate.quantity,
+          avgBuyPrice: assetUpdate.avgBuyPrice,
+        });
+      }
+
+      showToast(`${txData.type} transaction recorded!`, 'success');
+    } catch (error) {
+      console.error("Error adding investment transaction: ", error);
+      showToast('Error recording transaction', 'error');
+    }
+  };
+
+  const handleRefreshPrices = async () => {
+    setIsRefreshingPrices(true);
+    try {
+      // Import the market data service dynamically to avoid circular deps
+      const { fetchAssetPrice } = await import('./services/marketData');
+
+      for (const asset of assets) {
+        if (['STOCK', 'CRYPTO', 'MF', 'GOLD'].includes(asset.type) && asset.symbol) {
+          const quote = await fetchAssetPrice(asset.symbol, asset.type, currency === '₹' ? 'inr' : 'usd');
+          if (quote) {
+            await handleEditAsset({
+              ...asset,
+              currentPrice: quote.price,
+            });
+          }
+        }
+      }
+      showToast('Prices refreshed!', 'success');
+    } catch (error) {
+      console.error("Error refreshing prices: ", error);
+      showToast('Error refreshing prices', 'error');
+    } finally {
+      setIsRefreshingPrices(false);
+    }
+  };
+
+  const handleOpenTradeModal = (asset: Asset, type: 'BUY' | 'SELL' | 'DIVIDEND') => {
+    setSelectedAssetForTrade(asset);
+    setTradeType(type);
+    setIsTradeModalOpen(true);
+  };
+
+  // ==================== End Investment Handlers ====================
+
   const handleAddLoan = async (loanData: Omit<Loan, 'id'>) => {
     if (!user) return;
     try {
@@ -1781,6 +1925,7 @@ function App() {
       case 'credit-cards': return 'Credit Cards';
       case 'budgets': return 'Budgets';
       case 'goals': return 'Goals';
+      case 'investments': return 'Investments';
       case 'loans': return 'Loans';
       case 'settings': return 'Settings';
       default: return 'Dashboard';
@@ -1916,6 +2061,7 @@ function App() {
           </motion.div>
         );
       case 'goals':
+        // Goals page - kept for backwards compatibility but replaced by investments in sidebar
         return (
           <motion.div
             key="goals"
@@ -1939,7 +2085,34 @@ function App() {
               currency={currency}
               transactions={transactions}
               accounts={accountsWithDynamicBalances}
-            />          </motion.div>
+            />
+          </motion.div>
+        );
+      case 'investments':
+        return (
+          <motion.div
+            key="investments"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+          >
+            <InvestmentsPage
+              assets={assets}
+              investmentTransactions={investmentTransactions}
+              accounts={accountsWithDynamicBalances}
+              onAddAsset={() => setIsAddAssetModalOpen(true)}
+              onEditAsset={(asset) => {
+                setEditingAsset(asset);
+                setIsAddAssetModalOpen(true);
+              }}
+              onDeleteAsset={handleDeleteAsset}
+              onTrade={handleOpenTradeModal}
+              onRefreshPrices={handleRefreshPrices}
+              currency={currency}
+              isRefreshing={isRefreshingPrices}
+            />
+          </motion.div>
         );
       case 'loans':
         return (
@@ -3100,6 +3273,37 @@ function App() {
         onClose={() => setIsAddFundsModalOpen(false)}
         onAddFunds={handleAddFundsToGoal}
         goal={selectedGoal}
+        accounts={accountsWithDynamicBalances}
+        currency={currency}
+      />
+
+      {/* Investment Modals */}
+      <AddAssetModal
+        isOpen={isAddAssetModalOpen}
+        onClose={() => {
+          setIsAddAssetModalOpen(false);
+          setEditingAsset(undefined);
+        }}
+        onSave={(assetData) => {
+          if (editingAsset) {
+            handleEditAsset({ ...editingAsset, ...assetData, lastUpdated: new Date().toISOString() });
+          } else {
+            handleAddAsset(assetData);
+          }
+        }}
+        editingAsset={editingAsset}
+        currency={currency}
+      />
+
+      <TradeModal
+        isOpen={isTradeModalOpen}
+        onClose={() => {
+          setIsTradeModalOpen(false);
+          setSelectedAssetForTrade(null);
+        }}
+        onSave={handleAddInvestmentTransaction}
+        asset={selectedAssetForTrade}
+        tradeType={tradeType}
         accounts={accountsWithDynamicBalances}
         currency={currency}
       />
