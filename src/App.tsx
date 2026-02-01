@@ -18,6 +18,7 @@ import HelpFAB from './components/Common/HelpFAB';
 import AnimatedToast from './components/Common/AnimatedToast';
 import ConnectionStatus from './components/Common/ConnectionStatus';
 import StreakBadge from './components/Common/StreakBadge';
+import SuccessAnimation from './components/Common/SuccessAnimation';
 
 // Pages
 import DashboardPage from './components/Dashboard/DashboardPage';
@@ -136,9 +137,17 @@ function App() {
   const [selectedCardOutstandingBalance, setSelectedCardOutstandingBalance] = useState(0);
   const [isCalculatorModalOpen, setIsCalculatorModalOpen] = useState(false);
   const [isMonthlyReportModalOpen, setIsMonthlyReportModalOpen] = useState(false);
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+  const [successMessage, setSuccessMessage] = useState({ title: 'Success!', subtitle: '' });
 
   // Toast system
   const { toasts, showToast, removeToast } = useToast();
+
+  // Success animation helper
+  const triggerSuccessAnimation = (title: string, subtitle?: string) => {
+    setSuccessMessage({ title, subtitle: subtitle || '' });
+    setShowSuccessAnimation(true);
+  };
 
   // Pull to Refresh - re-triggers Firebase listeners by toggling state
   const handleRefreshData = async () => {
@@ -867,7 +876,12 @@ function App() {
         showToast('Transaction updated successfully!', 'success');
       } else {
         await addDoc(transactionsRef, transactionWithTimestamp);
-        showToast('Transaction added successfully!', 'success');
+        // Show success animation for new transactions
+        const amountStr = `${currency}${Math.abs(transactionWithTimestamp.amount).toLocaleString()}`;
+        triggerSuccessAnimation(
+          transactionWithTimestamp.type === 'income' ? 'Income Added!' : 'Expense Recorded!',
+          `${transactionWithTimestamp.name} - ${amountStr}`
+        );
         // Increment global analytics
         await updateDoc(analyticsGlobalRef, {
           totalTransactions: increment(1),
@@ -1304,7 +1318,7 @@ function App() {
         category: 'Bills & EMIs' // Ensure category is correct
       });
 
-      showToast(`Transaction linked to ${selectedLoanForLinking.name} successfully!`, 'success');
+      triggerSuccessAnimation('EMI Linked!', selectedLoanForLinking.name);
     } catch (error) {
       console.error("Error linking transaction: ", error);
       showToast('Error linking transaction', 'error');
@@ -1326,7 +1340,10 @@ function App() {
 
       const transactionsRef = collection(db, 'spenders', user.uid, 'transactions');
       await addDoc(transactionsRef, transactionData);
-      showToast(`EMI payment for ${selectedLoanForLinking.name} recorded successfully!`, 'success');
+      triggerSuccessAnimation(
+        'EMI Payment Recorded!',
+        `${selectedLoanForLinking.name} - ${currency}${selectedLoanForLinking.emi.toLocaleString()}`
+      );
 
       // Increment global analytics
       await updateDoc(analyticsGlobalRef, {
@@ -1363,7 +1380,7 @@ function App() {
         category: 'Payment'
       });
 
-      showToast(`Payment linked to ${selectedCardForPayment.name} successfully!`, 'success');
+      triggerSuccessAnimation('Payment Linked!', selectedCardForPayment.name);
     } catch (error) {
       console.error("Error linking payment: ", error);
       showToast('Error linking payment', 'error');
@@ -1387,7 +1404,10 @@ function App() {
 
       const transactionsRef = collection(db, 'spenders', user.uid, 'transactions');
       await addDoc(transactionsRef, transactionData);
-      showToast(`Payment for ${selectedCardForPayment.name} recorded successfully!`, 'success');
+      triggerSuccessAnimation(
+        'Payment Successful!',
+        `${selectedCardForPayment.name} - ${currency}${amount.toLocaleString()}`
+      );
 
       // Increment global analytics
       await updateDoc(analyticsGlobalRef, {
@@ -2907,6 +2927,14 @@ function App() {
           />
         ))}
       </AnimatePresence>
+
+      {/* Success Animation */}
+      <SuccessAnimation
+        isVisible={showSuccessAnimation}
+        onComplete={() => setShowSuccessAnimation(false)}
+        message={successMessage.title}
+        subMessage={successMessage.subtitle}
+      />
 
       {/* Top Bar for Mobile */}
       <div className="md:hidden bg-white dark:bg-[#242424] border-b border-gray-200 dark:border-gray-700 p-4 sticky top-0 z-40">

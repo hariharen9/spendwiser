@@ -141,6 +141,28 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
     }
   };
 
+  // Check if expense exceeds bank balance
+  const getInsufficientBalanceError = (): string => {
+    if (formData.type !== 'expense' || !formData.accountId || !formData.amount) {
+      return '';
+    }
+    const amount = parseFloat(formData.amount);
+    if (isNaN(amount) || amount <= 0) return '';
+
+    const selectedAccount = allAccounts.find(acc => acc.id === formData.accountId);
+    if (!selectedAccount) return '';
+
+    // Only check for non-credit card accounts
+    if (selectedAccount.type === 'Credit Card') return '';
+
+    if (amount > selectedAccount.balance) {
+      return `Insufficient balance. Available: ${currency}${selectedAccount.balance.toLocaleString()}`;
+    }
+    return '';
+  };
+
+  const insufficientBalanceError = getInsufficientBalanceError();
+
   // Validate all fields
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -152,6 +174,12 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
     }
     if (shouldShowAccountField && isAccountRequired) {
       newErrors.accountId = validateField('accountId', formData.accountId);
+    }
+
+    // Check for insufficient balance
+    const balanceError = getInsufficientBalanceError();
+    if (balanceError) {
+      newErrors.amount = balanceError;
     }
 
     // Filter out empty errors
@@ -581,7 +609,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                       }}
                       currency={currency}
                       className={`w-full ${
-                        (errors.amount && touched.amount) || isLargeAmount
+                        (errors.amount && touched.amount) || insufficientBalanceError || isLargeAmount
                           ? 'border-red-500 focus:ring-red-200 dark:border-red-500 dark:focus:ring-red-900/50'
                           : 'border-gray-300 dark:border-gray-600'
                       }`}
@@ -589,6 +617,8 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                       error={
                         errors.amount && touched.amount
                           ? errors.amount
+                          : insufficientBalanceError
+                          ? insufficientBalanceError
                           : isLargeAmount
                           ? "Large amount - please double check"
                           : undefined

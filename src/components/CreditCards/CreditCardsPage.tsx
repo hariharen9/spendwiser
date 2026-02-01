@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import {
   CreditCard as CreditCardIcon, Plus, X, Edit, Trash2,
   TrendingUp, TrendingDown, DollarSign, Calendar, PieChart as PieChartIcon,
-  Activity, ArrowRight, CheckCircle, AlertCircle, Layers
+  Activity, ArrowRight, CheckCircle, AlertCircle, Layers, Clock, History
 } from 'lucide-react';
 import { Account, Transaction } from '../../types/types';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -415,6 +415,46 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
       return { totalLimit, totalDebt, utilization, available };
   }, [isAllCardsSelected, creditCards, currentBalance]);
 
+  // Calculate days until payment due date
+  const getDueDateInfo = (card: Account | null) => {
+    if (!card?.paymentDueDate) return null;
+
+    const today = new Date();
+    const currentDay = today.getDate();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+
+    // Calculate next due date
+    let dueDate: Date;
+    if (currentDay <= card.paymentDueDate) {
+      // Due date is this month
+      dueDate = new Date(currentYear, currentMonth, card.paymentDueDate);
+    } else {
+      // Due date is next month
+      dueDate = new Date(currentYear, currentMonth + 1, card.paymentDueDate);
+    }
+
+    const diffTime = dueDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    return {
+      daysUntilDue: diffDays,
+      dueDate: dueDate,
+      isOverdue: diffDays < 0,
+      isDueSoon: diffDays >= 0 && diffDays <= 5,
+      formattedDate: dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    };
+  };
+
+  const dueDateInfo = selectedCard ? getDueDateInfo(selectedCard) : null;
+
+  // Payment history - sorted by date (newest first)
+  const paymentHistory = useMemo(() => {
+    return linkedPayments
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 10); // Show last 10 payments
+  }, [linkedPayments]);
+
   const groupedTransactions = useMemo(() => {
     const sliced = cardTransactions.slice(0, isAllCardsSelected ? 20 : 5);
     const groups: { title: string; totalExpense: number; transactions: Transaction[] }[] = [];
@@ -815,6 +855,183 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
                     </div>
                 </div>
             </div>
+
+            {/* Due Date Indicator */}
+            {!isAllCardsSelected && dueDateInfo && (
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`rounded-xl p-4 border ${
+                        dueDateInfo.isOverdue
+                            ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                            : dueDateInfo.isDueSoon
+                            ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
+                            : 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                    }`}
+                >
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                            <div className={`p-2 rounded-full mr-3 ${
+                                dueDateInfo.isOverdue
+                                    ? 'bg-red-100 dark:bg-red-900/40'
+                                    : dueDateInfo.isDueSoon
+                                    ? 'bg-amber-100 dark:bg-amber-900/40'
+                                    : 'bg-green-100 dark:bg-green-900/40'
+                            }`}>
+                                <Clock className={`w-5 h-5 ${
+                                    dueDateInfo.isOverdue
+                                        ? 'text-red-600 dark:text-red-400'
+                                        : dueDateInfo.isDueSoon
+                                        ? 'text-amber-600 dark:text-amber-400'
+                                        : 'text-green-600 dark:text-green-400'
+                                }`} />
+                            </div>
+                            <div>
+                                <p className={`font-semibold ${
+                                    dueDateInfo.isOverdue
+                                        ? 'text-red-800 dark:text-red-200'
+                                        : dueDateInfo.isDueSoon
+                                        ? 'text-amber-800 dark:text-amber-200'
+                                        : 'text-green-800 dark:text-green-200'
+                                }`}>
+                                    {dueDateInfo.isOverdue
+                                        ? 'Payment Overdue!'
+                                        : dueDateInfo.isDueSoon
+                                        ? 'Payment Due Soon'
+                                        : 'Next Payment Due'
+                                    }
+                                </p>
+                                <p className={`text-sm ${
+                                    dueDateInfo.isOverdue
+                                        ? 'text-red-600 dark:text-red-300'
+                                        : dueDateInfo.isDueSoon
+                                        ? 'text-amber-600 dark:text-amber-300'
+                                        : 'text-green-600 dark:text-green-300'
+                                }`}>
+                                    {dueDateInfo.formattedDate}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="text-right">
+                            <p className={`text-2xl font-bold ${
+                                dueDateInfo.isOverdue
+                                    ? 'text-red-700 dark:text-red-300'
+                                    : dueDateInfo.isDueSoon
+                                    ? 'text-amber-700 dark:text-amber-300'
+                                    : 'text-green-700 dark:text-green-300'
+                            }`}>
+                                {dueDateInfo.isOverdue
+                                    ? `${Math.abs(dueDateInfo.daysUntilDue)} days ago`
+                                    : dueDateInfo.daysUntilDue === 0
+                                    ? 'Today'
+                                    : dueDateInfo.daysUntilDue === 1
+                                    ? 'Tomorrow'
+                                    : `${dueDateInfo.daysUntilDue} days`
+                                }
+                            </p>
+                        </div>
+                    </div>
+                </motion.div>
+            )}
+
+            {/* Due Date Not Set */}
+            {!isAllCardsSelected && !dueDateInfo && selectedCard && (
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="rounded-xl p-4 border bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700"
+                >
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                            <div className="p-2 rounded-full mr-3 bg-gray-100 dark:bg-gray-700">
+                                <Clock className="w-5 h-5 text-gray-400" />
+                            </div>
+                            <div>
+                                <p className="font-semibold text-gray-700 dark:text-gray-300">
+                                    Payment Due Date
+                                </p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                    Not configured
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => openEditModal(selectedCard)}
+                            className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                        >
+                            Set up
+                        </button>
+                    </div>
+                </motion.div>
+            )}
+
+            {/* Payment History */}
+            {!isAllCardsSelected && paymentHistory.length > 0 && (
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white dark:bg-[#242424] border border-gray-200 dark:border-gray-700 rounded-xl p-5"
+                >
+                    <h3 className="font-semibold text-gray-900 dark:text-white flex items-center mb-4">
+                        <History className="w-4 h-4 mr-2 text-green-500" />
+                        Payment History
+                    </h3>
+                    <div className="space-y-3">
+                        {paymentHistory.map((payment, index) => (
+                            <motion.div
+                                key={payment.id}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: index * 0.05 }}
+                                className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800 last:border-0"
+                            >
+                                <div className="flex items-center">
+                                    <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-full mr-3">
+                                        <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-gray-900 dark:text-white text-sm">
+                                            {payment.name}
+                                        </p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                                            {new Date(payment.date).toLocaleDateString('en-US', {
+                                                month: 'short',
+                                                day: 'numeric',
+                                                year: 'numeric'
+                                            })}
+                                        </p>
+                                    </div>
+                                </div>
+                                <span className="font-bold text-green-600 dark:text-green-400">
+                                    +{currency}{Math.abs(payment.amount).toLocaleString()}
+                                </span>
+                            </motion.div>
+                        ))}
+                    </div>
+                    {linkedPayments.length > 10 && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+                            Showing last 10 of {linkedPayments.length} payments
+                        </p>
+                    )}
+                </motion.div>
+            )}
+
+            {/* No Payment History */}
+            {!isAllCardsSelected && paymentHistory.length === 0 && (
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white dark:bg-[#242424] border border-gray-200 dark:border-gray-700 rounded-xl p-5"
+                >
+                    <h3 className="font-semibold text-gray-900 dark:text-white flex items-center mb-3">
+                        <History className="w-4 h-4 mr-2 text-gray-400" />
+                        Payment History
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+                        No payments recorded yet. Use "Pay Bill" to record your first payment.
+                    </p>
+                </motion.div>
+            )}
         </div>
 
         {/* Right Column: Analytics */}
