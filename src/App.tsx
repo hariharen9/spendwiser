@@ -43,6 +43,7 @@ const ShortcutModal = React.lazy(() => import('./components/Modals/ShortcutModal
 const OnboardingWizard = React.lazy(() => import('./components/Onboarding/OnboardingWizard'));
 const ConfirmationDialog = React.lazy(() => import('./components/BillSplitting/ConfirmationDialog'));
 const LinkLoanTransactionModal = React.lazy(() => import('./components/Modals/LinkLoanTransactionModal'));
+const PayCreditCardModal = React.lazy(() => import('./components/Modals/PayCreditCardModal'));
 const CalculatorModal = React.lazy(() => import('./components/Modals/CalculatorModal'));
 const MonthlyReportModal = React.lazy(() => import('./components/Modals/MonthlyReportModal'));
 
@@ -130,6 +131,9 @@ function App() {
   const [lastProcessingTime, setLastProcessingTime] = useState(0);
   const [isLinkLoanTransactionModalOpen, setIsLinkLoanTransactionModalOpen] = useState(false);
   const [selectedLoanForLinking, setSelectedLoanForLinking] = useState<Loan | null>(null);
+  const [isPayCreditCardModalOpen, setIsPayCreditCardModalOpen] = useState(false);
+  const [selectedCardForPayment, setSelectedCardForPayment] = useState<Account | null>(null);
+  const [selectedCardOutstandingBalance, setSelectedCardOutstandingBalance] = useState(0);
   const [isCalculatorModalOpen, setIsCalculatorModalOpen] = useState(false);
   const [isMonthlyReportModalOpen, setIsMonthlyReportModalOpen] = useState(false);
 
@@ -1340,6 +1344,62 @@ function App() {
     setIsLinkLoanTransactionModalOpen(true);
   };
 
+  // Credit Card Payment Handlers
+  const handlePayCreditCardOpen = (card: Account, outstandingBalance: number) => {
+    setSelectedCardForPayment(card);
+    setSelectedCardOutstandingBalance(outstandingBalance);
+    setIsPayCreditCardModalOpen(true);
+  };
+
+  const handleLinkCreditCardPayment = async (transactionId: string) => {
+    if (!user || !selectedCardForPayment) return;
+
+    try {
+      const transactionDoc = doc(db, 'spenders', user.uid, 'transactions', transactionId);
+
+      // Update the transaction with the creditCardPaymentId
+      await updateDoc(transactionDoc, {
+        creditCardPaymentId: selectedCardForPayment.id,
+        category: 'Payment'
+      });
+
+      showToast(`Payment linked to ${selectedCardForPayment.name} successfully!`, 'success');
+    } catch (error) {
+      console.error("Error linking payment: ", error);
+      showToast('Error linking payment', 'error');
+    }
+  };
+
+  const handleCreateCreditCardPayment = async (amount: number, date: string, fromAccountId: string) => {
+    if (!user || !selectedCardForPayment) return;
+    try {
+      const transactionData = {
+        name: `Credit Card Payment - ${selectedCardForPayment.name}`,
+        amount: -Math.abs(amount), // Negative for expense (money leaving bank)
+        date: date,
+        category: 'Payment',
+        type: 'expense' as const,
+        accountId: fromAccountId, // From the bank account
+        creditCardPaymentId: selectedCardForPayment.id, // Links to the credit card
+        createdAt: new Date().toISOString(),
+        comments: `Payment to ${selectedCardForPayment.name}`
+      };
+
+      const transactionsRef = collection(db, 'spenders', user.uid, 'transactions');
+      await addDoc(transactionsRef, transactionData);
+      showToast(`Payment for ${selectedCardForPayment.name} recorded successfully!`, 'success');
+
+      // Increment global analytics
+      await updateDoc(analyticsGlobalRef, {
+        totalTransactions: increment(1),
+        totalExpenses: increment(Math.abs(amount)),
+      });
+    } catch (error) {
+      console.error("Error recording credit card payment: ", error);
+      showToast('Error recording payment', 'error');
+    }
+  };
+
   const handleSaveRecurringTransaction = async (recurringTransactionData: Omit<RecurringTransaction, 'id' | 'lastProcessedDate'>) => {
     if (!user) return;
     try {
@@ -1890,6 +1950,7 @@ function App() {
               onDeleteAccount={handleDeleteAccount}
               currency={currency}
               onSaveTransaction={handleAddTransaction}
+              onPayBill={handlePayCreditCardOpen}
             />
           </motion.div>
         );
@@ -3328,6 +3389,23 @@ function App() {
           onLinkTransaction={handleLinkLoanTransaction}
           onCreateTransaction={handleCreateTransactionFromLoan}
           currency={currency}
+        />
+      )}
+
+      {selectedCardForPayment && (
+        <PayCreditCardModal
+          isOpen={isPayCreditCardModalOpen}
+          onClose={() => {
+            setIsPayCreditCardModalOpen(false);
+            setSelectedCardForPayment(null);
+          }}
+          creditCard={selectedCardForPayment}
+          transactions={transactions}
+          accounts={accounts}
+          onLinkTransaction={handleLinkCreditCardPayment}
+          onCreateTransaction={handleCreateCreditCardPayment}
+          currency={currency}
+          outstandingBalance={selectedCardOutstandingBalance}
         />
       )}
       </Suspense>

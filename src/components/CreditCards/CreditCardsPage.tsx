@@ -22,6 +22,7 @@ interface CreditCardsPageProps {
   onDeleteAccount?: (id: string) => void;
   currency: string;
   onSaveTransaction?: (transaction: Omit<Transaction, 'id'>) => void;
+  onPayBill?: (card: Account, outstandingBalance: number) => void;
 }
 
 // --- Helper Components ---
@@ -314,14 +315,15 @@ interface CardFormData {
   theme: string;
 }
 
-const CreditCardsPage: React.FC<CreditCardsPageProps> = ({ 
-  accounts, 
-  transactions, 
-  onAddAccount, 
-  onEditAccount, 
-  onDeleteAccount, 
+const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
+  accounts,
+  transactions,
+  onAddAccount,
+  onEditAccount,
+  onDeleteAccount,
   currency,
-  onSaveTransaction
+  onSaveTransaction,
+  onPayBill
 }) => {
   const creditCards = useMemo(() => accounts.filter(a => a.type === 'Credit Card'), [accounts]);
   
@@ -332,7 +334,6 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
   const [editingCard, setEditingCard] = useState<Account | null>(null);
   
   // New Modals
-  const [showPayBillModal, setShowPayBillModal] = useState(false);
   const [showReconcileModal, setShowReconcileModal] = useState(false);
   
   // Mobile detection
@@ -349,7 +350,6 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
   const [cardForm, setCardForm] = useState<CardFormData>({ 
     name: '', limit: '', last4Digits: '', network: 'visa', statementDate: '', paymentDueDate: '', theme: '' 
   });
-  const [paymentForm, setPaymentForm] = useState({ amount: '', date: new Date().toISOString().split('T')[0] });
   const [reconcileForm, setReconcileForm] = useState({ actualBalance: '' });
   const [spendingRange, setSpendingRange] = useState(6);
 
@@ -374,11 +374,37 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
     }
     return selectedCard ? transactions.filter(t => t.accountId === selectedCard.id).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()) : [];
   }, [transactions, selectedCard, isAllCardsSelected, creditCards]);
-  
+
+  // Helper function to calculate balance for a specific card
+  const getCardBalance = (cardId: string) => {
+    const cardNet = transactions
+      .filter(t => t.accountId === cardId)
+      .reduce((sum, t) => sum + t.amount, 0);
+    const paymentTotal = transactions
+      .filter(t => t.creditCardPaymentId === cardId)
+      .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+    return -cardNet - paymentTotal;
+  };
+
+  // Get payments linked to this credit card (from bank accounts)
+  const linkedPayments = useMemo(() => {
+    if (isAllCardsSelected) {
+      return transactions.filter(t =>
+        t.creditCardPaymentId &&
+        creditCards.some(c => c.id === t.creditCardPaymentId)
+      );
+    }
+    return selectedCard ? transactions.filter(t => t.creditCardPaymentId === selectedCard.id) : [];
+  }, [transactions, selectedCard, isAllCardsSelected, creditCards]);
+
   const currentBalance = useMemo(() => {
-    const net = cardTransactions.reduce((sum, t) => sum + t.amount, 0);
-    return -net;
-  }, [cardTransactions]);
+    // Card transactions: expenses on the card increase balance, income decreases it
+    const cardNet = cardTransactions.reduce((sum, t) => sum + t.amount, 0);
+    // Linked payments: these are expenses from bank accounts that pay off the card
+    const paymentTotal = linkedPayments.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+    // Balance = -(card net) - payments made
+    return -cardNet - paymentTotal;
+  }, [cardTransactions, linkedPayments]);
 
   const aggregateStats = useMemo(() => {
       if (!isAllCardsSelected) return null;
@@ -466,25 +492,6 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
       theme: card.theme || ''
     });
     setShowEditCardModal(true);
-  };
-
-  const handlePayBill = () => {
-    if (!onSaveTransaction || !selectedCard) return;
-    const amount = parseFloat(paymentForm.amount);
-    if (isNaN(amount) || amount <= 0) return;
-
-    onSaveTransaction({
-      name: 'Credit Card Payment',
-      amount: amount, 
-      date: paymentForm.date,
-      category: 'Payment',
-      type: 'income',
-      accountId: selectedCard.id,
-      comments: 'Manual Payment Entry'
-    });
-    
-    setShowPayBillModal(false);
-    setPaymentForm({ amount: '', date: new Date().toISOString().split('T')[0] });
   };
 
   const handleReconcile = () => {
@@ -642,9 +649,7 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
                 </h3>
                 <div className="grid gap-4">
                     {creditCards.map(card => {
-                        const cardBalance = -transactions
-                            .filter(t => t.accountId === card.id)
-                            .reduce((sum, t) => sum + t.amount, 0);
+                        const cardBalance = getCardBalance(card.id);
                         const util = card.limit ? (cardBalance / card.limit) * 100 : 0;
                         const available = (card.limit || 0) - cardBalance;
 
@@ -763,7 +768,7 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
             {!isAllCardsSelected && (
                 <div className="grid grid-cols-2 gap-3">
                     <button
-                        onClick={() => setShowPayBillModal(true)}
+                        onClick={() => onPayBill?.(selectedCard!, currentBalance)}
                         className="flex flex-col items-center justify-center p-4 bg-white dark:bg-[#242424] border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-[#2a2a2a] transition-all group text-gray-900 dark:text-gray-100"
                     >
                         <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-full mb-2 group-hover:scale-110 transition-transform">
@@ -892,9 +897,7 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
                       <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
                           {creditCards.map(card => {
                               // Calculate individual card balance
-                              const cardBalance = -transactions
-                                  .filter(t => t.accountId === card.id)
-                                  .reduce((sum, t) => sum + t.amount, 0);
+                              const cardBalance = getCardBalance(card.id);
                               const util = card.limit ? (cardBalance / card.limit) * 100 : 0;
 
                               return (
@@ -1019,46 +1022,8 @@ const CreditCardsPage: React.FC<CreditCardsPageProps> = ({
                  <CardFormFields form={cardForm} setForm={setCardForm} />
              </Modal>
         )}
-        
-        {/* Pay Bill & Reconcile Modals... (Same as before) */}
-        {showPayBillModal && (
-            <Modal
-                title="Record Payment"
-                onClose={() => setShowPayBillModal(false)}
-                onSubmit={handlePayBill}
-                actionLabel="Record Payment"
-            >
-                <div className="space-y-4">
-                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 text-sm rounded-lg flex items-start">
-                        <AlertCircle className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
-                        This will record an income transaction on this card to reduce your balance.
-                    </div>
-                    <div>
-                         <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Payment Amount</label>
-                         <div className="relative">
-                             <span className="absolute left-3 top-2.5 text-gray-500">{currency}</span>
-                             <input 
-                                 className="w-full pl-8 p-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#1A1A1A] text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
-                                 type="number"
-                                 value={paymentForm.amount} 
-                                 onChange={e => setPaymentForm({...paymentForm, amount: e.target.value})}
-                                 placeholder="0.00"
-                             />
-                         </div>
-                     </div>
-                     <div>
-                         <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Date</label>
-                         <input 
-                             className="w-full p-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#1A1A1A] text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
-                             type="date"
-                             value={paymentForm.date} 
-                             onChange={e => setPaymentForm({...paymentForm, date: e.target.value})}
-                         />
-                     </div>
-                </div>
-            </Modal>
-        )}
 
+        {/* Reconcile Modal */}
         {showReconcileModal && (
             <Modal
                 title="Reconcile Balance"

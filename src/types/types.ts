@@ -21,6 +21,7 @@ export interface Transaction {
   isRecurring?: boolean;
   recurringTransactionId?: string;
   loanId?: string; // Link transaction to a specific loan payment
+  creditCardPaymentId?: string; // Link transaction to a specific credit card payment
   tags?: string[]; // Array of tag IDs
 }
 
