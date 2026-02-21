@@ -144,7 +144,8 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, recurringTr
 
   const filteredTransactions = useMemo(() => {
     const now = new Date();
-    let txs = transactions.filter(t => t.type === 'expense');
+    // Exclude credit card payments to avoid double counting
+    let txs = transactions.filter(t => t.type === 'expense' && t.category !== 'Payment' && !t.creditCardPaymentId);
 
     if (timeRange === 'month') {
       txs = txs.filter(t => {
@@ -173,7 +174,10 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ transactions, recurringTr
   const currentMonthTxs = transactions.filter(t => {
     const txDate = new Date(t.date);
     const today = new Date();
-    return txDate.getMonth() === today.getMonth() && txDate.getFullYear() === today.getFullYear();
+    // Exclude credit card payments from monthly totals
+    return txDate.getMonth() === today.getMonth() && 
+           txDate.getFullYear() === today.getFullYear() &&
+           (t.category !== 'Payment' && !t.creditCardPaymentId);
   });
 
   const monthlyIncome = currentMonthTxs

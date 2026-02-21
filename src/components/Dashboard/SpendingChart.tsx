@@ -89,6 +89,9 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, currency, t
 
   const data: ChartData[] = (() => {
     const aggregatedData = transactions.reduce((acc, t) => {
+      // Skip credit card payments
+      if (t.category === 'Payment' || t.creditCardPaymentId) return acc;
+      
       const existing = acc.find(item => item.name === t.category);
       const amount = Math.abs(t.amount);
       if (existing) {
@@ -151,7 +154,11 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, currency, t
 
     const prevTransactions = transactions.filter(t => {
       const txDate = new Date(t.date);
-      return txDate >= startDate && txDate <= endDate && t.type === 'expense';
+      return txDate >= startDate && 
+             txDate <= endDate && 
+             t.type === 'expense' && 
+             t.category !== 'Payment' && 
+             !t.creditCardPaymentId;
     });
 
     const prevData = prevTransactions.reduce((acc, t) => {
@@ -227,7 +234,11 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, currency, t
 
       const periodTransactions = transactions.filter(t => {
         const txDate = new Date(t.date);
-        return txDate >= periodStart && txDate <= periodEnd && t.type === 'expense';
+        return txDate >= periodStart && 
+               txDate <= periodEnd && 
+               t.type === 'expense' && 
+               t.category !== 'Payment' && 
+               !t.creditCardPaymentId;
       });
 
       const periodTotal = periodTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);

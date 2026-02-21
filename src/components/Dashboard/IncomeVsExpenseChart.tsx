@@ -39,7 +39,7 @@ const IncomeVsExpenseChart: React.FC<IncomeVsExpenseChartProps> = ({ transaction
       if (monthIndex !== -1) {
         if (t.type === 'income') {
           months[monthIndex].income += Math.abs(t.amount);
-        } else if (t.type === 'expense') {
+        } else if (t.type === 'expense' && t.category !== 'Payment' && !t.creditCardPaymentId) {
           months[monthIndex].expense += Math.abs(t.amount);
         }
       }

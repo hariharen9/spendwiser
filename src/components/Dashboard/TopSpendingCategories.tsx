@@ -53,7 +53,11 @@ const TopSpendingCategories: React.FC<TopSpendingCategoriesProps> = ({ transacti
     const currentMonthTxs = transactions.filter(t => {
       const txDate = new Date(t.date);
       const today = new Date();
-      return txDate.getMonth() === today.getMonth() && txDate.getFullYear() === today.getFullYear() && t.type === 'expense';
+      return txDate.getMonth() === today.getMonth() && 
+             txDate.getFullYear() === today.getFullYear() && 
+             t.type === 'expense' && 
+             t.category !== 'Payment' && 
+             !t.creditCardPaymentId;
     });
 
     currentMonthTxs.forEach(t => {

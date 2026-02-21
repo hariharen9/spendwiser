@@ -104,7 +104,7 @@ const Header: React.FC<HeaderProps> = ({
                     Year: {currentTime.getFullYear()} • MS: {currentTime.getMilliseconds().toString().padStart(3, '0')}
                   </div>
                   <div className="mt-1 text-blue-300">
-                    As if you needed this 😂
+                    Gomalaaaaaaa 😂
                   </div>
                   {/* Tooltip arrow */}
                   <div className="absolute -top-1 left-6 w-2 h-2 bg-gray-800 border-t border-l border-gray-700 transform rotate-45" />
