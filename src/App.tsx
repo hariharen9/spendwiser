@@ -213,6 +213,19 @@ function App() {
     }
   }, [showToast]);
 
+  // Global Keyboard Shortcuts
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Allow Alt+C to toggle calculator globally, as long as they aren't typing in an input
+      if (e.altKey && e.key.toLowerCase() === 'c') {
+        e.preventDefault();
+        setIsCalculatorModalOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
+
   // Onboarding system
   const {
     hasCompletedOnboarding,

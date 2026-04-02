@@ -8,19 +8,65 @@ interface CalculatorModalProps {
   onClose: () => void;
 }
 
-const CalculatorModal: React.FC<CalculatorModalProps> = ({ isOpen, onClose }) => {
-  const [display, setDisplay] = useState('0');
-  const [equation, setEquation] = useState('');
-  const [history, setHistory] = useState<string[]>([]);
-  const [showHistory, setShowHistory] = useState(false);
+// Helper to reliably evaluate arithmetic strings safely
+const evaluateExpression = (expr: string): string => {
+  try {
+    // Basic sanitization: only permit numbers, basic operators, and decimals
+    if (!/^[0-9+\-*/.\s()]+$/.test(expr)) return '';
+    
+    // Evaluate safely via constrained Function sandbox
+    const func = new Function('return ' + expr);
+    const resultNum = func();
+    
+    if (resultNum === Infinity || resultNum === -Infinity) return 'Error';
+    if (isNaN(resultNum) || resultNum === undefined || resultNum === null) return 'Error';
+    
+    // Fix standard JS float precision (rounds safely to 8 decimal places max)
+    const rounded = Math.round(resultNum * 100000000) / 100000000;
+    return rounded.toString();
+  } catch (e) {
+    return 'Error';
+  }
+};
 
+const CalculatorModal: React.FC<CalculatorModalProps> = ({ isOpen, onClose }) => {
+  // Load persistent state from local storage or fallback to defaults
+  const getInitialState = (key: string, defaultValue: any) => {
+    try {
+      const saved = localStorage.getItem(`spendwiser_calc_${key}`);
+      return saved ? JSON.parse(saved) : defaultValue;
+    } catch {
+      return defaultValue;
+    }
+  };
+
+  const [display, setDisplay] = useState(() => getInitialState('display', '0'));
+  const [equation, setEquation] = useState(() => getInitialState('equation', ''));
+  const [history, setHistory] = useState<string[]>(() => getInitialState('history', []));
+  const [showHistory, setShowHistory] = useState(false);
   const [liveResult, setLiveResult] = useState('');
 
-  // Handle keyboard input
+  // Persist state to local storage when changed
+  useEffect(() => {
+    localStorage.setItem('spendwiser_calc_display', JSON.stringify(display));
+    localStorage.setItem('spendwiser_calc_equation', JSON.stringify(equation));
+    localStorage.setItem('spendwiser_calc_history', JSON.stringify(history));
+  }, [display, equation, history]);
+
+  // Handle keyboard input (when modal is open)
   useEffect(() => {
     if (!isOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is typing in some specific input elsewhere
+      const activeElement = document.activeElement;
+      const isInputFocused = activeElement instanceof HTMLInputElement || activeElement instanceof HTMLTextAreaElement;
+      
+      // Allow Escape to close calculator even if input is focused, unless standard behavior handles it
+      if (isInputFocused && e.key !== 'Escape') {
+        return;
+      }
+      
       const key = e.key;
       
       if (/[0-9]/.test(key)) {
@@ -36,6 +82,8 @@ const CalculatorModal: React.FC<CalculatorModalProps> = ({ isOpen, onClose }) =>
         handleDelete();
       } else if (key === '.') {
         handleDot();
+      } else if (key === '%') {
+        handlePercentage();
       } else if (key.toLowerCase() === 'c') {
         clear();
       }
@@ -45,72 +93,91 @@ const CalculatorModal: React.FC<CalculatorModalProps> = ({ isOpen, onClose }) =>
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, display, equation]);
 
-  // Calculate live result whenever display or equation changes
+  // Live Result Hook
   useEffect(() => {
-    if (!equation && !display) {
+    if (!equation && display === '0') {
       setLiveResult('');
       return;
     }
-
-    try {
-      // Don't calculate if just an operator
-      if (['+', '-', '*', '/'].includes(display)) {
-        setLiveResult('');
-        return;
-      }
-
-      const fullEquation = equation + display;
-      // Basic validation to prevent errors on incomplete equations
-      if (!/\d$/.test(fullEquation) && !/\)$/.test(fullEquation)) {
-         // check if it ends with a digit or closing parenthesis
-         // if not, it might be incomplete, try calculating without the last operator
-         // But simple logic: just try eval if it looks somewhat complete or let it throw
-      }
-
-      // eslint-disable-next-line no-eval
-      const result = eval(fullEquation).toString();
-      
-      if (result !== display && result !== 'Infinity' && !isNaN(parseFloat(result))) {
-         const formattedResult = result.includes('.') && result.split('.')[1].length > 4 
-          ? parseFloat(result).toFixed(4)
-          : result;
-         setLiveResult(formattedResult);
+    
+    // Safely construct evaluatable string
+    const safeDisplay = display === 'Error' ? '' : display;
+    let fullEquation = equation + safeDisplay;
+    
+    let evaluatable = fullEquation.trim();
+    // Trim trailing operators if incomplete
+    if (['+', '-', '*', '/'].includes(evaluatable.slice(-1))) {
+      evaluatable = evaluatable.slice(0, -1);
+    }
+    
+    if (evaluatable.length > 0) {
+      const res = evaluateExpression(evaluatable);
+      if (res !== 'Error' && res !== '' && res !== safeDisplay) {
+        setLiveResult(res);
       } else {
         setLiveResult('');
       }
-    } catch (error) {
+    } else {
       setLiveResult('');
     }
   }, [display, equation]);
 
   const handleNumber = (num: string) => {
-    setDisplay(prev => (prev === '0' ? num : prev + num));
+    setDisplay(prev => {
+      if (prev === '0' || prev === 'Error') return num;
+      // Prevent excessively long numbers
+      if (prev.length > 15) return prev; 
+      return prev + num;
+    });
   };
 
   const handleOperator = (op: string) => {
-    setEquation(display + ' ' + op + ' ');
+    if (display === 'Error') {
+      setDisplay('0');
+      setEquation('0 ' + op + ' ');
+      return;
+    }
+    
+    // If the user just pressed an operator and wants to change it
+    if (display === '0' && equation !== '') {
+      const trimmed = equation.trim();
+      if (['+', '-', '*', '/'].includes(trimmed.slice(-1))) {
+        setEquation(trimmed.slice(0, -1) + ' ' + op + ' ');
+        return;
+      }
+    }
+
+    // Append standard chain
+    setEquation(prev => prev + display + ' ' + op + ' ');
     setDisplay('0');
   };
 
   const calculate = () => {
-    try {
-      const fullEquation = equation + display;
-      // eslint-disable-next-line no-eval
-      const result = eval(fullEquation).toString();
-      
-      // Limit decimal places
-      const formattedResult = result.includes('.') && result.split('.')[1].length > 4 
-        ? parseFloat(result).toFixed(4)
-        : result;
-
-      setHistory(prev => [`${fullEquation} = ${formattedResult}`, ...prev].slice(0, 10));
-      setDisplay(formattedResult);
+    if (display === 'Error') return;
+    
+    const fullEquation = equation + display;
+    const result = evaluateExpression(fullEquation);
+    
+    if (result !== 'Error' && result !== '') {
+      setHistory(prev => [`${fullEquation} = ${result}`, ...prev].slice(0, 10));
+      setDisplay(result);
       setEquation('');
       setLiveResult('');
-    } catch (error) {
+    } else {
       setDisplay('Error');
       setEquation('');
       setLiveResult('');
+    }
+  };
+
+  const handlePercentage = () => {
+    if (display === 'Error') return;
+    const val = parseFloat(display);
+    if (!isNaN(val)) {
+      // Safely convert displayed number to a percentage
+      const floatRes = val / 100;
+      const rounded = Math.round(floatRes * 100000000) / 100000000;
+      setDisplay(rounded.toString());
     }
   };
 
@@ -121,10 +188,18 @@ const CalculatorModal: React.FC<CalculatorModalProps> = ({ isOpen, onClose }) =>
   };
 
   const handleDelete = () => {
+    if (display === 'Error') {
+      setDisplay('0');
+      return;
+    }
     setDisplay(prev => (prev.length > 1 ? prev.slice(0, -1) : '0'));
   };
 
   const handleDot = () => {
+    if (display === 'Error') {
+      setDisplay('0.');
+      return;
+    }
     if (!display.includes('.')) {
       setDisplay(prev => prev + '.');
     }
@@ -133,7 +208,7 @@ const CalculatorModal: React.FC<CalculatorModalProps> = ({ isOpen, onClose }) =>
   const buttons = [
     { label: 'C', type: 'action', onClick: clear, className: 'text-red-500' },
     { label: '⌫', type: 'action', onClick: handleDelete, icon: <Delete className="w-5 h-5" /> },
-    { label: '%', type: 'operator', onClick: () => handleOperator('%') },
+    { label: '%', type: 'action', onClick: handlePercentage },
     { label: '/', type: 'operator', onClick: () => handleOperator('/') },
     { label: '7', type: 'number', onClick: () => handleNumber('7') },
     { label: '8', type: 'number', onClick: () => handleNumber('8') },
@@ -156,7 +231,7 @@ const CalculatorModal: React.FC<CalculatorModalProps> = ({ isOpen, onClose }) =>
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed top-20 right-8 z-50 w-full max-w-xs"
+          className="fixed top-20 right-8 z-[60] w-full max-w-xs focus:outline-none"
           initial={{ opacity: 0, y: -20, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -20, scale: 0.95 }}
@@ -170,15 +245,20 @@ const CalculatorModal: React.FC<CalculatorModalProps> = ({ isOpen, onClose }) =>
                 <span className="text-sm font-medium">Calculator</span>
               </div>
               <div className="flex items-center gap-2">
+                <div className="hidden sm:flex text-xs text-slate-400 dark:text-slate-500 font-medium px-2 bg-slate-200 dark:bg-slate-800 rounded mr-1">
+                  Alt+C
+                </div>
                 <button 
                   onClick={() => setShowHistory(!showHistory)}
                   className={`p-1.5 rounded-lg transition-colors ${showHistory ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500'}`}
+                  title="History"
                 >
                   <History className="w-4 h-4" />
                 </button>
                 <button 
                   onClick={onClose}
                   className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg text-gray-500 transition-colors"
+                  title="Close"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -187,8 +267,8 @@ const CalculatorModal: React.FC<CalculatorModalProps> = ({ isOpen, onClose }) =>
 
             {/* Display */}
             <div className="p-6 bg-gray-50 dark:bg-[#1f1f1f] text-right flex flex-col justify-end h-32 relative">
-              <div className="h-6 text-sm text-gray-500 dark:text-gray-400 font-mono mb-1 truncate">
-                {equation}
+              <div className="h-6 text-sm text-gray-500 dark:text-gray-400 font-mono mb-1 overflow-hidden">
+                <div className="truncate w-full block ml-auto" dir="rtl">{equation}</div>
               </div>
               
               <AnimatePresence mode="wait">
@@ -198,7 +278,7 @@ const CalculatorModal: React.FC<CalculatorModalProps> = ({ isOpen, onClose }) =>
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.1 }}
-                  className="text-4xl font-bold text-gray-900 dark:text-white font-mono tracking-wider overflow-hidden truncate"
+                  className={`text-4xl font-bold font-mono tracking-wider overflow-hidden truncate ${display === 'Error' ? 'text-red-500' : 'text-gray-900 dark:text-white'}`}
                 >
                   {display}
                 </motion.div>
@@ -244,6 +324,12 @@ const CalculatorModal: React.FC<CalculatorModalProps> = ({ isOpen, onClose }) =>
                           {item}
                         </div>
                       ))}
+                      <button 
+                        onClick={() => setHistory([])}
+                        className="w-full text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded mt-2"
+                      >
+                        Clear History
+                      </button>
                     </div>
                   )}
                 </motion.div>
