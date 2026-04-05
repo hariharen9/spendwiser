@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, DollarSign, Calendar, Rows, Columns, Tag as TagIcon, Briefcase, MessageSquare, Users, Plus } from 'lucide-react';
+import { X, DollarSign, Calendar, Rows, Columns, Tag as TagIcon, Briefcase, MessageSquare, Users, Plus, Calculator } from 'lucide-react';
 import { Transaction, Account, Shortcut, Tag, Loan } from '../../types/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { modalVariants } from '../Common/AnimationVariants';
@@ -28,6 +28,7 @@ interface AddTransactionModalProps {
   onAddTag?: (name: string, color: string) => Promise<Tag | null>;
   onUpdateTag?: (tagId: string, name: string, color: string) => Promise<void>;
   onDeleteTag?: (tagId: string) => Promise<void>;
+  onOpenCalculator?: () => void;
 }
 
 // Category keywords mapping for auto-categorization
@@ -67,6 +68,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   onAddTag,
   onUpdateTag,
   onDeleteTag,
+  onOpenCalculator,
 }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -331,7 +333,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
         tags: editingTransaction.tags || [],
       });
       // Show tag input if editing transaction has tags
-      setShowTagInput(editingTransaction.tags && editingTransaction.tags.length > 0);
+      setShowTagInput((editingTransaction.tags?.length ?? 0) > 0);
     } else {
       // Set default account based on the rules
       let defaultAccount = '';
@@ -593,12 +595,29 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                 >
 
                   <div ref={amountInputRef}>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center">
-                      <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2">
-                        <DollarSign className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                      </span>
-                      Amount *
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center">
+                        <span className="bg-blue-100 dark:bg-blue-900/50 p-1 rounded mr-2">
+                          <DollarSign className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                        </span>
+                        Amount *
+                      </label>
+                      {onOpenCalculator && (
+                        <div className="relative group flex items-center pr-1">
+                          <button
+                            type="button"
+                            onClick={onOpenCalculator}
+                            className="text-gray-400 hover:text-blue-500 dark:text-gray-500 dark:hover:text-blue-400 transition-colors p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                          >
+                            <Calculator className="h-[18px] w-[18px]" />
+                          </button>
+                          <div className="absolute bottom-full mb-2 right-0 transform translate-x-1/4 bg-gray-800 text-white text-[11px] font-medium rounded py-1.5 px-2.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-[60] shadow-lg whitespace-nowrap">
+                            Calculator (Alt/Opt + C)
+                            <div className="absolute top-full right-1/2 transform translate-x-[60%] h-0 w-0 border-x-4 border-x-transparent border-t-4 border-t-gray-800"></div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                     <CurrencyInput
                       value={formData.amount}
                       onChange={(value) => {

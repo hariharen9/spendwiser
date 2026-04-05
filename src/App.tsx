@@ -3108,6 +3108,7 @@ function App() {
           await handleUpdateTag(tagId, { name, color });
         }}
         onDeleteTag={handleDeleteTag}
+        onOpenCalculator={() => setIsCalculatorModalOpen(true)}
       />
 
       {/* Import CSV Modal */}
