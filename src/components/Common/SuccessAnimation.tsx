@@ -172,9 +172,8 @@ const SuccessAnimation: React.FC<SuccessAnimationProps> = ({
               {[...Array(12)].map((_, i) => (
                 <motion.div
                   key={`confetti-${i}`}
-                  className={`absolute w-2 h-2 rounded-full ${
-                    ['bg-yellow-400', 'bg-pink-400', 'bg-blue-400', 'bg-green-400', 'bg-purple-400'][i % 5]
-                  }`}
+                  className={`absolute w-2 h-2 rounded-full ${['bg-yellow-400', 'bg-pink-400', 'bg-blue-400', 'bg-green-400', 'bg-purple-400'][i % 5]
+                    }`}
                   initial={{
                     x: 0,
                     y: 0,

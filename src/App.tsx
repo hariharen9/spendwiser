@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
-import { Screen, Transaction, Account, Budget, TotalBudget, Goal, Loan, RecurringTransaction, Shortcut, Tag } from './types/types';
+import { Screen, Transaction, Account, Budget, TotalBudget, Goal, Loan, RecurringTransaction, Shortcut, Tag, PendingTransaction } from './types/types';
 import { User, deleteUser, GoogleAuthProvider, reauthenticateWithPopup, updateProfile, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
 import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, writeBatch, getDocs, increment } from 'firebase/firestore';
@@ -90,6 +90,10 @@ function App() {
   const [loans, setLoans] = useState<Loan[]>([]);
   const [recurringTransactions, setRecurringTransactions] = useState<RecurringTransaction[]>([]);
   const [shortcuts, setShortcuts] = useState<Shortcut[]>([]);
+  const [pendingTransactions, setPendingTransactions] = useState<PendingTransaction[]>([]);
+  const [listenerApiKey, setListenerApiKey] = useState<string | undefined>();
+  const [activePendingTransactionId, setActivePendingTransactionId] = useState<string | null>(null);
+  const [preFilledTransactionData, setPreFilledTransactionData] = useState<Partial<Transaction> | undefined>();
   const [totalBudget, setTotalBudget] = useState<TotalBudget | null>(null);
   const [isAddTransactionModalOpen, setIsAddTransactionModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | undefined>();
@@ -364,6 +368,10 @@ function App() {
           if (userData.tags) {
             setUserTags(userData.tags);
           }
+          
+          // Store listenerApiKey separately to avoid mutating user state
+          // (mutating user triggers all useEffects with [user] dep, causing infinite re-render loop)
+          setListenerApiKey(userData.listenerApiKey);
         } else {
           // If the user document doesn't exist, create it with default categories and dark theme
           const defaultCategories = getDefaultCategories();
@@ -513,6 +521,39 @@ function App() {
       return () => unsubscribe();
     }
   }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      const pendingRef = collection(db, 'spenders', user.uid, 'pending_transactions');
+      const unsubscribe = onSnapshot(pendingRef, snapshot => {
+        const pendingData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as PendingTransaction[];
+        setPendingTransactions(pendingData);
+      });
+      return () => unsubscribe();
+    }
+  }, [user]);
+
+  const handleReviewPending = (pending: PendingTransaction) => {
+    setActivePendingTransactionId(pending.id);
+    setPreSelectedTransactionType(pending.extractedType || 'expense');
+    setPreFilledTransactionData({
+      name: pending.extractedMerchant || '',
+      amount: pending.extractedAmount || 0,
+      date: pending.receivedAt,
+      type: pending.extractedType || 'expense',
+    });
+    setIsAddTransactionModalOpen(true);
+  };
+
+  const handleDismissPending = async (id: string) => {
+    if (!user) return;
+    try {
+      await deleteDoc(doc(db, 'spenders', user.uid, 'pending_transactions', id));
+      showToast('Pending transaction dismissed', 'info');
+    } catch (error) {
+      console.error('Error dismissing pending transaction:', error);
+    }
+  };
 
   const processRecurringTransactions = async () => {
     if (!user || !recurringTransactionsLoaded || isProcessingRecurring) return;
@@ -901,6 +942,17 @@ function App() {
           totalIncome: transactionWithTimestamp.type === 'income' ? increment(transactionWithTimestamp.amount) : increment(0),
           totalExpenses: transactionWithTimestamp.type === 'expense' ? increment(Math.abs(transactionWithTimestamp.amount)) : increment(0),
         });
+      }
+
+      if (activePendingTransactionId) {
+        try {
+          const pendingRef = doc(db, 'spenders', user.uid, 'pending_transactions', activePendingTransactionId);
+          await deleteDoc(pendingRef);
+          setActivePendingTransactionId(null);
+          setPreFilledTransactionData(undefined);
+        } catch (error) {
+          console.error('Error deleting pending transaction:', error);
+        }
       }
     } catch (error) {
       console.error("Error adding/updating transaction: ", error);
@@ -2114,6 +2166,7 @@ function App() {
               }}
               onShowToast={showToast}
               onOpenMonthlyReport={() => setIsMonthlyReportModalOpen(true)}
+              listenerApiKey={listenerApiKey}
             />
           </motion.div>
         );
@@ -3030,6 +3083,42 @@ function App() {
 
           {/* Page Content */}
           <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8">
+            {pendingTransactions.length > 0 && currentScreen !== 'settings' && (
+              <div className="mb-6 space-y-3">
+                {pendingTransactions.map(pending => (
+                  <motion.div 
+                    key={pending.id}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 p-4 rounded-xl flex items-center justify-between shadow-sm"
+                  >
+                    <div>
+                      <h4 className="text-sm font-semibold text-indigo-900 dark:text-indigo-200 flex items-center">
+                        <span className="bg-indigo-500 text-white text-[10px] uppercase font-bold px-2 py-0.5 rounded-full mr-2">New SMS</span>
+                        Pending Transaction Detected
+                      </h4>
+                      <p className="text-sm text-indigo-700 dark:text-indigo-300 mt-1">
+                        {pending.extractedMerchant ? `At ${pending.extractedMerchant}` : 'Unknown Merchant'} for {currency}{pending.extractedAmount}
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button 
+                        onClick={() => handleReviewPending(pending)}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                      >
+                        Review
+                      </button>
+                      <button 
+                        onClick={() => handleDismissPending(pending.id)}
+                        className="bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-800/50 dark:hover:bg-indigo-800 text-indigo-700 dark:text-indigo-300 text-sm font-medium px-3 py-2 rounded-lg transition-colors"
+                      >
+                        Dismiss
+                      </button>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
             <AnimatePresence mode="wait">
               {renderCurrentPage()}
             </AnimatePresence>
@@ -3091,9 +3180,12 @@ function App() {
           setIsAddTransactionModalOpen(false);
           setEditingTransaction(undefined);
           setPreSelectedTransactionType(null);
+          setActivePendingTransactionId(null);
+          setPreFilledTransactionData(undefined);
         }}
         onSave={handleAddTransaction}
         editingTransaction={editingTransaction}
+        preFilledData={preFilledTransactionData}
         accounts={regularAccounts}
         creditCards={creditCards}
         defaultAccountId={defaultAccountId}

@@ -33,6 +33,16 @@ export interface Budget {
   isMock?: boolean;
 }
 
+export interface PendingTransaction {
+  id: string;
+  smsText: string;
+  extractedAmount?: number;
+  extractedMerchant?: string;
+  extractedType?: 'income' | 'expense';
+  status: 'pending' | 'approved' | 'rejected';
+  receivedAt: string; // ISO date string
+}
+
 export type User = {
   uid: string;
   email: string | null;
@@ -49,6 +59,7 @@ export type User = {
   feedbackText?: string;
   hasGivenFeedback?: boolean;
   transactionsAtLastFeedbackPrompt?: number;
+  listenerApiKey?: string; // API Key for the SMS companion app
 };
 
 export interface Account {
