@@ -16,6 +16,7 @@ interface AddTransactionModalProps {
   onClose: () => void;
   onSave: (transaction: Omit<Transaction, 'id'>) => void;
   editingTransaction?: Transaction;
+  preFilledData?: Partial<Transaction>;
   accounts: Account[];
   creditCards?: Account[];
   defaultAccountId?: string | null;
@@ -56,6 +57,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   onClose,
   onSave,
   editingTransaction,
+  preFilledData,
   accounts,
   creditCards = [],
   defaultAccountId,
@@ -334,6 +336,28 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
       });
       // Show tag input if editing transaction has tags
       setShowTagInput((editingTransaction.tags?.length ?? 0) > 0);
+    } else if (preFilledData) {
+      // Set default account based on the rules
+      let defaultAccount = '';
+      if (defaultAccountId && allAccounts.some(acc => acc.id === defaultAccountId)) {
+        defaultAccount = defaultAccountId;
+      } else if (allAccounts.length === 1) {
+        defaultAccount = allAccounts[0].id;
+      }
+
+      setFormData({
+        name: preFilledData.name || '',
+        amount: preFilledData.amount ? Math.abs(preFilledData.amount).toString() : '',
+        date: preFilledData.date ? preFilledData.date.split('T')[0] : new Date().toISOString().split('T')[0],
+        category: preFilledData.category || categories[0],
+        type: preFilledData.type || defaultType || 'expense',
+        accountId: preFilledData.accountId || defaultAccount,
+        comments: preFilledData.comments || '',
+        loanId: preFilledData.loanId || '',
+        tags: preFilledData.tags || [],
+      });
+      setSuggestedCategory(preFilledData.category || null);
+      setShowTagInput((preFilledData.tags?.length ?? 0) > 0);
     } else {
       // Set default account based on the rules
       let defaultAccount = '';
@@ -360,7 +384,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
       setErrors({});
       setTouched({});
     }
-  }, [editingTransaction, isOpen, accounts, creditCards, defaultAccountId, categories, defaultType]);
+  }, [editingTransaction, preFilledData, isOpen, accounts, creditCards, defaultAccountId, categories, defaultType]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

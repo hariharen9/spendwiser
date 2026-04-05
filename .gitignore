@@ -6,3 +6,8 @@ dist/
 firestore.rules
 reddit*
 todo.md
+
+# Local Netlify folder
+.netlify
+*.ps1
+*.sh

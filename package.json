@@ -18,6 +18,7 @@
     "@gsap/react": "^2.1.2",
     "canvas-confetti": "^1.9.3",
     "firebase": "^11.10.0",
+    "firebase-admin": "^13.7.0",
     "framer-motion": "^12.23.12",
     "gsap": "^3.13.0",
     "html2canvas": "^1.4.1",
