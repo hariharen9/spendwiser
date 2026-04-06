@@ -3,11 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/icon-money.svg" />
+    <link rel="apple-touch-icon" href="/icon-money.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#4361ee" />
-    <meta name="description" content="A modern, premium dashboard to track and manage your expenses efficiently. Take control of your finances with real-time insights, budgeting tools, and detailed reports." />
-    <meta name="keywords" content="expense tracker, personal finance, budgeting, money management, finance dashboard, spendwiser" />
+    
+    <!-- SEO Meta Tags -->
+    <title>SpendWiser - Your Ultimate Financial Command Center</title>
+    <meta name="description" content="SpendWiser is a modern, premium financial dashboard to track and manage your expenses efficiently. Control your personal finances with real-time insights, smart budgeting tools, loan simulators, and detailed reports." />
+    <meta name="keywords" content="expense tracker, personal finance, budgeting, money management, finance dashboard, spendwiser, emi calculator, financial goals tracker, personal wealth management" />
     <meta name="author" content="Hariharen" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://spenditwiser.netlify.app/" />
+
     <!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7287300576704384"
      crossorigin="anonymous"></script>
     Google AdSense - Will be removed later -->
@@ -19,18 +28,54 @@
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://spenditwiser.netlify.app/" />
+    <meta property="og:site_name" content="SpendWiser" />
     <meta property="og:title" content="SpendWiser - Your Ultimate Financial Command Center" />
-    <meta property="og:description" content="A modern, premium dashboard to track and manage your expenses efficiently." />
-    <meta property="og:image" content="/icon-money.svg" />
+    <meta property="og:description" content="A modern, premium dashboard to track and manage your expenses efficiently. Get real-time insights, budgeting tools, and debt management utilities." />
+    <!-- Note: Absolute URL works best for OG Image -->
+    <meta property="og:image" content="https://spenditwiser.netlify.app/icon-money.svg" />
+    <meta property="og:image:alt" content="SpendWiser Logo" />
 
     <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:title" content="SpendWiser - Your Ultimate Financial Command Center" />
-    <meta property="twitter:description" content="A modern, premium dashboard to track and manage your expenses efficiently." />
-    <meta property="twitter:image" content="/icon-money.svg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta property="twitter:domain" content="spenditwiser.netlify.app" />
+    <meta property="twitter:url" content="https://spenditwiser.netlify.app/" />
+    <meta name="twitter:title" content="SpendWiser - Your Ultimate Financial Command Center" />
+    <meta name="twitter:description" content="A modern, premium dashboard to track and manage your expenses efficiently. Get real-time insights, budgeting tools, and debt management utilities." />
+    <meta name="twitter:image" content="https://spenditwiser.netlify.app/icon-money.svg" />
+    <meta name="twitter:image:alt" content="SpendWiser Logo" />
 
-    <link rel="apple-touch-icon" href="/icon-money.svg" />
-    <title>SpendWiser - Your Ultimate Financial Command Center</title>
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "SpendWiser",
+      "url": "https://spenditwiser.netlify.app/",
+      "description": "Your Ultimate Financial Command Center. A modern, premium dashboard to track and manage your expenses efficiently.",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "All",
+      "author": {
+        "@type": "Person",
+        "name": "Hariharen",
+        "url": "https://hariharen.site/"
+      },
+      "image": "https://spenditwiser.netlify.app/icon-money.svg",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "featureList": [
+        "Expense Tracking",
+        "Budgeting",
+        "Financial Goals",
+        "Loan Repayment Simulator",
+        "Credit Card Management",
+        "Analytics and Forecasts"
+      ]
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
