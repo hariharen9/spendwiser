@@ -33,6 +33,16 @@
 
 ---
 
+## 🚀 1.0.0: The Dawn of Financial Sovereignty
+
+**The wait is over.** Version 1.0.0 marks the official global release of **SpendWiser**, the flagship, world-class financial command center that is—and will always be—100% free and open-source.
+
+This isn't just an update; it's a revolution in personal finance. We've shattered the dependency on expensive, privacy-invasive bank aggregators. With our **Zero-Touch SMS Automation**, your financial dashboard now builds itself in real-time, powered by institutional-grade AI (Google Gemini).
+
+**Total Clarity. Total Privacy. Total Control.**
+
+---
+
 ## 🌟 Why SpendWiser Will Revolutionize Your Finances
 
 > *"SpendWiser isn't just an expense tracker. It's a complete financial command center that empowers you with the clarity and tools needed to master your money."*
