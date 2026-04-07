@@ -97,7 +97,36 @@
 </table>
 </div>
 
+## 🤖 Zero-Touch SMS Automation (The SpendWiser Listener)
 
+Forget manual entry. Your financial dashboard should build itself.
+
+We've engineered a decoupled, **serverless** background pipeline that intercepts your bank SMS alerts the *exact moment* they hit your phone, and instantly drafts them into your SpendWiser dashboard.
+
+- **100% Free & Open:** By sideloading our open-source companion app natively on Android, we completely bypass expensive bank API aggregators (like Plaid) and restrictive app store policies.
+- **Google Gemini AI Parsing:** A secure Netlify webhook processes your texts via **Google Gemini 2.5 Flash** to intelligently distinguish between income, expenses, merchants, and exact amounts.
+- **Strict Privacy Focus:** Say goodbye to shady apps that sync your entire inbox to third parties. You generate your own UUID API keys, you see the open-source pipeline code, and the data goes directly to your private Firebase vault.
+- **Real-Time Integration:** A beautifully animated, non-intrusive banner appears over your SpendWiser web dashboard instantly. One click on "Review & Add" pre-fills the entire transaction modal for you!
+
+👉 **[View & Download the Android Companion App Here](https://github.com/hariharen9/spendwiser-listener)**
+
+<details>
+<summary>💡 <b>Why this is a clever "Technical Loophole" (The Best Way to Automate)</b></summary>
+<br>
+
+SpendWiser's approach is a deliberate architectural choice to solve the "SMS-to-Web" problem without corporate bloat or privacy compromises:
+
+- **Bypassing Expensive Middlemen:** Traditional apps use aggregators like **Plaid or Yodlee**, which are costly and require you to hand over your bank login credentials to a third party. SpendWiser simply listens to the alerts your bank is *already* sending you.
+- **The "Native Bridge":** Modern browsers (PWAs) are strictly prohibited from reading SMS for security. Native apps on the Play Store are also heavily restricted. By providing a **standalone, open-source Android Listener** for sideloading, we bridge this gap cleanly and legally.
+- **Total Transparency:** Because the Listener app is open-source and the Netlify Parser is your own serverless function, you have 100% visibility into where your data goes. No black boxes.
+- **Cost-Free Scalability:** This entire pipeline runs on free-tier serverless functions and your own device. No monthly API fees for the user.
+
+In short: It's a "solo-dev" masterpiece that provides enterprise-level automation with total user sovereignty.
+</details>
+
+*(Developers: Read the full architectural specs in [`sms-automation-spec.md`](./sms-automation-spec.md) and [`companion-app-spec.md`](./companion-app-spec.md)).*
+
+---
 
 ## 📸 Featured
 
@@ -108,12 +137,12 @@
       <img src="./public/assets/gifs/dashboard-compressed.gif" alt="SpendWiser Dashboard" width="90%">
     </td>
     <td width="33%" align="center">
-      <b>Loan Repayment Simulator</b><br><br>
-      <img src="./public/assets/gifs/emi-compressed.gif" alt="Loan Repayment Simulator" width="90%">
-    </td>
-    <td width="33%" align="center">
       <b>Transaction Management</b><br><br>
       <img src="./public/assets/gifs/transactions-compressed.gif" alt="Transactions Page" width="90%">
+    </td>
+    <td width="33%" align="center">
+      <b>Loan Repayment Simulator</b><br><br>
+      <img src="./public/assets/gifs/emi-compressed.gif" alt="Loan Repayment Simulator" width="90%">
     </td>
   </tr>
   <tr>

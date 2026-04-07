@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Smartphone, Copy, RefreshCw, Trash2, Key } from 'lucide-react';
+import { Smartphone, Copy, RefreshCw, Trash2, Key, ShieldCheck, Github, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { fadeInVariants, buttonHoverVariants } from '../../Common/AnimationVariants';
 import { User } from '../../../types/types';
@@ -77,6 +77,34 @@ const AutomationSettings: React.FC<AutomationSettingsProps> = ({ user, listenerA
       <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
         Generate an API key to link your Android Companion App. This enables zero-touch SMS transaction tracking.
       </p>
+
+      <div className="mb-6 bg-indigo-50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-500/20 rounded-xl p-4">
+        <h4 className="text-sm font-semibold text-indigo-900 dark:text-indigo-300 flex items-center space-x-2 mb-2">
+          <Zap className="h-4 w-4 text-indigo-500" />
+          <span>For the Tech-Savvy Spender 🤓</span>
+        </h4>
+        <p className="text-xs text-indigo-700 dark:text-indigo-400 mb-3 leading-relaxed">
+          Why pay for premium finance apps that force shady bank integrations? By sideloading an Android Listener communicating with our fast <strong>serverless</strong> backend, you get a <strong>zero-cost, completely safe, and 100% free</strong> automation pipeline. 
+        </p>
+        <p className="text-xs text-indigo-700 dark:text-indigo-400 mb-3 leading-relaxed">
+          It's a completely transparent, open way to do this. Simply put: the best way to handle private financial automation.
+        </p>
+        <div className="flex items-center space-x-2 mb-4">
+          <ShieldCheck className="h-4 w-4 text-green-500 flex-shrink-0" />
+          <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Privacy first. Your texts, your database.</span>
+        </div>
+        <div className="border-t border-indigo-200/50 dark:border-indigo-800/30 pt-4">
+          <a 
+            href="https://github.com/hariharen9/spendwiser-listener" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex items-center justify-center space-x-2 w-full py-2.5 bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-800/50 dark:hover:bg-indigo-700 text-indigo-800 dark:text-indigo-200 rounded-lg transition-colors text-sm font-semibold"
+          >
+            <Github className="h-4 w-4" />
+            <span>View README & Get the App</span>
+          </a>
+        </div>
+      </div>
 
       {listenerApiKey ? (
         <div className="space-y-4">

@@ -3084,36 +3084,52 @@ function App() {
           {/* Page Content */}
           <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8">
             {pendingTransactions.length > 0 && currentScreen !== 'settings' && (
-              <div className="mb-6 space-y-3">
+              <div className="mb-6 space-y-4">
                 {pendingTransactions.map(pending => (
                   <motion.div 
                     key={pending.id}
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 p-4 rounded-xl flex items-center justify-between shadow-sm"
+                    initial={{ opacity: 0, y: -20, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="relative overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl shadow-lg shadow-indigo-500/20 p-[1px]"
                   >
-                    <div>
-                      <h4 className="text-sm font-semibold text-indigo-900 dark:text-indigo-200 flex items-center">
-                        <span className="bg-indigo-500 text-white text-[10px] uppercase font-bold px-2 py-0.5 rounded-full mr-2">New SMS</span>
-                        Pending Transaction Detected
-                      </h4>
-                      <p className="text-sm text-indigo-700 dark:text-indigo-300 mt-1">
-                        {pending.extractedMerchant ? `At ${pending.extractedMerchant}` : 'Unknown Merchant'} for {currency}{pending.extractedAmount}
-                      </p>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <button 
-                        onClick={() => handleReviewPending(pending)}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-                      >
-                        Review
-                      </button>
-                      <button 
-                        onClick={() => handleDismissPending(pending.id)}
-                        className="bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-800/50 dark:hover:bg-indigo-800 text-indigo-700 dark:text-indigo-300 text-sm font-medium px-3 py-2 rounded-lg transition-colors"
-                      >
-                        Dismiss
-                      </button>
+                    <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl p-4 md:p-5 relative overflow-hidden h-full flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      {/* Decorative Background Element */}
+                      <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 rounded-full bg-blue-500/10 blur-2xl pointer-events-none"></div>
+                      
+                      <div className="flex items-start md:items-center space-x-4 relative z-10 w-full md:w-auto">
+                        {/* Message Icon */}
+                        <div className="flex-shrink-0 bg-blue-50 dark:bg-blue-900/40 p-3 rounded-full hidden sm:block">
+                          <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+                        </div>
+                        
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-1.5">
+                            <span className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-[10px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full shadow-sm">New SMS Detection</span>
+                          </div>
+                          <h4 className="text-base font-semibold text-gray-900 dark:text-white leading-tight">
+                            {pending.extractedMerchant ? `At ${pending.extractedMerchant}` : 'Unknown Merchant'}
+                          </h4>
+                          <p className="text-lg font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 mt-0.5">
+                            {currency}{pending.extractedAmount}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-row items-center space-x-3 w-full md:w-auto mt-2 md:mt-0 relative z-10">
+                        <button 
+                          onClick={() => handleDismissPending(pending.id)}
+                          className="flex-1 md:flex-none text-center bg-gray-100 hover:bg-gray-200 dark:bg-[#2a2a2a] dark:hover:bg-[#333] text-gray-700 dark:text-gray-300 text-sm font-semibold px-4 py-2.5 rounded-xl transition-all duration-200 active:scale-95"
+                        >
+                          Dismiss
+                        </button>
+                        <button 
+                          onClick={() => handleReviewPending(pending)}
+                          className="flex-[2] md:flex-none text-center bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white text-sm font-semibold px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 active:scale-95"
+                        >
+                          Review &amp; Add
+                        </button>
+                      </div>
                     </div>
                   </motion.div>
                 ))}
