@@ -33,6 +33,24 @@
 
 ---
 
+## 🔐 1.1.0: Bring Your Own Key — AI at Your Fingertips, On Your Terms
+
+**Version 1.1.0 is a landmark in user sovereignty.** No more shared API limits. No more rate exhaustion. The SpendWiser SMS Automation pipeline now runs entirely on *your* personal Google Gemini key — giving you unlimited, unthrottled AI-powered transaction parsing with zero dependency on any central server quota.
+
+### What's New
+
+- **Bring Your Own Key (BYOK):** Add your personal [Google Gemini API key](https://aistudio.google.com/apikey) in Settings → SMS Automation. Your key is stored securely in your private Firebase vault and is never exposed.
+- **3-Tier AI Fallback Engine:** The parsing pipeline now cascades intelligently:
+  1. 🥇 `gemini-3.1-flash-lite-preview` — fastest, most cost-efficient
+  2. 🥈 `gemini-2.5-flash` — robust secondary AI fallback
+  3. 🥉 **Enhanced Regex Parser** — always-on, no-key fallback with smart merchant/amount extraction
+- **Free-Tier Protection:** Users without a personal key automatically fall back to the Regex engine — your central API key is never used for free users.
+- **Persistent Key UI:** Fixed a UI bug where the saved Gemini API key would reset visually on Settings page re-entry.
+
+**Your key. Your data. Your rules.**
+
+---
+
 ## 🚀 1.0.0: The Dawn of Financial Sovereignty
 
 **The wait is over.** Version 1.0.0 marks the official global release of **SpendWiser**, the flagship, world-class financial command center that is—and will always be—100% free and open-source.

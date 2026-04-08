@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Smartphone, Copy, RefreshCw, Trash2, Key, ShieldCheck, Github, Zap, Eye, EyeOff, Save } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { fadeInVariants, buttonHoverVariants } from '../../Common/AnimationVariants';
 import { User } from '../../../types/types';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '../../../firebaseConfig';
 
 interface AutomationSettingsProps {
@@ -16,9 +16,27 @@ const generateUUID = () => crypto.randomUUID();
 
 const AutomationSettings: React.FC<AutomationSettingsProps> = ({ user, listenerApiKey, onShowToast }) => {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [geminiApiKeyInput, setGeminiApiKeyInput] = useState(user?.geminiApiKey || '');
+  const [geminiApiKeyInput, setGeminiApiKeyInput] = useState('');
+  const [savedGeminiKey, setSavedGeminiKey] = useState<string | undefined>(undefined);
   const [isSavingGeminiKey, setIsSavingGeminiKey] = useState(false);
   const [isKeyVisible, setIsKeyVisible] = useState(false);
+
+  useEffect(() => {
+    if (!user?.uid) return;
+    const fetchKey = async () => {
+      try {
+        const snap = await getDoc(doc(db, 'spenders', user.uid));
+        if (snap.exists()) {
+          const key = snap.data().geminiApiKey;
+          setSavedGeminiKey(key);
+          if (key) setGeminiApiKeyInput(key);
+        }
+      } catch (err) {
+        console.error("Failed to fetch API key:", err);
+      }
+    };
+    fetchKey();
+  }, [user?.uid]);
 
   const handleSaveGeminiKey = async () => {
     if (!user || !user.uid) return;
@@ -28,6 +46,7 @@ const AutomationSettings: React.FC<AutomationSettingsProps> = ({ user, listenerA
       await updateDoc(userRef, {
         geminiApiKey: geminiApiKeyInput || null,
       });
+      setSavedGeminiKey(geminiApiKeyInput || undefined);
       onShowToast('Gemini API Key saved successfully!', 'success');
     } catch (error) {
       console.error('Error saving Gemini API key:', error);
@@ -47,6 +66,7 @@ const AutomationSettings: React.FC<AutomationSettingsProps> = ({ user, listenerA
       await updateDoc(userRef, {
         geminiApiKey: null,
       });
+      setSavedGeminiKey(undefined);
       onShowToast('Gemini API Key cleared.', 'info');
     } catch (error) {
       console.error('Error clearing Gemini API key:', error);
@@ -234,17 +254,17 @@ const AutomationSettings: React.FC<AutomationSettingsProps> = ({ user, listenerA
           <div className="flex space-x-3">
             <motion.button
               onClick={handleSaveGeminiKey}
-              disabled={isSavingGeminiKey || geminiApiKeyInput === user?.geminiApiKey}
+              disabled={isSavingGeminiKey || geminiApiKeyInput === savedGeminiKey}
               className="flex-1 flex items-center justify-center space-x-2 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 px-4 py-2 rounded-lg font-medium text-sm disabled:opacity-50 transition-colors"
               variants={buttonHoverVariants}
-              whileHover={isSavingGeminiKey || geminiApiKeyInput === user?.geminiApiKey ? "initial" : "hover"}
-              whileTap={isSavingGeminiKey || geminiApiKeyInput === user?.geminiApiKey ? "initial" : "tap"}
+              whileHover={isSavingGeminiKey || geminiApiKeyInput === savedGeminiKey ? "initial" : "hover"}
+              whileTap={isSavingGeminiKey || geminiApiKeyInput === savedGeminiKey ? "initial" : "tap"}
             >
               <Save className={`h-4 w-4 flex-shrink-0 ${isSavingGeminiKey ? 'animate-pulse' : ''}`} />
               <span>{isSavingGeminiKey ? 'Saving...' : 'Save Key'}</span>
             </motion.button>
 
-            {user?.geminiApiKey && (
+            {savedGeminiKey && (
               <motion.button
                 onClick={handleClearGeminiKey}
                 disabled={isSavingGeminiKey}
