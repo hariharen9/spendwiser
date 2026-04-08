@@ -33,34 +33,6 @@
 
 ---
 
-## 🔐 1.1.0: Bring Your Own Key — AI at Your Fingertips, On Your Terms
-
-**Version 1.1.0 is a landmark in user sovereignty.** No more shared API limits. No more rate exhaustion. The SpendWiser SMS Automation pipeline now runs entirely on *your* personal Google Gemini key — giving you unlimited, unthrottled AI-powered transaction parsing with zero dependency on any central server quota.
-
-### What's New
-
-- **Bring Your Own Key (BYOK):** Add your personal [Google Gemini API key](https://aistudio.google.com/apikey) in Settings → SMS Automation. Your key is stored securely in your private Firebase vault and is never exposed.
-- **3-Tier AI Fallback Engine:** The parsing pipeline now cascades intelligently:
-  1. 🥇 `gemini-3.1-flash-lite-preview` — fastest, most cost-efficient
-  2. 🥈 `gemini-2.5-flash` — robust secondary AI fallback
-  3. 🥉 **Enhanced Regex Parser** — always-on, no-key fallback with smart merchant/amount extraction
-- **Free-Tier Protection:** Users without a personal key automatically fall back to the Regex engine — your central API key is never used for free users.
-- **Persistent Key UI:** Fixed a UI bug where the saved Gemini API key would reset visually on Settings page re-entry.
-
-**Your key. Your data. Your rules.**
-
----
-
-## 🚀 1.0.0: The Dawn of Financial Sovereignty
-
-**The wait is over.** Version 1.0.0 marks the official global release of **SpendWiser**, the flagship, world-class financial command center that is—and will always be—100% free and open-source.
-
-This isn't just an update; it's a revolution in personal finance. We've shattered the dependency on expensive, privacy-invasive bank aggregators. With our **Zero-Touch SMS Automation**, your financial dashboard now builds itself in real-time, powered by institutional-grade AI (Google Gemini).
-
-**Total Clarity. Total Privacy. Total Control.**
-
----
-
 ## 🌟 Why SpendWiser Will Revolutionize Your Finances
 
 > *"SpendWiser isn't just an expense tracker. It's a complete financial command center that empowers you with the clarity and tools needed to master your money."*
@@ -132,9 +104,10 @@ Forget manual entry. Your financial dashboard should build itself.
 We've engineered a decoupled, **serverless** background pipeline that intercepts your bank SMS alerts the *exact moment* they hit your phone, and instantly drafts them into your SpendWiser dashboard.
 
 - **100% Free & Open:** By sideloading our open-source companion app natively on Android, we completely bypass expensive bank API aggregators (like Plaid) and restrictive app store policies.
-- **Google Gemini AI Parsing:** A secure Netlify webhook processes your texts via **Google Gemini 3.1 Flash Lite Preview** to intelligently distinguish between income, expenses, merchants, and exact amounts.
-- **Strict Privacy Focus:** Say goodbye to shady apps that sync your entire inbox to third parties. You generate your own UUID API keys, you see the open-source pipeline code, and the data goes directly to your private Firebase vault.
-- **Real-Time Integration:** A beautifully animated, non-intrusive banner appears over your SpendWiser web dashboard instantly. One click on "Review & Add" pre-fills the entire transaction modal for you!
+- **AI Parsing with BYOK:** Bring your own [Google Gemini API key](https://aistudio.google.com/apikey) for instant, intelligent SMS parsing. Your key lives in your private Firebase vault — never on our servers. No key? No problem — the pipeline falls back to a smart Regex engine automatically.
+- **3-Tier Resilient Parsing:** Every SMS runs through a cascading fallback engine: `gemini-3.1-flash-lite-preview` → `gemini-2.5-flash` → Enhanced Regex Parser. Something always works.
+- **Strict Privacy Focus:** Say goodbye to shady apps that sync your entire inbox to third parties. You generate your own UUID API keys, you control the open-source pipeline, and data goes directly to your private Firebase vault.
+- **Real-Time Integration:** A beautifully animated, non-intrusive banner appears over your SpendWiser dashboard instantly. One click on "Review & Add" pre-fills the entire transaction modal for you!
 
 👉 **[View & Download the Android Companion App Here](https://github.com/hariharen9/spendwiser-listener)**
 
