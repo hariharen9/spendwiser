@@ -114,7 +114,7 @@ Forget manual entry. Your financial dashboard should build itself.
 We've engineered a decoupled, **serverless** background pipeline that intercepts your bank SMS alerts the *exact moment* they hit your phone, and instantly drafts them into your SpendWiser dashboard.
 
 - **100% Free & Open:** By sideloading our open-source companion app natively on Android, we completely bypass expensive bank API aggregators (like Plaid) and restrictive app store policies.
-- **Google Gemini AI Parsing:** A secure Netlify webhook processes your texts via **Google Gemini 2.5 Flash** to intelligently distinguish between income, expenses, merchants, and exact amounts.
+- **Google Gemini AI Parsing:** A secure Netlify webhook processes your texts via **Google Gemini 3.1 Flash Lite Preview** to intelligently distinguish between income, expenses, merchants, and exact amounts.
 - **Strict Privacy Focus:** Say goodbye to shady apps that sync your entire inbox to third parties. You generate your own UUID API keys, you see the open-source pipeline code, and the data goes directly to your private Firebase vault.
 - **Real-Time Integration:** A beautifully animated, non-intrusive banner appears over your SpendWiser web dashboard instantly. One click on "Review & Add" pre-fills the entire transaction modal for you!
 

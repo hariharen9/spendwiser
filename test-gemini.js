@@ -2,7 +2,8 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import "dotenv/config";
 
 const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite-preview" });
+// const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
 const smsText = "INR 1,234.00 credited to your account from SWIGGY on 05-04-2026";
 

@@ -249,7 +249,7 @@ A Netlify serverless function that:
 1. Accepts only `POST` requests
 2. Parses JSON body: `{ apiKey: string, smsText: string }`
 3. Validates the API key by querying Firestore: `WHERE listenerApiKey == apiKey`
-4. Parses the SMS text using **Google Gemini 2.5 Flash** (with regex fallback)
+4. Parses the SMS text using **Google Gemini 3.1 Flash Lite Preview** (with regex fallback)
 5. Saves the result to `spenders/{userId}/pending_transactions`
 
 **Full source code of the webhook:**
@@ -312,7 +312,7 @@ export const handler: Handler = async (event) => {
       }
       
       const genAI = new GoogleGenerativeAI(geminiApiKey);
-      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+      const model = genAI.getGenerativeModel({ model: 'gemini-3.1-flash-lite-preview' });
 
       const prompt = `Extract from this bank SMS — amount (number), merchant (string), type ("income" or "expense"). Reply in JSON only, no markdown. SMS: "${smsText}"`;
 
