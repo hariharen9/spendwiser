@@ -50,9 +50,11 @@ export const handler: Handler = async (event) => {
     let type: 'expense' | 'income' = 'expense';
 
     try {
-      const geminiApiKey = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+      const userData = userDoc.data();
+      const geminiApiKey = userData.geminiApiKey;
+      
       if (!geminiApiKey) {
-        throw new Error('Missing Gemini API Key');
+        throw new Error('NO_PERSONAL_KEY: Free tier users must provide their own Gemini API Key in Settings to use AI parsing.');
       }
 
       const genAI = new GoogleGenerativeAI(geminiApiKey);

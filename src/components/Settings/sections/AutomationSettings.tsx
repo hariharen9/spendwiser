@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Smartphone, Copy, RefreshCw, Trash2, Key, ShieldCheck, Github, Zap } from 'lucide-react';
+import { Smartphone, Copy, RefreshCw, Trash2, Key, ShieldCheck, Github, Zap, Eye, EyeOff, Save } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { fadeInVariants, buttonHoverVariants } from '../../Common/AnimationVariants';
 import { User } from '../../../types/types';
@@ -16,6 +16,45 @@ const generateUUID = () => crypto.randomUUID();
 
 const AutomationSettings: React.FC<AutomationSettingsProps> = ({ user, listenerApiKey, onShowToast }) => {
   const [isGenerating, setIsGenerating] = useState(false);
+  const [geminiApiKeyInput, setGeminiApiKeyInput] = useState(user?.geminiApiKey || '');
+  const [isSavingGeminiKey, setIsSavingGeminiKey] = useState(false);
+  const [isKeyVisible, setIsKeyVisible] = useState(false);
+
+  const handleSaveGeminiKey = async () => {
+    if (!user || !user.uid) return;
+    setIsSavingGeminiKey(true);
+    try {
+      const userRef = doc(db, 'spenders', user.uid);
+      await updateDoc(userRef, {
+        geminiApiKey: geminiApiKeyInput || null,
+      });
+      onShowToast('Gemini API Key saved successfully!', 'success');
+    } catch (error) {
+      console.error('Error saving Gemini API key:', error);
+      onShowToast('Failed to save Gemini API Key.', 'error');
+    } finally {
+      setIsSavingGeminiKey(false);
+    }
+  };
+
+  const handleClearGeminiKey = async () => {
+    if (!user || !user.uid) return;
+    if (!window.confirm('Are you sure you want to clear your Gemini API Key? Automation will fall back to basic Regex.')) return;
+    setGeminiApiKeyInput('');
+    setIsSavingGeminiKey(true);
+    try {
+      const userRef = doc(db, 'spenders', user.uid);
+      await updateDoc(userRef, {
+        geminiApiKey: null,
+      });
+      onShowToast('Gemini API Key cleared.', 'info');
+    } catch (error) {
+      console.error('Error clearing Gemini API key:', error);
+      onShowToast('Failed to clear Gemini API Key.', 'error');
+    } finally {
+      setIsSavingGeminiKey(false);
+    }
+  };
 
   const handleGenerateKey = async () => {
     if (!user || !user.uid) return;
@@ -163,6 +202,64 @@ const AutomationSettings: React.FC<AutomationSettingsProps> = ({ user, listenerA
           <span>{isGenerating ? 'Generating...' : 'Generate Listener API Key'}</span>
         </motion.button>
       )}
+
+      {/* BYOK Section */}
+      <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
+        <h4 className="text-md font-semibold text-gray-900 dark:text-[#F5F5F5] mb-2 flex items-center space-x-2">
+          <Key className="h-4 w-4 text-emerald-500" />
+          <span>Personal Gemini API Key (BYOK)</span>
+        </h4>
+        <p className="text-xs text-gray-600 dark:text-gray-400 mb-4">
+          Provide your own Google Gemini API key to enable instant, high-accuracy SMS parsing. This guarantees you never hit our global limits. If left blank, parsing will fall back to a basic text matcher.
+        </p>
+
+        <div className="space-y-3">
+          <div className="relative">
+            <input
+              type={isKeyVisible ? "text" : "password"}
+              value={geminiApiKeyInput}
+              onChange={(e) => setGeminiApiKeyInput(e.target.value)}
+              placeholder="AIzaSyB..."
+              className="w-full bg-gray-50 dark:bg-[#1a1a1a] text-gray-900 dark:text-[#f5f5f5] text-sm rounded-lg pr-10 pl-3 py-2.5 border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+            />
+            <button
+              type="button"
+              onClick={() => setIsKeyVisible(!isKeyVisible)}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+              {isKeyVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+          
+          <div className="flex space-x-3">
+            <motion.button
+              onClick={handleSaveGeminiKey}
+              disabled={isSavingGeminiKey || geminiApiKeyInput === user?.geminiApiKey}
+              className="flex-1 flex items-center justify-center space-x-2 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 px-4 py-2 rounded-lg font-medium text-sm disabled:opacity-50 transition-colors"
+              variants={buttonHoverVariants}
+              whileHover={isSavingGeminiKey || geminiApiKeyInput === user?.geminiApiKey ? "initial" : "hover"}
+              whileTap={isSavingGeminiKey || geminiApiKeyInput === user?.geminiApiKey ? "initial" : "tap"}
+            >
+              <Save className={`h-4 w-4 flex-shrink-0 ${isSavingGeminiKey ? 'animate-pulse' : ''}`} />
+              <span>{isSavingGeminiKey ? 'Saving...' : 'Save Key'}</span>
+            </motion.button>
+
+            {user?.geminiApiKey && (
+              <motion.button
+                onClick={handleClearGeminiKey}
+                disabled={isSavingGeminiKey}
+                className="flex items-center justify-center space-x-2 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 px-4 py-2 rounded-lg font-medium text-sm disabled:opacity-50 transition-colors"
+                variants={buttonHoverVariants}
+                whileHover="hover"
+                whileTap="tap"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span>Clear</span>
+              </motion.button>
+            )}
+          </div>
+        </div>
+      </div>
     </motion.div>
   );
 };

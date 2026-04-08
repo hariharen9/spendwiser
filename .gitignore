@@ -11,3 +11,9 @@ todo.md
 .netlify
 *.ps1
 *.sh
+
+# Deno
+deno.lock
+
+# Testing
+test-*.js

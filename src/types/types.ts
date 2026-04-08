@@ -60,6 +60,7 @@ export type User = {
   hasGivenFeedback?: boolean;
   transactionsAtLastFeedbackPrompt?: number;
   listenerApiKey?: string; // API Key for the SMS companion app
+  geminiApiKey?: string; // Personal BYOK Gemini API Key
 };
 
 export interface Account {
