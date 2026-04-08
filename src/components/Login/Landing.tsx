@@ -10,21 +10,20 @@ import {
   Smartphone,
   Zap,
   Globe,
-  Star,
   ChevronRight,
   Sparkles,
   Menu,
   X,
   Check,
-  Github,
-  Twitter,
-  Linkedin,
   Rocket,
   Wallet,
   Hourglass,
   Crown,
   Download,
   WifiOff,
+  Bot,
+  MessageSquare,
+  Fingerprint,
 } from "lucide-react"
 import { IoLogoGooglePlaystore } from "react-icons/io5";
 import { SiAppstore } from "react-icons/si";
@@ -32,7 +31,7 @@ import Footer from "../Footer/Footer";
 import ImageCarousel from "../Common/ImageCarousel";
 
 // --- Animation Variants ---
-const containerVariants = {
+const containerVariants: any = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -43,14 +42,14 @@ const containerVariants = {
   },
 };
 
-const itemVariants = {
+const itemVariants: any = {
   hidden: { y: 20, opacity: 0 },
   visible: {
     y: 0,
     opacity: 1,
     transition: {
       duration: 0.6,
-      ease: "easeOut",
+      ease: "circOut",
     },
   },
 };
@@ -167,6 +166,7 @@ export default function Landing({ onCtaClick }: { onCtaClick: () => void }) {
 
   const navLinks = [
     { name: "Features", id: "features" },
+    { name: "SMS Automation", id: "sms-automation" },
     { name: "Pricing", id: "pricing" },
     { name: "About", id: "about" },
   ]
@@ -308,7 +308,7 @@ export default function Landing({ onCtaClick }: { onCtaClick: () => void }) {
                 </div>
               </motion.div>
             </motion.div>
-
+            
             <motion.div
               id="goals"
               className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center"
@@ -329,6 +329,76 @@ export default function Landing({ onCtaClick }: { onCtaClick: () => void }) {
                 </div>
               </motion.div>
             </motion.div>
+          </motion.div>
+        </section>
+
+        {/* --- SMS Automation Standalone Section --- */}
+        <section id="sms-automation" className="relative py-24 sm:py-32 overflow-hidden bg-slate-900 text-white">
+          <div className="absolute inset-0 z-0 opacity-20">
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/20 via-transparent to-blue-600/20"></div>
+          </div>
+          <motion.div
+            className="container mx-auto px-6 relative z-10"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+              <motion.div variants={itemVariants} className="lg:order-last">
+                <div className="inline-flex items-center px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-6">
+                  <Bot className="w-4 h-4 text-emerald-500 mr-2" />
+                  <span className="text-xs font-bold text-emerald-500 uppercase tracking-widest">Next-Gen Intelligence</span>
+                </div>
+                <h3 className="text-3xl sm:text-4xl font-bold mb-4 tracking-tight">Zero-Touch SMS Automation.</h3>
+                <p className="text-lg text-slate-300 mb-6 leading-relaxed">
+                  Your financial dashboard should build itself. SpendWiser's bleeding-edge background pipeline intercepts your bank alerts the *exact moment* they hit your phone and instantly drafts them into your dashboard. No manual entry. No bank passwords shared. Ever.
+                </p>
+                <div className="space-y-6">
+                  <div className="flex gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
+                    <div className="w-12 h-12 flex-shrink-0 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                      <MessageSquare className="w-6 h-6 text-emerald-500" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-lg">3-Tier AI Engine</h4>
+                      <p className="text-sm text-slate-400">Powered by <strong>Google Gemini 3.1 Flash Lite</strong> for institutional-grade parsing that understands semantics, not just text.</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
+                    <div className="w-12 h-12 flex-shrink-0 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                      <Fingerprint className="w-6 h-6 text-blue-500" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-lg">Privacy Sovereign (BYOK)</h4>
+                      <p className="text-sm text-slate-400">Bring Your Own Key. You own the AI processing and the costs. Your data never leaves your private Firebase vault.</p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+              <motion.div variants={itemVariants} className="relative group">
+                <div className="absolute -inset-10 bg-emerald-500/30 rounded-3xl blur-3xl opacity-50 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="relative p-2 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-3xl shadow-2xl">
+                  <div className="rounded-[2rem] overflow-hidden border border-white/10">
+                    <img
+                      src="/assets/dashboard.png"
+                      alt="SMS Automation Feature"
+                      className="w-full h-auto"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent flex items-end p-8">
+                       <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 w-full animate-pulse">
+                         <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/40">
+                           <Zap className="text-white w-5 h-5" />
+                         </div>
+                         <div>
+                           <div className="text-[10px] text-white/70 uppercase font-bold tracking-widest">Instant Detection</div>
+                           <div className="text-white font-bold">New Transaction: Starbucks ₹450</div>
+                         </div>
+                       </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
           </motion.div>
         </section>
 
