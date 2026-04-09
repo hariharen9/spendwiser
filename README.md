@@ -122,7 +122,7 @@ SpendWiser's approach is a deliberate architectural choice to solve the "SMS-to-
 - **Total Transparency:** Because the Listener app is open-source and the Netlify Parser is your own serverless function, you have 100% visibility into where your data goes. No black boxes.
 - **Cost-Free Scalability:** This entire pipeline runs on free-tier serverless functions and your own device. No monthly API fees for the user.
 
-In short: It's a "solo-dev" masterpiece that provides enterprise-level automation with total user sovereignty.
+In short: It provides enterprise-level automation with total user sovereignty.
 </details>
 
 *(Developers: Read the full architectural specs in [`sms-automation-spec.md`](./sms-automation-spec.md) and [`companion-app-spec.md`](./companion-app-spec.md)).*
