@@ -12,6 +12,9 @@
     <a href="https://spenditwiser.netlify.app/">
       <img src="https://img.shields.io/badge/🚀%20Live-Visit%20Now-success?style=for-the-badge" alt="Live Demo">
     </a>
+    <a href="https://github.com/hariharen9/spendwiser-listener">
+      <img src="https://img.shields.io/badge/Companion-Android%20App-A4C639?style=for-the-badge&logo=android&logoColor=white" alt="Android App">
+    </a>
     <a href="https://github.com/hariharen9/spendwiser/stargazers">
       <img src="https://img.shields.io/github/stars/hariharen9/spendwiser?style=for-the-badge&logo=github" alt="GitHub Stars">
     </a>
@@ -52,6 +55,7 @@
 
 ### 💰 **Effortless Tracking & Goals**
 **Automate, Track, and Achieve**
+- **Zero-Touch SMS Automation:** Sync your bank alerts automatically with our companion Android app.
 - **Effortless Expense Tracking:** Log every transaction with ease and intuitiveness. Categorize, tag, and add descriptions for a complete picture of your spending.
 - **Automate Your Finances:** Set up **Recurring Transactions** for bills and subscriptions and never manually enter them again.
 - **Turn Dreams into Reality:** Create **Financial Goals** and track your progress towards your next big purchase, vacation, or investment.
@@ -220,6 +224,7 @@ SpendWiser is designed from the ground up to be a pleasure to use on any device.
 | Feature                  | SpendWiser                               | Spreadsheets       | Other Trackers   |
 | :----------------------- | :--------------------------------------- | :----------------- | :--------------- |
 | **Dashboard**            | ✅ Fully Customizable & Interactive      | ❌ Manual setup     | ❓ Static         |
+| **SMS Automation**       | ✅ Zero-Touch (Android Companion)        | ❌ Manual entry     | 🚫 Not available    |
 | **Loan Tracker/Adviser**      | ✅ Integrated & Powerful                 | ❌ Extremely complex | ⛔️ Not available  |
 | **Analytics & Forecasts**| ✅ Integrated & Automated                | ❌ Complex formulas | ⛔️ Basic stats    |
 | **Goal Setting**            | ✅ Integrated & Automated                | ❌ Complex formulas | ⛔️ Basic or not available    |
