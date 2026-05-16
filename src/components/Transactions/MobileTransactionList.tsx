@@ -237,6 +237,11 @@ const MobileTransactionList: React.FC<MobileTransactionListProps> = ({
                             <p className="text-gray-500 dark:text-[#888888]">Date</p>
                             <p className="font-medium text-gray-900 dark:text-[#F5F5F5]">
                               {formatDate(transaction.date)}
+                              {transaction.receivedAt && (
+                                <span className="ml-1.5 text-xs font-normal text-gray-400 dark:text-gray-500">
+                                  • {new Date(transaction.receivedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              )}
                             </p>
                           </div>
                           <div>

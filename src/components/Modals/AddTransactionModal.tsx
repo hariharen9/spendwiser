@@ -432,6 +432,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
       ...(formData.comments && { comments: formData.comments }),
       ...(formData.loanId && { loanId: formData.loanId }), // Add loanId to the saved transaction
       ...(formData.tags.length > 0 && { tags: formData.tags }), // Add tags
+      ...(preFilledData?.receivedAt && { receivedAt: preFilledData.receivedAt }), // Carry SMS timestamp
     };
 
     // Haptic feedback on successful save

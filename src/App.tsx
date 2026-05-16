@@ -541,6 +541,7 @@ function App() {
       amount: pending.extractedAmount || 0,
       date: pending.receivedAt,
       type: pending.extractedType || 'expense',
+      receivedAt: pending.receivedAt, // Carry SMS timestamp into the transaction
     });
     setIsAddTransactionModalOpen(true);
   };

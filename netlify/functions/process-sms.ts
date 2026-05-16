@@ -27,11 +27,15 @@ export const handler: Handler = async (event) => {
 
   try {
     const body = JSON.parse(event.body || '{}');
-    const { apiKey, smsText } = body;
+    const { apiKey, smsText, receivedAt } = body;
 
     if (!apiKey || !smsText) {
       return { statusCode: 400, body: JSON.stringify({ error: 'Missing apiKey or smsText' }) };
     }
+
+    // Use the timestamp from the listener app (when SMS actually arrived on phone),
+    // falling back to server time if the listener didn't send one.
+    const smsReceivedAt = receivedAt || new Date().toISOString();
 
     // 1. Validate API Key
     const usersRef = db.collection('spenders');
@@ -111,7 +115,7 @@ export const handler: Handler = async (event) => {
       extractedMerchant: merchant,
       extractedType: type,
       status: 'pending',
-      receivedAt: new Date().toISOString()
+      receivedAt: smsReceivedAt
     });
 
     return {

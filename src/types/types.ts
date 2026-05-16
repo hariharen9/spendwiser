@@ -23,6 +23,7 @@ export interface Transaction {
   loanId?: string; // Link transaction to a specific loan payment
   creditCardPaymentId?: string; // Link transaction to a specific credit card payment
   tags?: string[]; // Array of tag IDs
+  receivedAt?: string; // ISO timestamp from SMS listener — only present for auto-captured transactions
 }
 
 export interface Budget {

@@ -192,7 +192,12 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
                           </div>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900 dark:text-[#F5F5F5]">
-                          {new Date(transaction.date).toLocaleDateString()}
+                          <span>{new Date(transaction.date).toLocaleDateString()}</span>
+                          {transaction.receivedAt && (
+                            <span className="ml-1.5 text-xs text-gray-400 dark:text-gray-500" title="SMS received at">
+                              • {new Date(transaction.receivedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          )}
                         </td>
                         <td 
                           className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-[#F5F5F5] relative"
