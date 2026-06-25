@@ -187,3 +187,29 @@ export interface NotificationSettings {
   reminderText: string; // Custom reminder message
   snoozeMinutes: number; // How long to snooze (default 120 minutes)
 }
+
+export interface LoanFundExpense {
+  id: string;
+  desc: string;
+  amount: number;
+  date: string;
+  cat: string;
+  method?: string;
+  note?: string;
+  tags?: string[];
+  createdAt?: Date;
+}
+
+export interface LoanFund {
+  id: string;
+  name: string;
+  purpose?: string;
+  amount: number;
+  startDate: string;
+  dueDate?: string;
+  lender?: string;
+  interestRate?: number;
+  notes?: string;
+  expenses: LoanFundExpense[];
+  createdAt?: Date;
+}

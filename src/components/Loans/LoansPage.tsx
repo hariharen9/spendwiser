@@ -22,6 +22,7 @@ import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend 
 } from 'recharts';
 import ConfirmationDialog from '../BillSplitting/ConfirmationDialog';
+import LoanFundsTab from './LoanFundsTab';
 
 interface LoansPageProps {
   loans: Loan[];
@@ -99,6 +100,7 @@ const LoansPage: React.FC<LoansPageProps> = ({
   onMarkEmiPaid, 
   currency 
 }) => {
+  const [activeMainTab, setActiveMainTab] = useState<'emi' | 'funds'>('emi');
   const [selectedLoanId, setSelectedLoanId] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
@@ -228,18 +230,27 @@ const LoansPage: React.FC<LoansPageProps> = ({
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Loans & EMIs Dashboard</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">Manage liabilities and optimize your repayment path.</p>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">Manage liabilities and track loan funds.</p>
         </div>
-        <button 
-           onClick={onAddLoan}
-           className="flex items-center space-x-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg font-medium hover:opacity-90 transition-opacity shadow-md"
-        >
-           <Plus className="w-4 h-4" />
-           <span>New Loan</span>
-        </button>
+        <div className="flex gap-3 items-center w-full md:w-auto">
+          <div className="flex bg-gray-100 dark:bg-gray-800/80 p-1 rounded-xl w-full md:w-fit">
+            <button onClick={() => setActiveMainTab('emi')} className={`flex-1 md:flex-none px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${activeMainTab === 'emi' ? 'bg-white dark:bg-gray-700 shadow-md text-blue-600 dark:text-blue-400' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}>EMI Tracker</button>
+            <button onClick={() => setActiveMainTab('funds')} className={`flex-1 md:flex-none px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${activeMainTab === 'funds' ? 'bg-white dark:bg-gray-700 shadow-md text-blue-600 dark:text-blue-400' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}>Fund Tracker</button>
+          </div>
+          {activeMainTab === 'emi' && (
+            <button 
+               onClick={onAddLoan}
+               className="flex items-center space-x-2 px-4 py-2.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg font-medium hover:opacity-90 transition-opacity shadow-md flex-shrink-0"
+            >
+               <Plus className="w-4 h-4" />
+               <span className="hidden sm:inline">New Loan</span>
+            </button>
+          )}
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      {activeMainTab === 'emi' ? (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
         {/* Left Sidebar: Loan List / Selection */}
         <div className="lg:col-span-4 space-y-4">
@@ -608,6 +619,9 @@ const LoansPage: React.FC<LoansPageProps> = ({
             </AnimatePresence>
         </div>
       </div>
+      ) : (
+        <LoanFundsTab currency={currency} />
+      )}
     </div>
   );
 };
