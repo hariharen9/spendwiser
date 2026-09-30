@@ -556,6 +556,33 @@ function App() {
     }
   };
 
+  const handleClearAllPending = async () => {
+    if (!user) return;
+    try {
+      const pendingRef = collection(db, 'spenders', user.uid, 'pending_transactions');
+      const snapshot = await getDocs(pendingRef);
+
+      if (snapshot.empty) {
+        showToast('No pending transactions to clear', 'info');
+        return;
+      }
+
+      const docs = snapshot.docs;
+      for (let i = 0; i < docs.length; i += 500) {
+        const batch = writeBatch(db);
+        docs.slice(i, i + 500).forEach(pendingDoc => batch.delete(pendingDoc.ref));
+        await batch.commit();
+      }
+
+      setActivePendingTransactionId(null);
+      setPreFilledTransactionData(undefined);
+      showToast(`Cleared ${docs.length} pending transaction${docs.length > 1 ? 's' : ''}`, 'success');
+    } catch (error) {
+      console.error('Error clearing pending transactions:', error);
+      showToast('Failed to clear pending transactions', 'error');
+    }
+  };
+
   const processRecurringTransactions = async () => {
     if (!user || !recurringTransactionsLoaded || isProcessingRecurring) return;
 
@@ -2168,6 +2195,8 @@ function App() {
               onShowToast={showToast}
               onOpenMonthlyReport={() => setIsMonthlyReportModalOpen(true)}
               listenerApiKey={listenerApiKey}
+              pendingCount={pendingTransactions.length}
+              onClearAllPending={handleClearAllPending}
             />
           </motion.div>
         );

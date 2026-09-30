@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Smartphone, Copy, RefreshCw, Trash2, Key, ShieldCheck, Github, Zap, Eye, EyeOff, Save } from 'lucide-react';
+import { Smartphone, Copy, RefreshCw, Trash2, Key, ShieldCheck, Github, Zap, Eye, EyeOff, Save, Inbox } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { fadeInVariants, buttonHoverVariants } from '../../Common/AnimationVariants';
 import { User } from '../../../types/types';
@@ -9,17 +9,20 @@ import { db } from '../../../firebaseConfig';
 interface AutomationSettingsProps {
   user: User;
   listenerApiKey?: string;
+  pendingCount?: number;
+  onClearAllPending?: () => void;
   onShowToast: (message: string, type: 'success' | 'error' | 'warning' | 'info') => void;
 }
 
 const generateUUID = () => crypto.randomUUID();
 
-const AutomationSettings: React.FC<AutomationSettingsProps> = ({ user, listenerApiKey, onShowToast }) => {
+const AutomationSettings: React.FC<AutomationSettingsProps> = ({ user, listenerApiKey, pendingCount = 0, onClearAllPending, onShowToast }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [geminiApiKeyInput, setGeminiApiKeyInput] = useState('');
   const [savedGeminiKey, setSavedGeminiKey] = useState<string | undefined>(undefined);
   const [isSavingGeminiKey, setIsSavingGeminiKey] = useState(false);
   const [isKeyVisible, setIsKeyVisible] = useState(false);
+  const [isClearingPending, setIsClearingPending] = useState(false);
 
   useEffect(() => {
     if (!user?.uid) return;
@@ -113,6 +116,17 @@ const AutomationSettings: React.FC<AutomationSettingsProps> = ({ user, listenerA
     if (listenerApiKey) {
       navigator.clipboard.writeText(listenerApiKey);
       onShowToast('API Key copied to clipboard!', 'success');
+    }
+  };
+
+  const handleClearAllPending = async () => {
+    if (!onClearAllPending || isClearingPending) return;
+    if (!window.confirm(`Delete all ${pendingCount} pending transaction${pendingCount === 1 ? '' : 's'}? This cannot be undone.`)) return;
+    setIsClearingPending(true);
+    try {
+      await onClearAllPending();
+    } finally {
+      setIsClearingPending(false);
     }
   };
 
@@ -278,6 +292,36 @@ const AutomationSettings: React.FC<AutomationSettingsProps> = ({ user, listenerA
               </motion.button>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* Pending Review Queue */}
+      <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
+        <h4 className="text-md font-semibold text-gray-900 dark:text-[#F5F5F5] mb-2 flex items-center space-x-2">
+          <Inbox className="h-4 w-4 text-amber-500" />
+          <span>Pending Review Queue</span>
+        </h4>
+        <p className="text-xs text-gray-600 dark:text-gray-400 mb-4">
+          Transactions forwarded by the Listener App that are waiting for your review. If the app re-sent duplicates or you don't need them, clear the whole queue at once.
+        </p>
+
+        <div className="flex items-center justify-between gap-3 bg-gray-100 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+          <span className="text-sm font-medium text-gray-800 dark:text-gray-300">
+            {pendingCount > 0
+              ? `${pendingCount} pending transaction${pendingCount === 1 ? '' : 's'}`
+              : 'Nothing pending'}
+          </span>
+          <motion.button
+            onClick={handleClearAllPending}
+            disabled={pendingCount === 0 || isClearingPending || !onClearAllPending}
+            className="flex items-center justify-center space-x-2 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 px-4 py-2 rounded-lg font-medium text-sm disabled:opacity-50 transition-colors flex-shrink-0"
+            variants={buttonHoverVariants}
+            whileHover={pendingCount === 0 || isClearingPending ? 'initial' : 'hover'}
+            whileTap={pendingCount === 0 || isClearingPending ? 'initial' : 'tap'}
+          >
+            <Trash2 className="h-4 w-4" />
+            <span>{isClearingPending ? 'Clearing...' : 'Clear All Pending'}</span>
+          </motion.button>
         </div>
       </div>
     </motion.div>

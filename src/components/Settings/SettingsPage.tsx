@@ -56,6 +56,8 @@ interface SettingsPageProps {
   onShowToast: (message: string, type: 'success' | 'error' | 'warning' | 'info') => void;
   onOpenMonthlyReport?: () => void;
   listenerApiKey?: string;
+  pendingCount?: number;
+  onClearAllPending?: () => void;
 }
 
 const SettingsPage: React.FC<SettingsPageProps> = (props) => {
@@ -108,7 +110,13 @@ const SettingsPage: React.FC<SettingsPageProps> = (props) => {
           />
         </div>
         <div className="space-y-8">
-          <AutomationSettings user={props.user} listenerApiKey={props.listenerApiKey} onShowToast={props.onShowToast} />
+          <AutomationSettings
+            user={props.user}
+            listenerApiKey={props.listenerApiKey}
+            pendingCount={props.pendingCount}
+            onClearAllPending={props.onClearAllPending}
+            onShowToast={props.onShowToast}
+          />
           <AccountManagement
             accounts={props.accounts}
             onAddAccount={props.onAddAccount}
