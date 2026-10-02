@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Settings, FileText } from 'lucide-react';
+import { Settings, FileText, Download } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { fadeInVariants, buttonHoverVariants } from '../../Common/AnimationVariants';
 
@@ -10,6 +10,7 @@ interface DataManagementProps {
   onLoadMockData?: () => void;
   onClearMockData?: () => void;
   onOpenMonthlyReport?: () => void;
+  onMigrationExport?: () => void;
 }
 
 const DataManagement: React.FC<DataManagementProps> = ({
@@ -17,7 +18,8 @@ const DataManagement: React.FC<DataManagementProps> = ({
   onRestoreData,
   onLoadMockData,
   onClearMockData,
-  onOpenMonthlyReport
+  onOpenMonthlyReport,
+  onMigrationExport
 }) => {
   return (
     <motion.div
@@ -103,6 +105,21 @@ const DataManagement: React.FC<DataManagementProps> = ({
           />
           <div className="absolute bottom-full mb-2 w-full flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <span className="bg-black text-white text-xs rounded py-1 px-2">Restore your data from a JSON backup file.</span>
+          </div>
+        </div>
+        <div className="relative group">
+          <motion.button
+            onClick={onMigrationExport}
+            className="flex items-center justify-center space-x-1 bg-[#00b4d8] text-white px-3 py-2 rounded-lg font-medium text-sm w-full hover:bg-[#0096c7] transition-colors duration-200"
+            variants={buttonHoverVariants}
+            whileHover="hover"
+            whileTap="tap"
+          >
+            <Download className="h-4 w-4" />
+            <span>Export for SpendState</span>
+          </motion.button>
+          <div className="absolute bottom-full mb-2 w-full flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <span className="bg-black text-white text-xs rounded py-1 px-2">Export your data for migration into SpendState.</span>
           </div>
         </div>
       </div>

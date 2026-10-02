@@ -55,6 +55,7 @@ interface SettingsPageProps {
   onTriggerOnboarding: () => void;
   onShowToast: (message: string, type: 'success' | 'error' | 'warning' | 'info') => void;
   onOpenMonthlyReport?: () => void;
+  onMigrationExport?: () => void;
   listenerApiKey?: string;
   pendingCount?: number;
   onClearAllPending?: () => void;
@@ -130,6 +131,7 @@ const SettingsPage: React.FC<SettingsPageProps> = (props) => {
             onLoadMockData={props.onLoadMockData}
             onClearMockData={props.onClearMockData}
             onOpenMonthlyReport={props.onOpenMonthlyReport}
+            onMigrationExport={props.onMigrationExport}
           />
           <FeedbackAndSupport onOpenFeedbackModal={props.onOpenFeedbackModal} />
           <SecuritySettings onDeleteUserAccount={props.onDeleteUserAccount} />

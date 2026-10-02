@@ -7,6 +7,7 @@ import { categories, getDefaultCategories, mockTransactions, mockAccounts, mockB
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { TimezoneManager } from './lib/timezone';
+import { buildMigrationExport, downloadMigrationExport } from './lib/migrateExport';
 import { useStreaks } from './hooks/useStreaks';
 
 // Components
@@ -2194,6 +2195,7 @@ function App() {
               }}
               onShowToast={showToast}
               onOpenMonthlyReport={() => setIsMonthlyReportModalOpen(true)}
+              onMigrationExport={handleMigrationExport}
               listenerApiKey={listenerApiKey}
               pendingCount={pendingTransactions.length}
               onClearAllPending={handleClearAllPending}
@@ -2265,6 +2267,18 @@ function App() {
     await updateDoc(analyticsGlobalRef, {
       totalBackups: increment(1)
     });
+  };
+
+  const handleMigrationExport = async () => {
+    if (!user) return;
+    try {
+      const exportData = await buildMigrationExport(user, db);
+      downloadMigrationExport(exportData);
+      showToast('SpendState export ready — download started.', 'success');
+    } catch (error) {
+      console.error('Failed to build SpendState export:', error);
+      showToast('SpendState export failed. Please try again.', 'error');
+    }
   };
 
   const handleExportPDF = async () => {
