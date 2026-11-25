@@ -75,7 +75,7 @@ const Footer = () => {
                 </svg>
               </motion.a>
               <motion.a
-                href="https://hariharen.site"
+                href="https://hariharen.space"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-3 bg-gray-200 dark:bg-slate-800 rounded-lg hover:bg-gray-300 dark:hover:bg-slate-700 transition-colors"
@@ -180,7 +180,7 @@ const Footer = () => {
             <p className="text-gray-500 dark:text-slate-400">
               © 2026 SpendWiser. Built with 💜 by{' '}
               <a 
-                href="https://hariharen.site" 
+                href="https://hariharen.space" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-gray-400 hover:text-blue-500 transition-colors"

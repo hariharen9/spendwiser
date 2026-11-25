@@ -3009,7 +3009,7 @@ function App() {
           transition={{ delay: 0.6 }}
         >
           <p className="text-sm text-[#888888]">
-            Built with <span className="text-red-500">❤️</span> by <a href="https://hariharen.site" target="_blank" rel="noopener noreferrer" className="text-[#007BFF] hover:underline">Hariharen</a> © 2026
+            Built with <span className="text-red-500">❤️</span> by <a href="https://hariharen.space" target="_blank" rel="noopener noreferrer" className="text-[#007BFF] hover:underline">Hariharen</a> © 2026
           </p>
         </motion.div>
       </motion.div>
@@ -3055,7 +3055,7 @@ function App() {
             <img src="/icon-money.svg" alt="SpendWiser Logo" className="h-10 w-10" />
             {/* </div> */}
             <div>
-              <a href="https://hariharen.site" target="_blank" rel="noopener noreferrer">
+              <a href="https://hariharen.space" target="_blank" rel="noopener noreferrer">
                 <h1 className="text-xl font-bold text-gray-900 dark:text-[#F5F5F5]">SpendWiser</h1>
               </a>
               <p className="text-xs text-gray-500 dark:text-gray-400">By <span className="text-blue-500 underline">Hariharen</span></p>
@@ -3188,7 +3188,7 @@ function App() {
           {currentScreen !== 'settings' && (
             <footer className="py-4 text-center text-sm text-gray-500 dark:text-[#888888]">
               <p>
-                Built with <span className="text-red-500">❤️</span> by <a href="https://hariharen.site" target="_blank" rel="noopener noreferrer" className="text-[#007BFF] hover:underline dark:text-[#007BFF]">Hariharen</a> © 2026
+                Built with <span className="text-red-500">❤️</span> by <a href="https://hariharen.space" target="_blank" rel="noopener noreferrer" className="text-[#007BFF] hover:underline dark:text-[#007BFF]">Hariharen</a> © 2026
               </p>
             </footer>
           )}
